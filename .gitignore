@@ -1,0 +1,24 @@
+# Secrets (API keys for LLM providers and Spoonacular)
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+
+# Licensed datasets and API payloads must not be redistributed
+data/raw/
+data/recipenlg/
+*.faiss
+
+# User photos used for testing never go in the repo
+data/photos/
+
+# OS / editor
+.DS_Store
+.vscode/
+.idea/
