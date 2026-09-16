@@ -1,4 +1,4 @@
-Your AI chef for smarter meals tailored to your pantry, preferences, and diet.**
+Your AI companion for smarter meals tailored to your pantry, preferences, and diet.
 
 ChefNova is a proposed conversational cooking assistant for people who need help deciding what to cook with available ingredients. Users upload grocery receipts, review the extracted items and quantities, and save them to an inventory database. Before every recipe recommendation, they confirm or edit their current inventory in a table. ChefNova then uses the confirmed groceries and cooking preferences to suggest meals.
 
@@ -8,10 +8,10 @@ This repository contains an existing recipe-assistant prototype. Checkpoint 1 de
 
 | Member | Responsibility | Contact |
 | --- | --- | --- |
-| [Your name] | Problem framing, target users, core tasks, and presentation slides 1–3 | [University email] |
-| [Member 2] | Literature synthesis, bibliography, and competitive analysis | [University email] |
+| [Chaitanya Nirantar] | Problem framing, target users, core tasks, and presentation slides 1–3 | [cn32@illinois.edu] |
+| [] | Literature synthesis, bibliography, and competitive analysis | [University email] |
 | [Member 3] | Technical approach, Checkpoint 2 validation, and risk analysis | [University email] |
-| [Member 4] | Repository organization, project tracking, roadmap, and final submission | [University email] |
+| [Prathamesh Mulay] | Repository organization, project tracking, roadmap, and final submission | [University email] |
 
 Each member will review at least two distinct academic papers, write an individual reflection, and contribute through commits, issues, and pull requests.
 
