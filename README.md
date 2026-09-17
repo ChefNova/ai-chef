@@ -10,12 +10,14 @@
 
 ## Team Members & Roles
 
-| Member | Role | Domain responsibilities | Contact |
-|---|---|---|---|
-| **Aditya Dilip** | Project Lead · Agent Orchestration & LLM Engineering | Multi-agent architecture, orchestrator agent and prompt chains, structured outputs, system integration, release management | adityad6@illinois.edu · [@adityad6](https://github.com/adityad6) |
-| **{{MEMBER2_NAME}}** | Retrieval, Ranking & Nutrition | Spoonacular API client, RecipeNLG semantic index, hybrid ranking, nutrition-goal scoring | {{MEMBER2_EMAIL}} · [@{{MEMBER2_GITHUB}}](https://github.com/{{MEMBER2_GITHUB}}) |
-| **{{MEMBER3_NAME}}** | Pantry Vision & Multimodal UX | Fridge/pantry photo → ingredient pipeline, ingredient normalization, confirmation UI, grounded explanation cards, visual taste onboarding | {{MEMBER3_EMAIL}} · [@{{MEMBER3_GITHUB}}](https://github.com/{{MEMBER3_GITHUB}}) |
-| **{{MEMBER4_NAME}}** | Memory, Safety & Evaluation | Preference memory, allergen/diet safety gate, evaluation harness, red-team testing, user studies | {{MEMBER4_EMAIL}} · [@{{MEMBER4_GITHUB}}](https://github.com/{{MEMBER4_GITHUB}}) |
+| Member | Responsibility | Contact |
+| --- | --- | --- |
+| Chaitanya Nirantar | Problem framing, target users, core tasks, and presentation slides 1–3 | [cn32@illinois.edu] |
+| [] | Literature synthesis, bibliography, and competitive analysis | [University email] |
+| Aditya Dilip | Technical approach, Checkpoint 2 validation, and risk analysis | [adityad6@illinois.edu] |
+| Prathamesh Mulay | Repository organization, project tracking, roadmap, and final submission | [University email] |
+
+Each member will review at least two distinct academic papers, write an individual reflection, and contribute through commits, issues, and pull requests.
 
 ---
 
