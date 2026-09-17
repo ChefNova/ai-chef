@@ -9,9 +9,9 @@ This corpus contains **12 papers** that ground RecipeRAG's design. They are grou
 | 1 | ReAct: Synergizing Reasoning and Acting in Language Models | 2023 | ICLR | A. Agents & memory | Aditya Dilip | [Yes](yao2023_react.pdf) (CC BY 4.0) |
 | 2 | Recommender AI Agent (InteRecAgent) | 2025 | ACM TOIS | A. Agents & memory | Aditya Dilip | Link only |
 | 3 | Generative Agents: Interactive Simulacra of Human Behavior | 2023 | ACM UIST | A. Agents & memory | {{MEMBER4_NAME}} | Link only |
-| 4 | Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks | 2020 | NeurIPS | B. Retrieval & ranking | {{MEMBER2_NAME}} | Link only |
-| 5 | Large Language Models are Zero-Shot Rankers for Recommender Systems | 2024 | ECIR | B. Retrieval & ranking | {{MEMBER2_NAME}} | [Yes](hou2024_llm_zero_shot_rankers.pdf) (CC BY 4.0) |
-| 6 | Personalized Food Recommendation as Constrained QA over a Food KG | 2021 | ACM WSDM | B. Retrieval & ranking | {{MEMBER2_NAME}} | Link only |
+| 4 | Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks | 2020 | NeurIPS | B. Retrieval & ranking | {{Ananya Jandhyala}} | Link only |
+| 5 | Large Language Models are Zero-Shot Rankers for Recommender Systems | 2024 | ECIR | B. Retrieval & ranking | {{Ananya Jandhyala}} | [Yes](hou2024_llm_zero_shot_rankers.pdf) (CC BY 4.0) |
+| 6 | Personalized Food Recommendation as Constrained QA over a Food KG | 2021 | ACM WSDM | B. Retrieval & ranking | {{Ananya jandhyala}} | Link only |
 | 7 | Inverse Cooking: Recipe Generation from Food Images | 2019 | CVPR | C. Food vision & preference | {{MEMBER3_NAME}} | Link only |
 | 8 | FoodLMM: A Versatile Food Assistant Using Large Multi-Modal Model | 2025 | IEEE TMM | C. Food vision & preference | {{MEMBER3_NAME}} | [Yes](yin2025_foodlmm.pdf) (CC BY-NC-ND 4.0) |
 | 9 | Yum-me: A Personalized Nutrient-Based Meal Recommender System | 2017 | ACM TOIS | C. Food vision & preference | {{MEMBER3_NAME}} | Link only |
@@ -19,7 +19,7 @@ This corpus contains **12 papers** that ground RecipeRAG's design. They are grou
 | 11 | ChatDiet: Personalized Nutrition-Oriented Food Recommender Chatbots | 2024 | Smart Health | D. Food recsys, nutrition & safety | {{MEMBER4_NAME}} | [Yes](yang2024_chatdiet.pdf) (CC BY 4.0) |
 | 12 | The Credibility of Dietary Advice Formulated by ChatGPT: Robo-Diets for People with Food Allergies | 2023 | Nutrition | D. Food recsys, nutrition & safety | {{MEMBER4_NAME}} | Link only |
 
-**Reviewer load:** Aditya Dilip (#1, #2, #10) · {{MEMBER2_NAME}} (#4, #5, #6) · {{MEMBER3_NAME}} (#7, #8, #9) · {{MEMBER4_NAME}} (#3, #11, #12)
+**Reviewer load:** Aditya Dilip (#1, #2, #10) · {{Ananya Jandhyala}} (#4, #5, #6) · {{MEMBER3_NAME}} (#7, #8, #9) · {{MEMBER4_NAME}} (#3, #11, #12)
 
 ---
 
