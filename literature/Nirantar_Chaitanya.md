@@ -1,13 +1,5 @@
 # ChefNova Literature Reflection — Nirantar Chaitanya
 
-## Download
-
-The completed submission-ready Markdown file is available here:
-
-**[Download `Nirantar_Chaitanya.md`](sandbox:/mnt/data/Nirantar_Chaitanya.md)**
-
-It follows the requested individual-reflection structure with a project/role header and, for **each paper**, a complete APA citation and active link, a 4–6 sentence structured summary, exactly three key insights, exactly two limitations/risks, and one concrete ChefNova inspiration.
-
 ## Papers Selected
 
 
