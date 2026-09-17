@@ -1,4 +1,4 @@
-# Individual Reflection: {{MEMBER2_NAME}}
+# Individual Reflection: Ananya Jandhyala
 
 | | |
 |---|---|
