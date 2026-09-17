@@ -19,7 +19,7 @@ This corpus contains **12 papers** that ground RecipeRAG's design. They are grou
 | 11 | ChatDiet: Personalized Nutrition-Oriented Food Recommender Chatbots | 2024 | Smart Health | D. Food recsys, nutrition & safety | {{MEMBER4_NAME}} | [Yes](yang2024_chatdiet.pdf) (CC BY 4.0) |
 | 12 | The Credibility of Dietary Advice Formulated by ChatGPT: Robo-Diets for People with Food Allergies | 2023 | Nutrition | D. Food recsys, nutrition & safety | {{MEMBER4_NAME}} | Link only |
 
-**Reviewer load:** Aditya Dilip (#1, #2, #10) · {{Ananya Jandhyala}} (#4, #5, #6) · {{MEMBER3_NAME}} (#7, #8, #9) · {{MEMBER4_NAME}} (#3, #11, #12)
+**Reviewer load:** Aditya Dilip (#1, #2, #10) · Ananya Jandhyala (#4, #5, #6) · {{MEMBER3_NAME}} (#7, #8, #9) · {{MEMBER4_NAME}} (#3, #11, #12)
 
 ---
 
