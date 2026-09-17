@@ -22,6 +22,8 @@ Choosing a meal involves more than finding a recipe. A person must work out whet
 
 Consider a student with rice, chickpeas, and spinach who wants a vegetarian dinner in about 20 minutes. Finding a recipe is only the beginning: they still need to identify missing ingredients, decide which substitutions are reasonable, and understand the cooking steps. ChefNova focuses on this gap between discovering a recipe and choosing a meal that feels practical to prepare.
 
+People frequently know what groceries they purchased but not what meals are realistically feasible from what remains. Existing recipe search assumes users already know their available ingredients, while generic AI assistants can generate plausible recipes without reliably grounding quantities in actual inventory. ChefNova investigates whether combining receipt-derived inventory with mandatory user confirmation can reduce this gap.
+
 Our working hypothesis is that an assistant grounded in a user's stated ingredients and constraints can reduce the effort of choosing a meal. We will investigate this hypothesis through literature review and prototype evaluation; we do not yet claim reductions in food waste, spending, or preparation time.
 
 The project is timely because conversational AI offers an interaction model in which users can state several constraints together and revise them in follow-up messages. The research question is whether this flexibility can produce useful, understandable suggestions while preserving the user's constraints.
