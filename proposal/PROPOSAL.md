@@ -2,7 +2,7 @@
 
 **A conversational cooking assistant grounded in receipt-derived, user-confirmed grocery inventory**
 
-**Team:** Chaitanya Nirantar · [Person 2 — name TBD] · Aditya Dilip · Prathamesh Mulay
+**Team:** Chaitanya Nirantar · Ananya Jandhyala · Aditya Dilip · Prathamesh Mulay
 **Checkpoint 1 · Fall 2026 · Length: 799 words (Sections 1–5, excluding references)**
 
 ---
