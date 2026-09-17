@@ -9,10 +9,10 @@ This repository contains an existing recipe-assistant prototype. Checkpoint 1 de
 
 | Member | Responsibility | Contact |
 | --- | --- | --- |
-| [Chaitanya Nirantar] | Problem framing, target users, core tasks, and presentation slides 1–3 | [cn32@illinois.edu] |
-| [Ananya Jandhyala] | Literature synthesis, bibliography, and competitive analysis | [ananya22@ilinois.edu] |
-| [Aditya Dilip] | Technical approach, Checkpoint 2 validation, and risk analysis | [adityad6@illinois.edu] |
-| [Prathamesh Mulay] | Repository organization, project tracking, roadmap, and final submission | [University email] |
+| Chaitanya Nirantar | Problem framing, target users, core tasks, and presentation slides 1–3 | [cn32@illinois.edu] |
+| Ananya Jandhyala | Literature synthesis, bibliography, and competitive analysis | [ananya22@illinois.edu] |
+|  Aditya Dilip | Technical approach, Checkpoint 2 validation, and risk analysis | [adityad6@illinois.edu] |
+| Prathamesh Mulay | Repository organization, project tracking, roadmap, and final submission | [pmulay2@illinois.edu] |
 
 Each member will review at least two distinct academic papers, write an individual reflection, and contribute through commits, issues, and pull requests.
 
@@ -21,6 +21,8 @@ Each member will review at least two distinct academic papers, write an individu
 Choosing a meal involves more than finding a recipe. A person must work out whether they have the ingredients, whether the meal matches their preferences, and whether the instructions fit their time, equipment, and cooking experience. For a student or beginner cook, checking these conditions across several recipes can make a simple dinner decision feel complicated.
 
 Consider a student with rice, chickpeas, and spinach who wants a vegetarian dinner in about 20 minutes. Finding a recipe is only the beginning: they still need to identify missing ingredients, decide which substitutions are reasonable, and understand the cooking steps. ChefNova focuses on this gap between discovering a recipe and choosing a meal that feels practical to prepare.
+
+People frequently know what groceries they purchased but not what meals are realistically feasible from what remains. Existing recipe search assumes users already know their available ingredients, while generic AI assistants can generate plausible recipes without reliably grounding quantities in actual inventory. ChefNova investigates whether combining receipt-derived inventory with mandatory user confirmation can reduce this gap.
 
 Our working hypothesis is that an assistant grounded in a user's stated ingredients and constraints can reduce the effort of choosing a meal. We will investigate this hypothesis through literature review and prototype evaluation; we do not yet claim reductions in food waste, spending, or preparation time.
 
@@ -76,8 +78,7 @@ ChefNova brings receipt-based grocery entry, a persistent quantity inventory, ma
 GenAI's proposed role is to extract and normalize grocery receipt entries, interpret informal requests, and explain meal suggestions. Structured database operations handle quantities and persistence, while users resolve uncertain extraction results. Person 3 will specify which operations require generation, which use retrieved recipe data, and which need explicit validation. The prototype's dietary filtering is not evidence of verified allergy safety, and generated nutrition values must not be presented as measured facts.
 
 ## Milestones Roadmap
-
-**Draft for Person 4 to finalize with course dates and later-checkpoint requirements.**
+Proposed Roadmap:
 
 | Checkpoint | Planned outcome |
 | --- | --- |
