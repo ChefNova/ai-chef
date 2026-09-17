@@ -1,4 +1,4 @@
-# Individual Reflection: {{MEMBER3_NAME}}
+# Individual Reflection: Mulay Prathamesh
 
 | | |
 |---|---|
