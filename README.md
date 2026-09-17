@@ -79,24 +79,6 @@ GenAI's proposed role is to extract and normalize grocery receipt entries, inter
 | 3 | Proposed: refine the integrated prototype using evaluation findings; confirm against the official assignment |
 | 4 | Proposed: deliver the final demonstration and evaluation summary; confirm against the official assignment |
 
-## Checkpoint 1 Deliverables
-
-The final repository should include:
-
-```text
-README.md
-literature/
-    BIBLIOGRAPHY.md
-reflections/
-    lastname_firstname.md
-proposal/
-    PROPOSAL.md
-presentation/
-    checkpoint1.pdf or checkpoint1.pptx
-```
-
-Academic PDFs should be included only when redistribution is permitted. GitHub Issues and the Project board should record owners, deadlines, and progress for Checkpoints 1 and 2.
-
 ## Grocery Workflow
 
 Upload receipt → Review extracted groceries → Save quantities → Request a recipe → Confirm/edit inventory → Recommend recipes.
