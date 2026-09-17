@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | **Role** | Retrieval, Ranking & Nutrition |
-| **Project** | RecipeRAG: An Agentic AI Personal Chef |
+| **Project** | | **Project** | ChefNova: AI-Powered Personal Cooking Assistant | |
 | **Papers reviewed** | (1) Retrieval-Augmented Generation, Lewis et al. (2020) · (2) LLMs as Zero-Shot Rankers, Hou et al. (2024) · (3) pFoodReQ, Chen et al. (2021) |
 | **Last updated** | September 2026 |
 
@@ -23,8 +23,8 @@ Lewis, P., Perez, E., Piktus, A., Petroni, F., Karpukhin, V., Goyal, N., Küttle
 
 ### 3. Three Key Insights
 
-1. **Knowledge can live outside the model.** Separating *what the system knows* (the index) from *how it writes* (the generator) means knowledge can be updated without retraining. That is exactly what RecipeRAG needs, because recipes and nutrition data come from a live API and a corpus we can rebuild at any time.
-2. **Retrieval provides provenance.** Because each output is conditioned on specific retrieved documents, the system can point to its sources. Every RecipeRAG recommendation should link to the original recipe and the data behind its numbers, and Spoonacular's terms require crediting the original recipe source anyway.
+1. **Knowledge can live outside the model.** Separating *what the system knows* (the index) from *how it writes* (the generator) means knowledge can be updated without retraining. That is exactly what ChefNova needs, because recipes and nutrition data come from a live API and a corpus we can rebuild at any time.
+2. **Retrieval provides provenance.** Because each output is conditioned on specific retrieved documents, the system can point to its sources. Every ChefNova recommendation should link to the original recipe and the data behind its numbers, and Spoonacular's terms require crediting the original recipe source anyway.
 3. **Generation quality is capped by retrieval quality.** A generator can't use a document the retriever never surfaced. Candidate recall deserves its own metric in our evaluation, separate from end-to-end recommendation quality, so we can tell whether a bad result was a retrieval miss or a ranking mistake.
 
 ### 4. Two Limitations or Risks
@@ -32,9 +32,9 @@ Lewis, P., Perez, E., Piktus, A., Petroni, F., Karpukhin, V., Goyal, N., Küttle
 1. **Semantic similarity is not constraint satisfaction.** Dense retrieval finds passages that are *similar in meaning*, with no notion of hard constraints. A query for "peanut-free Thai noodles" can easily surface a peanut-heavy pad thai because it is semantically close, so allergens, diets, and nutrient bounds must be enforced with exact filters rather than embeddings.
 2. **Grounded does not mean faithful, especially for numbers.** RAG conditions on retrieved text, but nothing forces the generator to stay faithful to it, and the paper evaluates Wikipedia-based knowledge tasks rather than structured numeric data. For nutrition values and ingredient quantities, a single wrong number matters, and free-form generation is the wrong tool for reproducing it.
 
-### 5. One Concrete Inspiration for RecipeRAG
+### 5. One Concrete Inspiration for ChefNova
 
-**Two-source hybrid retrieval with a "numbers come from data" rule.** RecipeRAG will retrieve candidates from two places: Spoonacular's `complexSearch` with hard filters (`diet`, `intolerances`, `excludeIngredients`, nutrient bounds such as `minProtein`) for precise requests, and a semantic index over RecipeNLG for vague, taste-driven requests such as "something cozy and spicy." The LLM receives retrieved recipe data as context, but every number shown to the user (calories, protein, cook time) is copied from structured fields by code and never generated. A Checkpoint 2 test will diff every displayed number against the source data.
+**Two-source hybrid retrieval with a "numbers come from data" rule.** ChefNova will retrieve candidates from two places: Spoonacular's `complexSearch` with hard filters (`diet`, `intolerances`, `excludeIngredients`, nutrient bounds such as `minProtein`) for precise requests, and a semantic index over RecipeNLG for vague, taste-driven requests such as "something cozy and spicy." The LLM receives retrieved recipe data as context, but every number shown to the user (calories, protein, cook time) is copied from structured fields by code and never generated. A Checkpoint 2 test will diff every displayed number against the source data.
 
 ---
 
@@ -58,11 +58,10 @@ Hou, Y., Zhang, J., Lin, Z., Lu, H., Xie, R., McAuley, J., & Zhao, W. X. (2024).
 
 ### 4. Two Limitations or Risks
 
-1. **Out-of-candidate hallucinations.** LLMs occasionally returned items that were not in the candidate set; the authors report this in about 3% of cases for GPT-3.5. In RecipeRAG, a hallucinated "recipe" would never have passed through the safety gate, so every ranked output must be validated against the candidate IDs before anything reaches the user.
+1. **Out-of-candidate hallucinations.** LLMs occasionally returned items that were not in the candidate set; the authors report this in about 3% of cases for GPT-3.5. In ChefNova, a hallucinated "recipe" would never have passed through the safety gate, so every ranked output must be validated against the candidate IDs before anything reaches the user.
 2. **Cost, drift, and domain transfer.** Bootstrapping multiplies LLM calls, and therefore latency and cost, and results from proprietary API models can shift silently when providers update them. The experiments also used movie and game titles that LLMs know well from pre-training, while recipe titles such as "Grandma's Sunday Skillet" carry much less world knowledge, so ranking quality may not transfer without richer item descriptions.
 
-### 5. One Concrete Inspiration for RecipeRAG
-
+### 5. One Concrete Inspiration for ChefNova
 **Transparent score first, then a shuffle-bootstrapped LLM rerank with ID validation.** Our ranker will first compute an interpretable score from pantry coverage, nutrition-goal fit, taste similarity, and a diversity penalty. It will then ask the LLM to rerank the top 10 three times with candidates shuffled each time (each candidate described by title, cuisine, key ingredients, and macros), merge the rankings with a Borda count, and discard any ID not in the candidate set. Checkpoint 2 will report Kendall's τ across shuffles as a stability metric, and when agreement falls below a threshold, we fall back to the transparent score.
 
 ---
@@ -90,6 +89,6 @@ Chen, Y., Subburathinam, A., Chen, C.-H., & Zaki, M. J. (2021). Personalized foo
 1. **Clean, templated queries vs. messy real requests.** Although the templates were derived from real Reddit requests, the benchmark questions are generated from 56 fixed templates, so they are far cleaner than how people actually talk ("I'm mostly off dairy, but cheese is fine"). How well the approach handles ambiguous, conversational input, which our users will produce constantly, remains untested.
 2. **Only as safe as its ingredient links.** Recommendations inherit the coverage and quality of the knowledge graph: an unmapped or ambiguous ingredient ("pesto," "curry paste," "spice blend") can silently hide an allergen. The health guidelines used also focus on diabetes, so other conditions and allergy *severity* are not represented.
 
-### 5. One Concrete Inspiration for RecipeRAG
+### 5. One Concrete Inspiration for ChefNova
 
-**A constraint compiler with allergen expansion and double enforcement.** RecipeRAG will convert each user profile into an explicit constraint object: `must_avoid` (allergens expanded through a derivative and synonym lexicon, e.g., peanut → groundnut, arachis oil, satay), `diet` (e.g., vegetarian), and numeric bounds (e.g., `protein_g >= 35`, `calories <= 650`). The compiler translates this object into Spoonacular query parameters (`intolerances`, `excludeIngredients`, `diet`, `minProtein`, `maxCalories`) *and* hands the same object to the safety gate, which re-checks each candidate's full ingredient list and flags ambiguous ingredients instead of passing them. Constraints are enforced twice, once at query time and once before display, so a failure in either layer is caught by the other.
+**A constraint compiler with allergen expansion and double enforcement.** ChefNova will convert each user profile into an explicit constraint object: `must_avoid` (allergens expanded through a derivative and synonym lexicon, e.g., peanut → groundnut, arachis oil, satay), `diet` (e.g., vegetarian), and numeric bounds (e.g., `protein_g >= 35`, `calories <= 650`). The compiler translates this object into Spoonacular query parameters (`intolerances`, `excludeIngredients`, `diet`, `minProtein`, `maxCalories`) *and* hands the same object to the safety gate, which re-checks each candidate's full ingredient list and flags ambiguous ingredients instead of passing them. Constraints are enforced twice, once at query time and once before display, so a failure in either layer is caught by the other.

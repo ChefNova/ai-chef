@@ -10,7 +10,7 @@ This repository contains an existing recipe-assistant prototype. Checkpoint 1 de
 | Member | Responsibility | Contact |
 | --- | --- | --- |
 | [Chaitanya Nirantar] | Problem framing, target users, core tasks, and presentation slides 1–3 | [cn32@illinois.edu] |
-| [] | Literature synthesis, bibliography, and competitive analysis | [University email] |
+| [Ananya Jandhyala] | Literature synthesis, bibliography, and competitive analysis | [ananya22@ilinois.edu] |
 | [Aditya Dilip] | Technical approach, Checkpoint 2 validation, and risk analysis | [adityad6@illinois.edu] |
 | [Prathamesh Mulay] | Repository organization, project tracking, roadmap, and final submission | [University email] |
 
@@ -60,7 +60,14 @@ Evaluation should examine receipt extraction accuracy, quantity/unit errors, the
 
 ## Competitive Landscape
 
-**Person 2 to complete:** Compare 2–3 named existing systems using verified sources and connect the comparison to the academic literature. Investigate ingredient-based discovery, conversational revision, explanation quality, and preservation of dietary constraints. Do not assume these capabilities are absent from existing tools.
+Existing recipe and meal-planning platforms address important parts of ChefNova's problem, but they emphasize different stages of the cooking decision process. **SuperCook** focuses primarily on ingredient-based recipe discovery, allowing users to identify ingredients they already have and retrieve recipes that can use them. This is useful for pantry-based search, but its core workflow is centered on ingredient matching rather than maintaining a receipt-derived quantity inventory that is explicitly reconfirmed before each recommendation.
+
+**Eat This Much** provides personalized meal planning based on dietary preferences, calorie and macronutrient targets, schedule, and other constraints. It also includes a virtual pantry and can prioritize foods a user already owns. This makes it particularly strong for nutrition-aware meal planning, although its documented workflow emphasizes automated meal-plan generation rather than ChefNova's interaction of extracting purchased groceries from receipts and requiring users to verify what remains before generating a recipe.
+
+**Samsung Food** is the closest broad commercial comparison because it supports recipe recommendations based on available food items as well as dietary preferences, allergies, nutrition goals, and AI-assisted recipe personalization. These capabilities demonstrate that ingredient-aware and personalized recipe recommendation are already established product features.
+
+ChefNova therefore does not claim that personalized or ingredient-based recommendation is itself novel. Instead, the project investigates a more specific interaction: converting unstructured grocery receipts into an editable inventory, requiring users to confirm current quantities before recommendations, preserving explicit constraints across conversation turns, and clearly exposing missing ingredients or uncertainty. This design is motivated by prior research showing the importance of constraint-aware recommendation, retrieval-grounded generation, and careful evaluation of LLM-based ranking and explanation.
+
 
 ## Initial Concept & Value Proposition
 
