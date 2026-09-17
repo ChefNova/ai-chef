@@ -76,8 +76,7 @@ ChefNova brings receipt-based grocery entry, a persistent quantity inventory, ma
 GenAI's proposed role is to extract and normalize grocery receipt entries, interpret informal requests, and explain meal suggestions. Structured database operations handle quantities and persistence, while users resolve uncertain extraction results. Person 3 will specify which operations require generation, which use retrieved recipe data, and which need explicit validation. The prototype's dietary filtering is not evidence of verified allergy safety, and generated nutrition values must not be presented as measured facts.
 
 ## Milestones Roadmap
-
-**Draft for Person 4 to finalize with course dates and later-checkpoint requirements.**
+Proposed Roadmap:
 
 | Checkpoint | Planned outcome |
 | --- | --- |
