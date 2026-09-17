@@ -9,10 +9,10 @@ This repository contains an existing recipe-assistant prototype. Checkpoint 1 de
 
 | Member | Responsibility | Contact |
 | --- | --- | --- |
-| [Chaitanya Nirantar] | Problem framing, target users, core tasks, and presentation slides 1–3 | [cn32@illinois.edu] |
-| [Ananya Jandhyala] | Literature synthesis, bibliography, and competitive analysis | [ananya22@ilinois.edu] |
-| [Aditya Dilip] | Technical approach, Checkpoint 2 validation, and risk analysis | [adityad6@illinois.edu] |
-| [Prathamesh Mulay] | Repository organization, project tracking, roadmap, and final submission | [University email] |
+| Chaitanya Nirantar | Problem framing, target users, core tasks, and presentation slides 1–3 | [cn32@illinois.edu] |
+| Ananya Jandhyala | Literature synthesis, bibliography, and competitive analysis | [ananya22@illinois.edu] |
+|  Aditya Dilip | Technical approach, Checkpoint 2 validation, and risk analysis | [adityad6@illinois.edu] |
+| Prathamesh Mulay | Repository organization, project tracking, roadmap, and final submission | [pmulay2@illinois.edu] |
 
 Each member will review at least two distinct academic papers, write an individual reflection, and contribute through commits, issues, and pull requests.
 
