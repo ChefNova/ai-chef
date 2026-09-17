@@ -1,38 +1,70 @@
-# ChefNova Literature Reflection — Nirantar Chaitanya
+# Individual Reflection: Nirantar Chaitanya
 
-## Download
+|                     |                                                                                                                        |
+| ------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| **Role**            | Personalized Recommendation & Constraint-Aware Recipe Intelligence                                                      |
+| **Project**         | ChefNova: An Agentic AI Personal Chef                                                                                   |
+| **Papers reviewed** | (1) KERL, Mohbat & Zaki (2025) · (2) Personalized Food Recommendation, Chen et al. (2021)                              |
+| **Last updated**    | September 2026                                                                                                           |
 
-The completed submission-ready Markdown file is available here:
+## Paper 1: KERL — Knowledge-Enhanced Personalized Recipe Recommendation Using Large Language Models
 
-**[Download `Nirantar_Chaitanya.md`](sandbox:/mnt/data/Nirantar_Chaitanya.md)**
+### Full Citation & Link
 
-It follows the requested individual-reflection structure with a project/role header and, for **each paper**, a complete APA citation and active link, a 4–6 sentence structured summary, exactly three key insights, exactly two limitations/risks, and one concrete ChefNova inspiration.
+Mohbat, F., & Zaki, M. J. (2025). KERL: Knowledge-enhanced personalized recipe recommendation using large language models. In W. Che, J. Nabende, E. Shutova, & M. T. Pilehvar (Eds.), *Proceedings of the 63rd Annual Meeting of the Association for Computational Linguistics (Volume 1: Long Papers)* (pp. 19125–19141). Association for Computational Linguistics. [https://doi.org/10.18653/v1/2025.acl-long.938](https://doi.org/10.18653/v1/2025.acl-long.938)
 
-## Papers Selected
+### Structured Summary
 
+KERL addresses the gap between general-purpose LLM recipe generation and personalized food recommendations that must satisfy explicit user constraints. The system extracts entities from a natural-language request, queries FoodKG for a relevant subgraph, and passes the retrieved knowledge to an LLM as grounded context. It separates recommendation, recipe-instruction generation, and nutritional-information generation into specialized modules using task-specific LoRA adapters. The authors also construct benchmark data combining recipe questions with constraints and personal preferences, then evaluate recommendation quality as well as generated recipes and nutrition estimates. The experiments show that knowledge-grounded generation can outperform prior approaches, supporting an architecture in which ChefNova retrieves and validates food knowledge before presenting a recipe.
 
-**Mohbat, F., & Zaki, M. J. (2025). “KERL: Knowledge-Enhanced Personalized Recipe Recommendation using Large Language Models.”** This is a peer-reviewed ACL 2025 long paper, published in the *Proceedings of the 63rd Annual Meeting of the Association for Computational Linguistics*, pages 19125–19141. KERL combines FoodKG retrieval with an LLM and separate LoRA adapters for personalized recommendation, recipe generation, and nutritional information. citeturn10view0turn7view0
+### Three Key Insights
 
-**Chen, Y., Subburathinam, A., Chen, C.-H., & Zaki, M. J. (2021). “Personalized Food Recommendation as Constrained Question Answering over a Large-scale Food Knowledge Graph.”** This WSDM 2021 paper formulates personalized food recommendation as constrained question answering over FoodKG, incorporating dietary preferences, allergies, health guidelines, and food-history signals. citeturn4view1turn8search13
+1. **Retrieve before generating.** A food knowledge graph gives the LLM explicit ingredients, tags, relationships, and nutrition context instead of relying only on parameters learned during pretraining.
+2. **Treat constraints as structured inputs.** Dietary rules and personal preferences can be extracted from the request and checked against retrieved recipe candidates before generation begins.
+3. **Use specialized modules for different outputs.** Recommendation, cooking instructions, and nutrition estimation have different objectives, so task-specific adapters can be more dependable than one undifferentiated prompt.
 
-## What the Reflection Emphasizes
+### Two Limitations / Risks
 
-For **KERL**, the reflection focuses on the idea that ChefNova should **retrieve and constrain before it generates**. KERL retrieves relevant FoodKG subgraphs from a natural-language request and supplies them as grounded context to the LLM; it then separates recommendation, cooking-instruction generation, and nutrition generation into specialized modules. Its recommendation component achieved an F1 of **0.854 on the pFoodReq benchmark versus 0.637 for pFoodReq**, while the authors explicitly caution that recommendations remain dependent on KG coverage and that the system does not automatically translate medical conditions such as diabetes into the correct dietary restrictions. citeturn5view0turn6view0
+1. The system remains dependent on the coverage and correctness of FoodKG; missing or incorrect ingredient relationships can lead to incomplete retrieval and weak recommendations.
+2. KERL does not automatically convert every medical condition into clinically appropriate dietary restrictions, so its output must not be treated as medical advice or as a substitute for expert validation.
 
-For the **Chen et al. paper**, the reflection emphasizes persistent user memory and explicit constraint handling. Its architecture expands the immediate query with profile information, handles numerical nutrition requirements through KG augmentation, explicitly models negative constraints, and can incorporate food-history similarity during ranking. Particularly relevant to ChefNova, removing query expansion caused a very large performance drop, while removing constraint modeling reduced F1 from **63.7 to 25.9**, showing why an allergy or “do not include” rule should not simply be left to embedding similarity or an LLM prompt. citeturn6view1turn6view2
+### Concrete Inspiration for ChefNova
 
-The reflection also critically examines the papers instead of only summarizing them. For example, the Chen et al. benchmark uses template-generated questions and randomly generated preferences, while its food-history experiments rely on **30 simulated food logs across five diet styles** rather than longitudinal data from real users. citeturn13view0turn13view2
+ChefNova should implement a **constraint-first RAG pipeline**: convert the user's request and saved profile into structured constraints, retrieve candidate recipes and relevant ingredient facts, reject candidates that violate hard restrictions, and only then use the LLM to adapt and explain the best options.
 
-The final project inspiration combines the strongest ideas from both papers into a ChefNova architecture:
+---
 
-**User/Profile → Constraint Compiler → Recipe Retrieval → Hard Safety Filter → Personalized Ranker → LLM Explanation/Adaptation**
+## Paper 2: Personalized Food Recommendation as Constrained Question Answering over a Large-Scale Food Knowledge Graph
 
-This allows allergies and dietary restrictions to function as non-negotiable filters while cuisine preferences, pantry utilization, nutrition goals, cooking time, and previous likes/dislikes influence ranking.
+### Full Citation & Link
 
-## Research Basis
+Chen, Y., Subburathinam, A., Chen, C.-H., & Zaki, M. J. (2021). Personalized food recommendation as constrained question answering over a large-scale food knowledge graph. In *Proceedings of the 14th ACM International Conference on Web Search and Data Mining* (pp. 544–552). Association for Computing Machinery. [https://doi.org/10.1145/3437963.3441816](https://doi.org/10.1145/3437963.3441816)
 
-The file uses the official **ACL Anthology** record for KERL, which confirms its ACL 2025 publication metadata, DOI, venue, and page range. citeturn10view0 The KERL paper describes FoodKG-backed retrieval, SPARQL-based subgraph construction, the multi-LoRA architecture, and the three recommendation/recipe/nutrition modules. citeturn7view0turn5view0
+### Structured Summary
 
-For the second paper, the WSDM publication metadata and methodology were checked against the paper itself and IBM Research's publication record. The study reports that pFoodReQ incorporates user preferences and health guidelines as constraints and substantially outperforms its non-personalized baselines; its human evaluation also places pFoodReQ above the compared systems. citeturn4view1turn6view1turn12search1
+This paper frames personalized food recommendation as constrained question answering over a large food knowledge graph rather than as ordinary similarity-based ranking. The proposed pFoodReQ framework expands a user's immediate query with persistent dietary preferences, allergies, health guidelines, and food-history signals. It introduces mechanisms for handling negative requirements and numerical comparisons, which are important for requests such as excluding an allergen or limiting calories. The authors build a benchmark from FoodKG and health guidelines and report substantially better results than non-personalized baselines, including an average absolute improvement of 59.7% across evaluation metrics. The work demonstrates that explicit constraint reasoning is essential when a recommender must balance relevance, personalization, nutrition, and safety.
 
-**[Download the finished `Nirantar_Chaitanya.md`](sandbox:/mnt/data/Nirantar_Chaitanya.md)**
+### Three Key Insights
+
+1. **A profile should augment each request.** Long-term information such as allergies, diet, nutrition targets, and prior food choices must remain available even when the user does not repeat it in every prompt.
+2. **Negative and numeric constraints need explicit logic.** “No peanuts” and “under 600 calories” should be evaluated deterministically rather than left to semantic similarity or free-form language generation.
+3. **History improves ranking after safety filtering.** Previous meals and feedback can personalize the order of valid candidates without weakening non-negotiable restrictions.
+
+### Two Limitations / Risks
+
+1. Much of the benchmark uses template-generated questions and randomly generated preferences, so performance may not transfer directly to messy, ambiguous requests from real households.
+2. The food-history evaluation uses simulated logs rather than long-term behavior from real users, limiting the evidence that the approach can learn changing preferences over time.
+
+### Concrete Inspiration for ChefNova
+
+ChefNova should maintain a **persistent preference-and-safety profile** and compile it with each new request into two layers: hard filters for allergies, exclusions, and numeric nutrition limits, followed by a soft ranker for cuisine preference, pantry use, preparation time, and the user's past likes or dislikes.
+
+---
+
+## Combined Design Takeaway for ChefNova
+
+Together, the papers suggest the following recommendation flow:
+
+**User request + saved profile → constraint compiler → knowledge-graph/recipe retrieval → hard safety filter → personalized ranking → LLM explanation and recipe adaptation**
+
+This design keeps allergies and dietary restrictions non-negotiable while still allowing ChefNova to learn preferences and provide flexible, conversational recipes. It also makes recommendations more traceable because the system can show which profile rule, ingredient fact, or nutrition constraint affected the result.
