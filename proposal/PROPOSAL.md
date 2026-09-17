@@ -1,4 +1,4 @@
-# RecipeRAG: Project Proposal
+# ChefNova: Project Proposal
 
 **An agentic AI personal chef that recommends real, allergy-safe recipes from your pantry, preferences, and nutrition goals**
 
