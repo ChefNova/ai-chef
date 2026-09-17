@@ -1,21 +1,10 @@
-# Individual Reflection: Mulay Prathamesh
-
-| | |
-|---|---|
-| **Role** | Pantry Vision & Multimodal UX |
-| **Project** | RecipeRAG: An Agentic AI Personal Chef |
-| **Papers reviewed** | (1) Inverse Cooking, Salvador et al. (2019) · (2) FoodLMM, Yin et al. (2025) · (3) Yum-me, Yang et al. (2017) |
-| **Last updated** | September 2026 |
-
----
-
-## Paper 1: Inverse Cooking: Recipe Generation from Food Images
+# Paper 1: Inverse Cooking: Recipe Generation from Food Images
 
 ### 1. Full Citation & Link
 
-Salvador, A., Drozdzal, M., Giró-i-Nieto, X., & Romero, A. (2019). Inverse cooking: Recipe generation from food images. In *Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR)* (pp. 10453–10462). IEEE. https://doi.org/10.1109/CVPR.2019.01070
+Salvador, A., Drozdzal, M., Giró-i-Nieto, X., & Romero, A. (2019). Inverse cooking: Recipe generation from food images. In *Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR)* (pp. 10453–10462). IEEE. [https://doi.org/10.1109/CVPR.2019.01070](https://doi.org/10.1109/CVPR.2019.01070)
 
-**Link:** https://openaccess.thecvf.com/content_CVPR_2019/html/Salvador_Inverse_Cooking_Recipe_Generation_From_Food_Images_CVPR_2019_paper.html · Preprint: https://arxiv.org/abs/1812.06164 · Code: https://github.com/facebookresearch/inversecooking
+**Link:** [https://openaccess.thecvf.com/content_CVPR_2019/html/Salvador_Inverse_Cooking_Recipe_Generation_From_Food_Images_CVPR_2019_paper.html](https://openaccess.thecvf.com/content_CVPR_2019/html/Salvador_Inverse_Cooking_Recipe_Generation_From_Food_Images_CVPR_2019_paper.html) · Preprint: [https://arxiv.org/abs/1812.06164](https://arxiv.org/abs/1812.06164) · Code: https://github.com/facebookresearch/inversecooking
 
 ### 2. Structured Summary
 
@@ -23,28 +12,32 @@ Salvador, A., Drozdzal, M., Giró-i-Nieto, X., & Romero, A. (2019). Inverse cook
 
 ### 3. Three Key Insights
 
-1. **Ingredients are a set, not a sequence.** Modeling ingredients as an unordered set means a model isn't penalized for listing "garlic, onion" instead of "onion, garlic." Our pantry detector should be evaluated the same way, with set-based precision, recall, and F1 rather than sequence-matching metrics.
-2. **Separate perception from what you do with it.** Splitting "what is in the image" from "what to cook" makes each stage easier to improve and evaluate on its own. RecipeRAG keeps the perception stage and replaces free-form generation with retrieval of real, tested recipes.
-3. **An ingredient set is a reusable bridge.** Once a photo becomes a clean ingredient set, it can drive recipe retrieval, substitutions, and "what am I missing?" shopping lists. That set, not a dish name or a caption, should be the vision agent's output contract.
+1. **Ingredients are a set, not a sequence.** Modeling ingredients as an unordered set means a model isn't penalized for listing "garlic, onion" instead of "onion, garlic." For ChefNova, the broader lesson is that extracted grocery items should be evaluated as structured ingredient records rather than as a fixed sequence of text.
+
+2. **Separate extraction from recipe reasoning.** Splitting "what was purchased" from "what to cook" makes each stage easier to evaluate independently. ChefNova will first convert a receipt or grocery-order screenshot into structured ingredient data, then use that confirmed inventory as input to recipe recommendation and reasoning.
+
+3. **Structured ingredients are a reusable bridge.** Once a receipt or grocery-order screenshot becomes a clean set of normalized ingredients, that information can support recipe retrieval, ingredient checking, substitutions, and missing-item lists. The extraction agent should therefore output structured ingredient records rather than an unconstrained description of the image.
 
 ### 4. Two Limitations or Risks
 
-1. **Plated dishes are not fridge shelves.** Recipe1M images show finished, plated food, while our photos contain packaged, stacked, occluded, and partly visible items (a jar behind the milk, a vegetable in an opaque bag). Accuracy on plated food won't transfer directly to fridges and pantries, and some ingredients, such as oil in a pan or butter in a sauce, aren't visible in any photo.
+1. **Receipt formats differ substantially from benchmark images.** Grocery receipts and online-order screenshots can vary in layout, abbreviations, image quality, and naming conventions across stores. This means extraction accuracy cannot simply be assumed from general multimodal benchmarks and should instead be evaluated on representative receipt and order examples.
+
 2. **Generated recipes are unverified.** Instructions generated from an image can be plausible but untested, with no guarantees about quantities, cooking safety (for example, safe internal temperatures for meat), or allergens. That is acceptable for research but not for a consumer product that tells people what to eat.
 
-### 5. One Concrete Inspiration for RecipeRAG
+### 5. One Concrete Inspiration for ChefNova
 
-**Set-based pantry evaluation plus a "hidden staples" profile.** Our vision agent will output an ingredient set with a confidence score per item, evaluated against human-labeled fridge and pantry photos using set precision, recall, and F1. Because many staples are never visible, onboarding will ask once which staples the user keeps on hand (oil, salt, pepper, flour, common spices) and store them as assumed-available, so they don't count as "missing" when ranking recipes. This mirrors Spoonacular's `ignorePantry` option, which skips typical pantry items such as water, salt, and flour when matching ingredients.
+**Structured grocery extraction with user confirmation.** Our multimodal agent will convert grocery receipts or online grocery order screenshots into structured ingredient records containing the normalized ingredient name, quantity, and unit. Because a purchase does not prove that an item is still available, extracted items will be presented to the user for review and correction before being saved to the pantry. This separates visual extraction from authoritative inventory state and gives us a concrete way to evaluate extraction accuracy.
+
 
 ---
 
-## Paper 2: FoodLMM: A Versatile Food Assistant Using Large Multi-Modal Model
+# Paper 2: FoodLMM: A Versatile Food Assistant Using Large Multi-Modal Model
 
 ### 1. Full Citation & Link
 
-Yin, Y., Qi, H., Zhu, B., Chen, J., Jiang, Y.-G., & Ngo, C.-W. (2025). FoodLMM: A versatile food assistant using large multi-modal model. *IEEE Transactions on Multimedia, 27*, 6949–6961. https://doi.org/10.1109/TMM.2025.3590924
+Yin, Y., Qi, H., Zhu, B., Chen, J., Jiang, Y.-G., & Ngo, C.-W. (2025). FoodLMM: A versatile food assistant using large multi-modal model. *IEEE Transactions on Multimedia, 27*, 6949–6961. [https://doi.org/10.1109/TMM.2025.3590924](https://doi.org/10.1109/TMM.2025.3590924)
 
-**Link:** https://doi.org/10.1109/TMM.2025.3590924 · Open preprint: https://arxiv.org/abs/2312.14991 · Code: https://github.com/YuehaoYin/FoodLMM
+**Link:** [https://doi.org/10.1109/TMM.2025.3590924](https://doi.org/10.1109/TMM.2025.3590924) · Open preprint: [https://arxiv.org/abs/2312.14991](https://arxiv.org/abs/2312.14991) · Code: https://github.com/YuehaoYin/FoodLMM
 
 ### 2. Structured Summary
 
@@ -52,28 +45,32 @@ Yin, Y., Qi, H., Zhu, B., Chen, J., Jiang, Y.-G., & Ngo, C.-W. (2025). FoodLMM: 
 
 ### 3. Three Key Insights
 
-1. **General models still need domain checking.** Even strong LMMs are not food experts, and fine-grained distinctions such as scallions vs. leeks or Greek yogurt vs. sour cream are exactly where they slip. Before trusting any hosted model, we should benchmark it on *our own* labeled fridge photos.
-2. **Numbers deserve dedicated outputs, not free text.** FoodLMM predicts nutrition through dedicated regression tokens and heads rather than asking the language model to write numbers as text. This supports a RecipeRAG-wide rule: numbers come from structured sources or specialized tools, never from free-form generation.
-3. **Structured data can be turned into realistic conversations.** Using GPT-4 to convert structured nutrition records into multi-turn dialogues is a cheap way to create training and test data. We can do the same, turning recipe metadata and synthetic user profiles into conversational test cases for our evaluation harness.
+1. **General models still need domain checking.** Even strong multimodal models can struggle with fine-grained food distinctions and messy real-world inputs. Before relying on a hosted model, ChefNova should benchmark its extraction performance on representative grocery receipts and online grocery-order screenshots from the intended use case.
+
+2. **Numbers deserve dedicated outputs, not free text.** FoodLMM predicts nutrition through dedicated regression tokens and heads rather than asking the language model to write numbers as text. This supports a ChefNova design principle: quantities and units should come from structured data and validation logic rather than relying on free-form generation.
+
+3. **Structured data can support realistic conversational testing.** Using structured recipe metadata and synthetic user profiles can help create realistic multi-turn test cases. ChefNova can use these cases to test whether constraints such as time, diet, protein goals, and dislikes are preserved throughout a conversation.
 
 ### 4. Two Limitations or Risks
 
-1. **Benchmarks show clean food, not cluttered kitchens.** The datasets behind FoodLMM mostly show single dishes or food items in relatively clean photos, not crowded shelves with packaging, glare, and occlusion. Reported accuracy likely overstates what to expect on real fridge photos, which is our core use case.
-2. **Synthetic teacher data and heavy deployment.** Part of the fine-tuning data is generated by GPT-4, so the teacher model's errors and biases can be baked into a supposedly expert "food assistant." A model that combines an LMM with a segmentation backbone also needs dedicated GPU serving, which is beyond a student team's budget, so in practice we will call a hosted general-purpose multimodal model and must compensate for its weaker food expertise.
+1. **Benchmarks do not fully represent grocery inputs.** The datasets used by FoodLMM contain relatively controlled food images and task-specific benchmarks, while ChefNova will process receipts and online grocery screenshots with different layouts, abbreviations, image quality, and formatting. Reported benchmark performance therefore may not directly predict extraction accuracy in our use case.
 
-### 5. One Concrete Inspiration for RecipeRAG
+2. **Synthetic teacher data and heavy deployment.** Part of the fine-tuning data is generated by GPT-4, so the teacher model's errors and biases can be incorporated into the resulting food assistant. A model that combines an LMM with a segmentation backbone also requires dedicated GPU serving, which is beyond a student team's budget. ChefNova will therefore use a hosted general-purpose multimodal model and compensate through structured outputs, validation, and user confirmation.
 
-**Two-pass pantry perception: detect, verify, then confirm.** In the first pass, the vision agent asks a hosted multimodal LLM for schema-validated JSON (`name`, `canonical_ingredient`, `quantity_estimate`, `confidence`, `location` such as "top shelf, left"). In the second pass, a focused prompt re-examines only low-confidence items ("Is the white tub on the top shelf yogurt, sour cream, or cream cheese?"). Anything still uncertain appears to the user as a one-tap confirmation chip. Following FoodLMM's lesson about dedicated outputs, the vision step never estimates nutrition; nutrition comes only from recipe data.
+### 5. One Concrete Inspiration for ChefNova
+
+**Two-stage receipt extraction and confirmation.** The multimodal model will first extract grocery items into structured fields such as `name`, `canonical_ingredient`, `quantity`, and `unit`. A validation step will flag ambiguous or low-confidence extractions for user review. The user can correct the item or quantity before it is added to the inventory. This follows FoodLMM's emphasis on structured outputs while keeping the final inventory state under user control.
+
 
 ---
 
-## Paper 3: Yum-me: A Personalized Nutrient-Based Meal Recommender System
+# Paper 3: Yum-me: A Personalized Nutrient-Based Meal Recommender System
 
 ### 1. Full Citation & Link
 
-Yang, L., Hsieh, C.-K., Yang, H., Pollak, J. P., Dell, N., Belongie, S., Cole, C., & Estrin, D. (2017). Yum-me: A personalized nutrient-based meal recommender system. *ACM Transactions on Information Systems, 36*(1), Article 7. https://doi.org/10.1145/3072614
+Yang, L., Hsieh, C.-K., Yang, H., Pollak, J. P., Dell, N., Belongie, S., Cole, C., & Estrin, D. (2017). Yum-me: A personalized nutrient-based meal recommender system. *ACM Transactions on Information Systems, 36*(1), Article 7. [https://doi.org/10.1145/3072614](https://doi.org/10.1145/3072614)
 
-**Link:** https://doi.org/10.1145/3072614 · Free full text: https://pmc.ncbi.nlm.nih.gov/articles/PMC6242282/ · Code: https://github.com/ylongqi/yumme
+**Link:** [https://doi.org/10.1145/3072614](https://doi.org/10.1145/3072614) · Free full text: [https://pmc.ncbi.nlm.nih.gov/articles/PMC6242282/](https://pmc.ncbi.nlm.nih.gov/articles/PMC6242282/) · Code: https://github.com/ylongqi/yumme
 
 ### 2. Structured Summary
 
@@ -81,15 +78,18 @@ Yang, L., Hsieh, C.-K., Yang, H., Pollak, J. P., Dell, N., Belongie, S., Cole, C
 
 ### 3. Three Key Insights
 
-1. **People can show their taste faster than they can describe it.** A few image choices captured fine-grained preferences that multiple-choice onboarding questions miss, without requiring users to keep a food diary. Visual elicitation is a practical answer to the cold-start problem.
-2. **Goals filter; taste ranks.** Yum-me first restricts the pool to nutritionally appropriate options and then orders them by predicted preference. RecipeRAG uses the same division of labor: hard constraints and nutrition goals narrow the pool, and learned taste decides the order.
-3. **Embeddings let a few choices generalize.** Because FoodDist places visually similar dishes close together, a handful of quiz answers generalizes to thousands of recipes. Our ranker can use recipe embeddings the same way, generalizing from a few likes to the whole catalog.
+1. **People can express preferences without lengthy forms.** Yum-me demonstrates that preference elicitation can be designed to reduce the burden of describing food preferences in detail. For ChefNova, the broader lesson is to let users express preferences and constraints naturally through conversation.
+
+2. **Constraints should narrow recommendations before recipe selection.** Yum-me demonstrates the value of incorporating user goals and restrictions into recommendation rather than treating them as secondary preferences. ChefNova applies this principle by using constraints such as dietary preferences, preparation time, protein goals, dislikes, and available ingredients when determining which recipes are viable.
+
+3. **Personalization should reduce user effort.** Yum-me shows that recommendation systems can learn useful preference information without requiring users to maintain detailed food journals. ChefNova applies the broader lesson through conversational preference capture, allowing users to express preferences and constraints naturally rather than requiring a lengthy preference questionnaire.
 
 ### 4. Two Limitations or Risks
 
-1. **Looking good is not tasting good.** Picking a photo measures *visual appeal*, which is shaped by food styling and photo quality, and it misses texture, spice tolerance, and smell. Users may also tap photos of dishes they would never actually cook, so visual signals should initialize the profile, not define it.
-2. **A closed, static recipe pool and coarse goals.** Yum-me depended on recipes collected through the Yummly API, a service that has since shut down, and on coarse goals such as reducing, maintaining, or increasing calories, protein, and fat. It did not consider what users already had at home, and a 60-person study can't show whether acceptance turns into long-term changes in eating behavior.
+1. **Visual preference does not necessarily represent actual cooking preferences.** Choosing an appealing food image may not capture factors such as taste, texture, cooking effort, ingredient availability, or willingness to prepare a particular meal. ChefNova therefore focuses on explicit conversational constraints and the user's current inventory rather than relying solely on visual preference signals.
 
-### 5. One Concrete Inspiration for RecipeRAG
+2. **A closed, static recipe pool and coarse goals.** Yum-me depended on recipes collected through the Yummly API, a service that has since shut down, and on relatively coarse nutritional goals. It did not consider what users already had at home, which leaves an important gap for ChefNova: recommendations should consider both user preferences and the ingredients currently confirmed in their inventory.
 
-**A 60-second visual taste quiz at onboarding.** New users will see 8 rounds of two recipe photos, drawn to cover diverse cuisines and cooking styles, and tap the one they would rather eat, with a "neither" option. Each choice updates a taste vector in the same embedding space our ranker uses, so the very first session is already personalized, and the pantry photo narrows results further. Quiz images come from Spoonacular image URLs, which its terms allow us to store. In the Checkpoint 3 pilot, we will compare first-session acceptance rates with and without the quiz.
+### 5. One Concrete Inspiration for ChefNova
+
+**Conversational preference and constraint refinement.** ChefNova can use natural-language interaction to capture multiple meal constraints such as dietary preference, preparation time, protein goals, and dislikes. Rather than requiring users to specify every preference through a rigid form, the system can refine these constraints through conversation and use them to narrow recipe options. This supports a more flexible recommendation experience while keeping the authoritative inventory state separate from the model.
