@@ -11,7 +11,7 @@ This bibliography contains **10 unique papers** reviewed in the team’s four [r
 | 3 | KERL: Knowledge-Enhanced Personalized Recipe Recommendation Using Large Language Models | 2025 | ACL | Chaitanya Nirantar |
 | 4 | Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks | 2020 | NeurIPS | Ananya Jandhyala |
 | 5 | Large Language Models are Zero-Shot Rankers for Recommender Systems | 2024 | ECIR | Ananya Jandhyala |
-| 6 | Personalized Food Recommendation as Constrained Question Answering over a Large-Scale Food Knowledge Graph (pFoodReQ) | 2021 | ACM WSDM | Ananya Jandhyala; Chaitanya Nirantar |
+| 6 | Personalized Food Recommendation as Constrained Question Answering over a Large-Scale Food Knowledge Graph (pFoodReQ) | 2021 | ACM WSDM | Chaitanya Nirantar |
 | 7 | Inverse Cooking: Recipe Generation from Food Images | 2019 | CVPR | Prathamesh Mulay |
 | 8 | FoodLMM: A Versatile Food Assistant Using Large Multi-Modal Model | 2025 | IEEE TMM | Prathamesh Mulay |
 | 9 | Yum-me: A Personalized Nutrient-Based Meal Recommender System | 2017 | ACM TOIS | Prathamesh Mulay |
