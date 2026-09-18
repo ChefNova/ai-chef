@@ -84,8 +84,8 @@ Proposed Roadmap:
 | --- | --- |
 | 1 | Problem definition, 8+ academic papers, individual reflections, 500–800-word proposal, GitHub board, and kickoff presentation |
 | 2 | Validate core prompt or agent logic using representative meal requests and constraint-conflict cases |
-| 3 | Proposed: refine the integrated prototype using evaluation findings; confirm against the official assignment |
-| 4 | Proposed: deliver the final demonstration and evaluation summary; confirm against the official assignment |
+| 3 | Proposed: refine the integrated prototype using evaluation findings |
+| 4 | Proposed: deliver the final demonstration and evaluation summary |
 
 ## Grocery Workflow
 
