@@ -107,15 +107,3 @@ Trattner, C., & Elsweiler, D. (2017). *Food recommender systems: Important contr
 - **Links:** [arXiv](https://arxiv.org/abs/1711.02760)
 - **Relevance:** Maps the field's open problems (context, health-vs-taste trade-offs, weak explanations, and offline-only evaluation) that ChefNova is designed to address.
 
-## Repository Files and Citation Maintenance
-
-The reviewed corpus has two PDFs currently present in this directory: [LLMs as Zero-Shot Rankers](hou2024_llm_zero_shot_rankers.pdf) and [FoodLMM](yin2025_foodlmm.pdf). Other reviewed papers are linked through their DOI, proceedings, or open preprint above. The existing ChatDiet PDF is not counted in this corpus because no current reflection reviews that paper.
-
-This bibliography is synchronized with the four reflection files listed above. The separate [references.bib](references.bib) was not synchronized in this update and should be checked before using it to generate references.
-
-When adding a paper:
-
-1. Add its full citation and review to the appropriate reflection file.
-2. Add one bibliography entry and update the reviewer table; list multiple reviewers for a shared paper without counting it twice.
-3. Keep the citation metadata and BibTeX entry consistent.
-4. Include a PDF only when the license for that exact version permits redistribution; otherwise link to the publisher or an authorized open version.
