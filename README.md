@@ -58,7 +58,7 @@ ChefNova recommends meals using confirmed ingredients and quantities along with 
 
 ### Initial definition of success
 
-Evaluation should examine receipt extraction accuracy, quantity/unit errors, the effort of correcting inventory, whether confirmation occurs before every recommendation, whether users can select a meal, whether suggestions preserve explicit constraints, whether missing ingredients are visible, and whether instructions are understandable. Completion time, constraint violations, and user feedback are candidate measures; Person 3 will define the test cases and acceptance thresholds for Checkpoint 2.
+Evaluation should examine receipt extraction accuracy, quantity/unit errors, the effort of correcting inventory, whether confirmation occurs before every recommendation, whether users can select a meal, whether suggestions preserve explicit constraints, whether missing ingredients are visible, and whether instructions are understandable. Completion time, constraint violations, and user feedback are candidate measures; We will define the test cases and acceptance thresholds for Checkpoint 2.
 
 ## Competitive Landscape
 
@@ -75,7 +75,7 @@ ChefNova therefore does not claim that personalized or ingredient-based recommen
 
 ChefNova brings receipt-based grocery entry, a persistent quantity inventory, mandatory inventory review, and recipe recommendations into one interaction. A receipt records a purchase, not what remains today; the confirmation step keeps users in control of that distinction. Its intended value is helping a user move from “What can I cook?” to a practical meal choice with understandable instructions.
 
-GenAI's proposed role is to extract and normalize grocery receipt entries, interpret informal requests, and explain meal suggestions. Structured database operations handle quantities and persistence, while users resolve uncertain extraction results. Person 3 will specify which operations require generation, which use retrieved recipe data, and which need explicit validation. The prototype's dietary filtering is not evidence of verified allergy safety, and generated nutrition values must not be presented as measured facts.
+GenAI's proposed role is to extract and normalize grocery receipt entries, interpret informal requests, and explain meal suggestions. Structured database operations handle quantities and persistence, while users resolve uncertain extraction results. We will specify which operations require generation, which use retrieved recipe data, and which need explicit validation. The prototype's dietary filtering is not evidence of verified allergy safety, and generated nutrition values must not be presented as measured facts.
 
 ## Milestones Roadmap
 Proposed Roadmap:
