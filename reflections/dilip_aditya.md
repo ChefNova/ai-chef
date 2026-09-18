@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **Role** | Technical Approach, Checkpoint 2 Validation & Risk Analysis |
+| **Role** | Recommended: Agent Architecture & Conversational Recommendation |
 | **Project** | ChefNova: A Conversational Cooking Assistant |
 | **Papers reviewed** | (1) ReAct, Yao et al. (2023) · (2) InteRecAgent, Huang et al. (2025) · (3) Food Recommender Systems survey, Trattner & Elsweiler (2017) |
 | **Last updated** | September 2026 |
