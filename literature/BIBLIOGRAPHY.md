@@ -1,31 +1,34 @@
-# Literature Corpus & Bibliography
+# ChefNova — Literature Corpus & Bibliography
 
-This corpus contains **12 papers** that ground RecipeRAG's design. They are grouped into four themes that map onto the system architecture, and each paper is assigned to one team member, who reviews it in [`/reflections/`](../reflections/). Citations follow **APA 7th edition**; BibTeX for every entry is in [`references.bib`](references.bib).
+This bibliography contains **10 unique papers** reviewed in the team’s four [reflection files](../reflections/), representing **11 paper reviews**. pFoodReQ is reviewed by both Ananya Jandhyala and Chaitanya Nirantar and is counted once. Citations and publication versions follow the reflections. The relevance notes connect the research to ChefNova’s proposed workflow: **grocery receipt → reviewed inventory → quantity confirmation → recipe recommendation**.
 
 ## Corpus at a Glance
 
-| # | Paper | Year | Venue | Theme | Reviewer | PDF in repo |
-|---|---|---|---|---|---|---|
-| 1 | ReAct: Synergizing Reasoning and Acting in Language Models | 2023 | ICLR | A. Agents & memory | Aditya Dilip | [Yes](yao2023_react.pdf) (CC BY 4.0) |
-| 2 | Recommender AI Agent (InteRecAgent) | 2025 | ACM TOIS | A. Agents & memory | Aditya Dilip | Link only |
-| 3 | Generative Agents: Interactive Simulacra of Human Behavior | 2023 | ACM UIST | A. Agents & memory | {{MEMBER4_NAME}} | Link only |
-| 4 | Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks | 2020 | NeurIPS | B. Retrieval & ranking | Ananya Jandhyala | Link only |
-| 5 | Large Language Models are Zero-Shot Rankers for Recommender Systems | 2024 | ECIR | B. Retrieval & ranking | Ananya Jandhyala | [Yes](hou2024_llm_zero_shot_rankers.pdf) (CC BY 4.0) |
-| 6 | Personalized Food Recommendation as Constrained QA over a Food KG | 2021 | ACM WSDM | B. Retrieval & ranking | Ananya jandhyala | Link only |
-| 7 | Inverse Cooking: Recipe Generation from Food Images | 2019 | CVPR | C. Food vision & preference | Prathamesh Mulay | Link only |
-| 8 | FoodLMM: A Versatile Food Assistant Using Large Multi-Modal Model | 2025 | IEEE TMM | C. Food vision & preference | Prathamesh Mulay | [Yes](yin2025_foodlmm.pdf) (CC BY-NC-ND 4.0) |
-| 9 | Yum-me: A Personalized Nutrient-Based Meal Recommender System | 2017 | ACM TOIS | C. Food vision & preference | Prathamesh Mulay | Link only |
-| 10 | Food Recommender Systems: Important Contributions, Challenges and Future Research Directions | 2017 | arXiv | D. Food recsys, nutrition & safety | Aditya Dilip | Link only |
-| 11 | ChatDiet: Personalized Nutrition-Oriented Food Recommender Chatbots | 2024 | Smart Health | D. Food recsys, nutrition & safety | {{MEMBER4_NAME}} | [Yes](yang2024_chatdiet.pdf) (CC BY 4.0) |
-| 12 | The Credibility of Dietary Advice Formulated by ChatGPT: Robo-Diets for People with Food Allergies | 2023 | Nutrition | D. Food recsys, nutrition & safety | {{MEMBER4_NAME}} | Link only |
+| # | Paper | Year | Venue | Reviewer(s) |
+|---|---|---|---|---|
+| 1 | ReAct: Synergizing Reasoning and Acting in Language Models | 2023 | ICLR | Aditya Dilip |
+| 2 | Recommender AI Agent (InteRecAgent) | 2025 | ACM TOIS | Aditya Dilip |
+| 3 | KERL: Knowledge-Enhanced Personalized Recipe Recommendation Using Large Language Models | 2025 | ACL | Chaitanya Nirantar |
+| 4 | Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks | 2020 | NeurIPS | Ananya Jandhyala |
+| 5 | Large Language Models are Zero-Shot Rankers for Recommender Systems | 2024 | ECIR | Ananya Jandhyala |
+| 6 | Personalized Food Recommendation as Constrained Question Answering over a Large-Scale Food Knowledge Graph (pFoodReQ) | 2021 | ACM WSDM | Ananya Jandhyala; Chaitanya Nirantar |
+| 7 | Inverse Cooking: Recipe Generation from Food Images | 2019 | CVPR | Prathamesh Mulay |
+| 8 | FoodLMM: A Versatile Food Assistant Using Large Multi-Modal Model | 2025 | IEEE TMM | Prathamesh Mulay |
+| 9 | Yum-me: A Personalized Nutrient-Based Meal Recommender System | 2017 | ACM TOIS | Prathamesh Mulay |
+| 10 | Food Recommender Systems: Important Contributions, Challenges and Future Research Directions | 2017 | arXiv | Aditya Dilip |
 
-**Reviewer load:** Aditya Dilip (#1, #2, #10) · Ananya Jandhyala (#4, #5, #6) · Prathamesh Mulay (#7, #8, #9) · {{MEMBER4_NAME}} (#3, #11, #12)
+## Reflection Coverage
 
----
+| Team member | Reflection | Papers | Review count |
+|---|---|---|---|
+| Aditya Dilip | [dilip_aditya.md](../reflections/dilip_aditya.md) | ReAct (#1), InteRecAgent (#2), Food Recommender Systems survey (#10) | 3 |
+| Ananya Jandhyala | [Jandhyala_Ananya.md](../reflections/Jandhyala_Ananya.md) | RAG (#4), LLMs as Zero-Shot Rankers (#5), pFoodReQ (#6) | 3 |
+| Chaitanya Nirantar | [Nirantar_Chaitanya.md](../reflections/Nirantar_Chaitanya.md) | KERL (#3), pFoodReQ (#6) | 2 |
+| Prathamesh Mulay | [Mulay_Prathamesh.md](../reflections/Mulay_Prathamesh.md) | Inverse Cooking (#7), FoodLMM (#8), Yum-me (#9) | 3 |
 
-## Theme A: LLM Agents, Tool Use & Memory
+## Theme A: LLM Agents & Tool Use
 
-*How the orchestrator plans, calls tools, and remembers users.*
+*How the orchestrator coordinates tools, user profiles, and recommendation candidates.*
 
 ### 1. ReAct
 Yao, S., Zhao, J., Yu, D., Du, N., Shafran, I., Narasimhan, K., & Cao, Y. (2023). ReAct: Synergizing reasoning and acting in language models. In *International Conference on Learning Representations (ICLR 2023)*. https://arxiv.org/abs/2210.03629
@@ -39,17 +42,16 @@ Huang, X., Lian, J., Lei, Y., Yao, J., Lian, D., & Xie, X. (2025). Recommender A
 - **Links:** [DOI](https://doi.org/10.1145/3731446) · [arXiv preprint](https://arxiv.org/abs/2308.16505)
 - **Relevance:** Blueprint for "LLM as brain, recommender models as tools," including hard- vs. soft-condition retrieval, a shared candidate bus, like/dislike/expect user profiles, and reflection.
 
-### 3. Generative Agents
-Park, J. S., O'Brien, J. C., Cai, C. J., Morris, M. R., Liang, P., & Bernstein, M. S. (2023). Generative agents: Interactive simulacra of human behavior. In *Proceedings of the 36th Annual ACM Symposium on User Interface Software and Technology (UIST '23)* (pp. 1–22). Association for Computing Machinery. https://doi.org/10.1145/3586183.3606763
-
-- **Links:** [DOI](https://doi.org/10.1145/3586183.3606763) · [arXiv preprint](https://arxiv.org/abs/2304.03442)
-- **Relevance:** Memory architecture (retrieval by recency, importance, and relevance, plus periodic reflection) that we adapt for long-term taste memory.
-
----
-
 ## Theme B: Retrieval, Ranking & Constraint-Aware Recommendation
 
 *How candidates are found, filtered by hard constraints, and ranked.*
+
+### 3. KERL: Knowledge-Enhanced Personalized Recipe Recommendation
+
+Mohbat, F., & Zaki, M. J. (2025). KERL: Knowledge-enhanced personalized recipe recommendation using large language models. In W. Che, J. Nabende, E. Shutova, & M. T. Pilehvar (Eds.), *Proceedings of the 63rd Annual Meeting of the Association for Computational Linguistics (Volume 1: Long Papers)* (pp. 19125–19141). Association for Computational Linguistics. https://doi.org/10.18653/v1/2025.acl-long.938
+
+- **Links:** [DOI and proceedings](https://doi.org/10.18653/v1/2025.acl-long.938)
+- **Relevance:** Motivates a constraint-first pipeline that retrieves food knowledge, validates candidate recipes against explicit requirements, and uses the LLM to adapt and explain recommendations.
 
 ### 4. Retrieval-Augmented Generation (RAG)
 Lewis, P., Perez, E., Piktus, A., Petroni, F., Karpukhin, V., Goyal, N., Küttler, H., Lewis, M., Yih, W.-t., Rocktäschel, T., Riedel, S., & Kiela, D. (2020). Retrieval-augmented generation for knowledge-intensive NLP tasks. In *Advances in Neural Information Processing Systems 33 (NeurIPS 2020)* (pp. 9459–9474). Curran Associates. https://proceedings.neurips.cc/paper/2020/hash/6b493230205f780e1bc26945df7481e5-Abstract.html
@@ -73,68 +75,47 @@ Chen, Y., Subburathinam, A., Chen, C.-H., & Zaki, M. J. (2021). Personalized foo
 
 ## Theme C: Food Vision & Preference Elicitation
 
-*How photos become ingredients, and how taste is learned quickly.*
+*Lessons from food-image models and preference elicitation for structured receipt extraction and conversational preferences. These papers do not establish receipt-extraction accuracy; ChefNova must evaluate that separately.*
 
 ### 7. Inverse Cooking
 Salvador, A., Drozdzal, M., Giró-i-Nieto, X., & Romero, A. (2019). Inverse cooking: Recipe generation from food images. In *Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR)* (pp. 10453–10462). IEEE. https://doi.org/10.1109/CVPR.2019.01070
 
 - **Links:** [DOI](https://doi.org/10.1109/CVPR.2019.01070) · [CVF open access](https://openaccess.thecvf.com/content_CVPR_2019/html/Salvador_Inverse_Cooking_Recipe_Generation_From_Food_Images_CVPR_2019_paper.html) · [arXiv preprint](https://arxiv.org/abs/1812.06164) · [Code](https://github.com/facebookresearch/inversecooking)
-- **Relevance:** Treats ingredients as an unordered *set* predicted from an image. We use the same representation and set-based metrics for pantry detection.
+- **Relevance:** Separates ingredient extraction from recipe generation. This inspires structured grocery records from receipts, with item names, quantities, and units reviewed by the user before saving.
 
 ### 8. FoodLMM
 Yin, Y., Qi, H., Zhu, B., Chen, J., Jiang, Y.-G., & Ngo, C.-W. (2025). FoodLMM: A versatile food assistant using large multi-modal model. *IEEE Transactions on Multimedia, 27*, 6949–6961. https://doi.org/10.1109/TMM.2025.3590924
 
 - **Links:** [DOI](https://doi.org/10.1109/TMM.2025.3590924) · [arXiv preprint](https://arxiv.org/abs/2312.14991) · [Code](https://github.com/YuehaoYin/FoodLMM)
-- **Relevance:** State of the art in food-specialized multimodal LLMs (ingredient recognition, nutrition estimation, segmentation). It sets expectations for, and the limits of, our photo-to-pantry agent.
+- **Relevance:** Highlights structured outputs and domain-specific evaluation. ChefNova applies these lessons to receipt extraction, quantity/unit validation, and user correction; food-image benchmarks do not directly validate grocery-receipt performance.
 
 ### 9. Yum-me
 Yang, L., Hsieh, C.-K., Yang, H., Pollak, J. P., Dell, N., Belongie, S., Cole, C., & Estrin, D. (2017). Yum-me: A personalized nutrient-based meal recommender system. *ACM Transactions on Information Systems, 36*(1), Article 7. https://doi.org/10.1145/3072614
 
 - **Links:** [DOI](https://doi.org/10.1145/3072614) · [Free full text (PMC)](https://pmc.ncbi.nlm.nih.gov/articles/PMC6242282/) · [arXiv preprint](https://arxiv.org/abs/1605.07722) · [Code](https://github.com/ylongqi/yumme)
-- **Relevance:** Visual-quiz preference elicitation plus nutrient-goal filtering. This inspires our 60-second visual taste onboarding and the rule that goals filter while taste ranks.
+- **Relevance:** Shows how preference elicitation can reduce user effort while respecting nutritional goals. ChefNova adapts this lesson through conversational preference capture and recommendations grounded in the current, user-confirmed inventory.
 
 ---
 
 ## Theme D: Food Recommendation, Nutrition & Safety
 
-*What the field has learned, where LLM nutrition advice succeeds, and where it fails.*
+*How context, taste, nutrition goals, explanations, and real-user evaluation shape food recommendation.*
 
 ### 10. Food Recommender Systems Survey
 Trattner, C., & Elsweiler, D. (2017). *Food recommender systems: Important contributions, challenges and future research directions* (arXiv:1711.02760). arXiv. https://doi.org/10.48550/arXiv.1711.02760
 
 - **Links:** [arXiv](https://arxiv.org/abs/1711.02760)
-- **Relevance:** Maps the field's open problems (context, health-vs-taste trade-offs, weak explanations, and offline-only evaluation) that RecipeRAG is designed to address.
+- **Relevance:** Maps the field's open problems (context, health-vs-taste trade-offs, weak explanations, and offline-only evaluation) that ChefNova is designed to address.
 
-### 11. ChatDiet
-Yang, Z., Khatibi, E., Nagesh, N., Abbasian, M., Azimi, I., Jain, R., & Rahmani, A. M. (2024). ChatDiet: Empowering personalized nutrition-oriented food recommender chatbots through an LLM-augmented framework. *Smart Health, 32*, Article 100465. https://doi.org/10.1016/j.smhl.2024.100465
+## Repository Files and Citation Maintenance
 
-- **Links:** [DOI](https://doi.org/10.1016/j.smhl.2024.100465) · [arXiv preprint](https://arxiv.org/abs/2403.00781)
-- **Relevance:** Closest LLM-based prior system (orchestrator plus personal and population models). Its documented hallucinated explanations motivate our claim-level faithfulness check.
+The reviewed corpus has two PDFs currently present in this directory: [LLMs as Zero-Shot Rankers](hou2024_llm_zero_shot_rankers.pdf) and [FoodLMM](yin2025_foodlmm.pdf). Other reviewed papers are linked through their DOI, proceedings, or open preprint above. The existing ChatDiet PDF is not counted in this corpus because no current reflection reviews that paper.
 
-### 12. Robo-Diets for People with Food Allergies
-Niszczota, P., & Rybicka, I. (2023). The credibility of dietary advice formulated by ChatGPT: Robo-diets for people with food allergies. *Nutrition, 112*, Article 112076. https://doi.org/10.1016/j.nut.2023.112076
+This bibliography is synchronized with the four reflection files listed above. The separate [references.bib](references.bib) was not synchronized in this update and should be checked before using it to generate references.
 
-- **Links:** [DOI](https://doi.org/10.1016/j.nut.2023.112076) · [PubMed](https://pubmed.ncbi.nlm.nih.gov/37269717/)
-- **Relevance:** Evidence that a general chatbot can put hidden allergens in "safe" diets, the core risk our deterministic safety gate and allergen red-team suite address.
+When adding a paper:
 
----
-
-## PDF Policy
-
-We commit PDFs **only when the license permits redistribution**:
-
-| File | Source version | License |
-|---|---|---|
-| [`yao2023_react.pdf`](yao2023_react.pdf) | arXiv 2210.03629 | [CC BY 4.0](http://creativecommons.org/licenses/by/4.0/) |
-| [`hou2024_llm_zero_shot_rankers.pdf`](hou2024_llm_zero_shot_rankers.pdf) | arXiv 2305.08845 | [CC BY 4.0](http://creativecommons.org/licenses/by/4.0/) |
-| [`yang2024_chatdiet.pdf`](yang2024_chatdiet.pdf) | arXiv 2403.00781 | [CC BY 4.0](http://creativecommons.org/licenses/by/4.0/) |
-| [`yin2025_foodlmm.pdf`](yin2025_foodlmm.pdf) | arXiv 2312.14991v2 | [CC BY-NC-ND 4.0](http://creativecommons.org/licenses/by-nc-nd/4.0/) (unmodified, non-commercial) |
-
-All other papers are distributed under arXiv's non-exclusive license or publisher copyright, which does not grant third-party redistribution. For those, we link to the DOI and to free, legal full-text versions (arXiv, CVF Open Access, PubMed Central) instead.
-
-## Adding a Paper
-
-1. Add the BibTeX entry to [`references.bib`](references.bib) (key format: `firstauthorYEARkeyword`).
-2. Add the APA citation, links, and a one-line relevance note under the right theme above, and add a row to the table.
-3. Commit the PDF only if its license permits redistribution, and record the license in the PDF policy table.
-4. Open a PR that references the corresponding issue.
+1. Add its full citation and review to the appropriate reflection file.
+2. Add one bibliography entry and update the reviewer table; list multiple reviewers for a shared paper without counting it twice.
+3. Keep the citation metadata and BibTeX entry consistent.
+4. Include a PDF only when the license for that exact version permits redistribution; otherwise link to the publisher or an authorized open version.
