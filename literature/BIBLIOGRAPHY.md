@@ -1,6 +1,6 @@
 # ChefNova — Literature Corpus & Bibliography
 
-This bibliography contains **10 unique papers** reviewed in the team’s four [reflection files](../reflections/), representing **11 paper reviews**. pFoodReQ is reviewed by both Ananya Jandhyala and Chaitanya Nirantar and is counted once. Citations and publication versions follow the reflections. The relevance notes connect the research to ChefNova’s proposed workflow: **grocery receipt → reviewed inventory → quantity confirmation → recipe recommendation**.
+This bibliography contains **10 unique papers** reviewed in the team’s four [reflection files](../reflections/), representing **11 paper reviews**. Citations and publication versions follow the reflections. The relevance notes connect the research to ChefNova’s proposed workflow: **grocery receipt → reviewed inventory → quantity confirmation → recipe recommendation**.
 
 ## Corpus at a Glance
 
