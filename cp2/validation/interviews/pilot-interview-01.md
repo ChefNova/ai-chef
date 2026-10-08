@@ -1,6 +1,5 @@
-# Pilot interview 1
-
-Filed from notes supplied for ChefNova CP2. Phone interview. Participant is described only as a graduate student who cooks 3–4 times a week and usually decides from groceries already on hand. No participant name and no interviewer name were given, so this note is not assigned to a teammate’s reflection.
+# Interview 1
+ Participant is a graduate student who cooks 3–4 times a week and usually decides from groceries already on hand. 
 
 ## 1. Accuracy and hallucinations
 
