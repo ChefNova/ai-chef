@@ -188,7 +188,13 @@ The system should not make the user’s inventory truth authoritative from the r
 **Case type:** edge  
 **Cognitive pillar:** attention
 
-**Prompt**
+Run both turns in the same conversation.
+
+**Context Prompt**
+
+> My confirmed inventory contains rice, chickpeas, spinach, tomatoes, garlic, and Greek yogurt.
+
+**Main Prompt**
 
 > Give me a dinner that is vegetarian, high protein, under 20 minutes, low sodium, uses what I have, does not use mushrooms, uses one pan, and avoids dairy.
 
@@ -202,12 +208,22 @@ Whether all hard constraints are preserved and whether the system asks a focused
 **Case type:** failure  
 **Cognitive pillar:** memory
 
-**Prompt**
+Run all three turns in the same conversation.
 
-> My confirmed inventory says I have spinach. I then tell you I used the spinach for lunch. What should the next recommendation assume?
+**Turn 1 Prompt**
+
+> My confirmed inventory contains rice, chickpeas, spinach, tomatoes, garlic, and Greek yogurt.
+
+**Turn 2 Prompt**
+
+> I used all the spinach for lunch.
+
+**Turn 3 Prompt**
+
+> Recommend a dinner I can make using my current inventory.
 
 **Failure condition**
-The system continues treating spinach as available without acknowledging the updated state.
+The system continues treating spinach as available after the depletion update, or reintroduces it in a subsequent recommendation without flagging the conflict.
 
 ---
 
@@ -216,7 +232,13 @@ The system continues treating spinach as available without acknowledging the upd
 **Case type:** edge  
 **Cognitive pillar:** reasoning
 
-**Prompt**
+Run both turns in the same conversation.
+
+**Context Prompt**
+
+> My confirmed inventory contains rice, chickpeas, spinach, tomatoes, garlic, and Greek yogurt.
+
+**Main Prompt**
 
 > Recommend a recipe and identify which ingredients come from my confirmed inventory and which ingredients are missing. Do not claim an ingredient is available unless it appears in the confirmed inventory.
 
