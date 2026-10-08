@@ -1,5 +1,5 @@
 # Interview 1
-#Inteviewer: Chaitanya Nirantar
+# Inteviewer: Chaitanya Nirantar
 
  Participant is a graduate student who cooks 3–4 times a week and usually decides from groceries already on hand. 
 
