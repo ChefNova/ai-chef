@@ -19,7 +19,7 @@ The design hypotheses below are deliberately specified before evidence collectio
 | Memory | Multi-turn request where dietary/time constraints are added or revised | Memory / shared-state failure | Persist active constraints separately from raw conversation text |
 | UX friction | User response to repeated questions or long prompts | Attention / interrogation orchestration | Surface only conflicts and ask focused clarification questions |
 | Safety | Explicit dietary exclusion or hard constraint | Goals-and-constraints / role-partition failure | Never silently relax hard constraints; escalate uncertainty |
-| Decision rights | Model inference about what remains from what was purchased | Meta-coordination failure | User owns final inventory state |
+| Decision rights | Interview 1 (phone, graduate student who cooks 3–4 times a week): would not let receipt extraction or “I don’t have spinach” permanently change saved inventory without confirmation. Full notes: `validation/interviews/pilot-interview-01.md` | Meta-coordination / role partitioning: AI proposes; the user confirms persistent pantry truth | AI suggestion → review → explicit confirmation → persistent inventory update |
 | Substitution | Model treatment of a missing ingredient | Contextual reasoning / decision-rights issue | Classify ingredient role and let the user accept/reject uncertain substitutions |
 | Source faithfulness | Availability or recipe explanation compared with structured inventory/source | Knowledge-infrastructure issue | Ground factual availability claims in structured state and retrieved sources |
 
@@ -29,7 +29,7 @@ Eight interviews are required: two per team member. The completed notes should u
 
 | Participant | Accuracy / hallucination | Reliability / consistency | Latency / performance | UX friction | Safety / guardrails | Cost / efficiency | Key finding |
 |---|---|---|---|---|---|---|---|
-| Interview 1 | Evidence receipt | Evidence receipt | Evidence receipt | Evidence receipt | Evidence receipt | Evidence receipt | Insert actual finding |
+| Interview 1 — graduate student, cooks 3–4×/week, phone. Interviewer not named. See `validation/interviews/pilot-interview-01.md`. | Will not trust automatic adds from abbreviated receipts or non-food lines. Wants review before confirm. | Spinach marked unavailable must stay out of later recipes. Vegetarian and other hard preferences must last the session. | About 5–10 seconds is acceptable for receipt processing. About 30 seconds on every preference change is not. | Wants receipt, text, and voice. Updating every consumed item by hand could cost more effort than searching for a recipe. | “I don’t have spinach” may hide recipes for this session, but must not delete saved spinach without a confirm. | Worth it only if it saves time versus Google or YouTube after the cost of corrections. | Do not write pantry truth from extraction or chat alone. |
 | Interview 2 | Evidence receipt | Evidence receipt | Evidence receipt | Evidence receipt | Evidence receipt | Evidence receipt | Insert actual finding |
 | Interview 3 | Evidence receipt | Evidence receipt | Evidence receipt | Evidence receipt | Evidence receipt | Evidence receipt | Insert actual finding |
 | Interview 4 | Evidence receipt | Evidence receipt | Evidence receipt | Evidence receipt | Evidence receipt | Evidence receipt | Insert actual finding |
