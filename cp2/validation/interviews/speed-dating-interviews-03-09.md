@@ -1,6 +1,6 @@
-# Simulated interviews 3–9
+# Speed-dating interviews 3–9
 
-These seven notes were supplied as **simulated** interviews. They are not transcripts of live speed-dating sessions. Interview 1 is a separate phone note in `pilot-interview-01.md`. No interview 2 notes were supplied.
+These seven notes are records from live speed-dating sessions conducted during CP2 validation. Interview 1 is a separate phone-interview note in `pilot-interview-01.md`. No interview 2 notes were supplied.
 
 ## Interview 3 — College student, very limited time
 
