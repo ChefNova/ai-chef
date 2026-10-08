@@ -109,6 +109,11 @@ The system should:
 5. Keep optional/flavoring ingredients from unnecessarily eliminating a recipe.
 6. Surface uncertainty.
 7. Explain what is available, missing, or substituted.
+8. List Cook Now recipes before recipes that need shopping.
+9. Treat diet and explicit exclusions as hard filters, and treat goals such as high protein as ranking preferences.
+10. Check kitchen equipment as well as ingredients.
+11. Label nutrition figures as calculated or estimated, and do not present a model guess as a measurement.
+12. Mark substitutions as safe, possible, or not recommended, and say what changes.
 
 ## 9. Ingredient roles
 
@@ -173,10 +178,13 @@ The design decisions below are the pre-registered traceability targets for CP2. 
 
 | Design choice | CP2 evidence | Theory |
 |---|---|---|
-| User confirms inventory | Prompting/interview evidence on stale purchase information and decision rights | Role partitioning / meta-coordination |
-| Persistent constraints | Prompting/interview evidence on multi-turn constraint retention | Memory / shared mental model |
-| Clarification for ambiguity | Prompting/interview evidence on ambiguous receipt data | Attention / interrogation orchestration |
-| Deterministic quantity checks | Prompting/interview evidence on quantity feasibility | Knowledge infrastructure / role partitioning |
+| User confirms inventory | Interview 1 and simulated interview 4: a receipt or “I don’t have spinach” must not rewrite saved inventory. ChatGPT T09 agreed that 2 lb purchased is not 2 lb on hand. | Role partitioning / meta-coordination |
+| Cook Now before shopping | Simulated interview 3: “If I still have to go buy three things, then I could have just looked up a recipe myself.” ChatGPT T06 refused a chicken bowl with no chicken; T11 still called a recipe “only what you have” while requiring oil. | Knowledge infrastructure |
+| Persistent hard constraints | Simulated interview 7: vegetarian must not lose to a higher score. Simulated interview 9: do not drop one constraint from a stack. ChatGPT T04 and T05 retained constraints inside one chat; T05 also showed possible account-memory bleed. | Goals and constraints / memory |
+| Clarification instead of a guess | Simulated interview 9 would rather answer one question than be served a forbidden meal. ChatGPT T10 asserted a 15-minute dinner while assuming cooked rice and did not ask. | Attention and interrogation orchestration |
+| Substitution confidence | Simulated interview 5: “If the app tells me sour cream works instead of yogurt, I probably won't know enough to question it.” ChatGPT T08 approved sour cream and one variant invented a chicken rice bowl. | Trust calibration / role partitioning |
+| Equipment constraints | Simulated interview 6: ingredients are not enough if the step needs an oven the kitchen does not have. | Goals and constraints |
+| Nutrition provenance | Simulated interview 8: a protein number must say whether it was calculated or guessed. | Knowledge infrastructure |
 
 ## 14. Prototype acceptance criteria
 

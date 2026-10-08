@@ -13,12 +13,16 @@ The following are prepared as final project artifacts:
 - Seven-slide presentation structure
 - GitHub issue definitions / project-management structure
 
-## Empirical inputs still required
+## Evidence now attached
 
-These cannot be responsibly generated from the repository alone:
+- ChatGPT T01–T12 in `validation/transcripts/chatgpt_outputs.md`.
+- Phone interview 1 in `validation/interviews/pilot-interview-01.md`.
+- Simulated interviews 3–9 in `validation/interviews/simulated-interviews-03-09.md`.
+- Those notes are cited in `validation/GAP_ANALYSIS.md`, `validation/THEORY_LENS.md`, `validation/OPPORTUNITY_FRAMING.md`, and `DESIGN_SPEC.md`.
 
-1. Actual outputs/screenshots from at least two AI platforms.
-2. Eight speed-dating interviews (two per team member).
-3. Each member's own reflection on the resulting evidence.
+## Still required from the team
 
-Once those receipts exist, they are inserted into the designated evidence slots. No other CP2 artifact needs to be designed from scratch.
+1. Gemini or another second platform, using the same prompts. Do not backfill outputs.
+2. Interview 2.
+3. Each member's own reflection. The simulated interviews must stay labeled as simulated.
+4. Canvas slides.

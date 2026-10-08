@@ -83,6 +83,7 @@ with tab3:
     else:
         st.write("**Confirmed available:** " + ", ".join(x["item"] for x in confirmed))
 
+        has_oven = st.checkbox("I have an oven", value=False)
         candidates = [
             {
                 "name": "Chickpea Spinach Rice Bowl",
@@ -90,7 +91,8 @@ with tab3:
                 "optional": ["spinach"],
                 "time": 15,
                 "diet": "vegetarian",
-                "reason": "Uses confirmed chickpeas and rice. Spinach is optional in this demo."
+                "equipment": "pan",
+                "reason": "Uses confirmed chickpeas and rice. Spinach is optional in this demo. Protein figure is a demo estimate, not a measured value."
             },
             {
                 "name": "Egg & Spinach Rice Bowl",
@@ -98,26 +100,48 @@ with tab3:
                 "optional": ["spinach"],
                 "time": 12,
                 "diet": "vegetarian",
+                "equipment": "pan",
                 "reason": "Uses confirmed eggs and rice. Spinach can be omitted if unavailable."
+            },
+            {
+                "name": "Oven Tomato Chickpea Bake",
+                "required": ["chickpeas"],
+                "optional": [],
+                "time": 25,
+                "diet": "vegetarian",
+                "equipment": "oven",
+                "reason": "Needs an oven even when the ingredients are in the pantry."
             },
         ]
 
         constraints = [c.lower() for c in st.session_state.get("constraints", [])]
+        ranked = []
         for recipe in candidates:
             missing = [x for x in recipe["required"] if x not in names]
             vegetarian_ok = "vegetarian" not in constraints or recipe["diet"] == "vegetarian"
             time_ok = "≤ 20 minutes" not in constraints or recipe["time"] <= 20
+            equipment_ok = recipe["equipment"] != "oven" or has_oven
+            if missing or not vegetarian_ok or not time_ok or not equipment_ok:
+                rank = 0
+            else:
+                rank = 1
+            ranked.append((rank, recipe, missing, vegetarian_ok, time_ok, equipment_ok))
+        ranked.sort(key=lambda row: row[0], reverse=True)
 
+        for _, recipe, missing, vegetarian_ok, time_ok, equipment_ok in ranked:
             st.markdown(f"### {recipe['name']}")
-            if missing:
+            if not equipment_ok:
+                st.error("Not feasible with the saved kitchen — this recipe needs an oven.")
+            elif missing:
                 st.error("Not directly feasible — missing required: " + ", ".join(missing))
+                st.caption("A missing optional item can still be Cook Now. A missing core item cannot. Any suggested swap is possible, not a guaranteed safe substitution.")
             elif not vegetarian_ok:
-                st.error("Filtered — does not satisfy the active dietary constraint.")
+                st.error("Filtered — a hard dietary constraint is not a ranking tie-break.")
             elif not time_ok:
                 st.error("Filtered — exceeds the active time constraint.")
             else:
-                st.success(f"Feasible in ~{recipe['time']} minutes")
+                st.success(f"Cook now · ~{recipe['time']} minutes")
                 st.write(recipe["reason"])
 
         st.divider()
-        st.caption("Prototype note: recipe logic is intentionally simple here. The CP2 implementation should connect the refined interaction to the team's actual receipt extraction, inventory, and recipe components.")
+        st.caption("Cook Now recipes are listed first. Diet and time are hard filters. The fuller design prototype is ChefNova_app_UI.py at the repo root.")

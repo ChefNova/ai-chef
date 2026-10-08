@@ -326,7 +326,29 @@ RECIPE_DB = [
         "substitutions": {"Greek Yogurt": "plain yogurt"},
         "source": "ChefNova curated demo recipe dataset",
     },
+    {
+        "id": "oven_tomato_chickpea_bake",
+        "title": "Oven Tomato Chickpea Bake",
+        "emoji": "🔥",
+        "time": 25,
+        "protein": 16,
+        "diet": "Vegan",
+        "cuisine": "Mediterranean",
+        "tags": ["Hands-off"],
+        "ingredients": ["Chickpeas", "Tomatoes", "Garlic"],
+        "instructions": [
+            "Heat the oven to 400°F.",
+            "Toss chickpeas, tomatoes, and garlic on a sheet pan.",
+            "Bake until the tomatoes soften.",
+        ],
+        "substitutions": {},
+        "equipment": ["oven"],
+        "source": "ChefNova curated demo recipe dataset",
+    },
 ]
+
+for recipe in RECIPE_DB:
+    recipe.setdefault("equipment", ["pan"])
 
 
 # ---------- Session state ----------
@@ -349,6 +371,8 @@ def init_state():
         "cuisine_pref": "Any",
         "priority_pref": "Best pantry match",
         "high_protein_pref": True,
+        "avoid_dairy": False,
+        "equipment": ["Pan", "Pot", "Microwave"],
         "feedback": {},
     }
     for key, value in defaults.items():
@@ -553,6 +577,11 @@ def score_recipe(recipe):
         return None
     if any(normalize_name(x) in required for x in st.session_state.temporary_exclusions):
         return None
+    if st.session_state.avoid_dairy and any(normalize_name(x) in {"greek yogurt", "yogurt"} for x in recipe["ingredients"]):
+        return None
+
+    owned_equipment = {normalize_name(x) for x in st.session_state.equipment}
+    missing_equipment = [item for item in recipe.get("equipment", ["pan"]) if normalize_name(item) not in owned_equipment]
 
     # 40 points: inventory match
     pantry_points = pantry_ratio * 40
@@ -594,7 +623,10 @@ def score_recipe(recipe):
 
     total = round(pantry_points + pref_points + time_points + priority_points)
 
-    if not missing:
+    if missing_equipment:
+        status = "Needs equipment"
+        status_class = "status-shop"
+    elif not missing:
         status = "Cook now"
         status_class = "status-cook"
     elif len(missing) <= 2:
@@ -605,6 +637,8 @@ def score_recipe(recipe):
         status_class = "status-shop"
 
     reasons = []
+    if missing_equipment:
+        reasons.append("needs " + ", ".join(missing_equipment) + ", which is not in the kitchen profile")
     if not missing:
         reasons.append("all required ingredients are available")
     else:
@@ -625,6 +659,7 @@ def score_recipe(recipe):
         "required_count": len(required),
         "status": status,
         "status_class": status_class,
+        "missing_equipment": missing_equipment,
         "reason": "; ".join(reasons[:3]).capitalize() + ".",
     }
 
@@ -635,7 +670,12 @@ def ranked_recipes():
         result = score_recipe(recipe)
         if result is not None:
             scored.append(result)
-    return sorted(scored, key=lambda x: (x["score"], -len(x["missing"])), reverse=True)
+    status_order = {"Cook now": 3, "Almost ready": 2, "Needs shopping": 1, "Needs equipment": 0}
+    return sorted(
+        scored,
+        key=lambda x: (status_order.get(x["status"], 0), x["score"], -len(x["missing"])),
+        reverse=True,
+    )
 
 
 def get_selected_recipe():
@@ -1005,6 +1045,12 @@ def show_get_recipe():
         st.selectbox("Diet", ["No preference", "Vegetarian", "Vegan"], key="diet_pref")
     with c2:
         st.selectbox("Maximum cooking time", ["15 min", "20 min", "30 min", "45 min", "No limit"], key="max_time_pref")
+    st.checkbox("Avoid dairy (hard filter)", key="avoid_dairy")
+    st.multiselect(
+        "Kitchen equipment you have",
+        ["Pan", "Pot", "Microwave", "Oven"],
+        key="equipment",
+    )
 
     st.markdown('<div class="section-title" style="font-size:15px;">Ranking preferences</div>', unsafe_allow_html=True)
     c3, c4, c5 = st.columns([1, 1.3, 1])
@@ -1034,14 +1080,19 @@ def show_get_recipe():
     st.markdown("</div>", unsafe_allow_html=True)
 
     st.caption(
-        "Hard filters remove incompatible recipes. Ranking preferences change the order of the remaining recipes instead of silently violating your constraints."
+        "Diet, time, and dairy are hard filters. High protein only changes rank. Cook Now recipes are listed before recipes that need shopping. Protein grams in this demo are estimates, not measured values."
     )
 
 
 # ---------- Recommendations ----------
 def recipe_card(result, key):
     recipe = result["recipe"]
-    missing_note = "No required ingredients missing" if not result["missing"] else f"Missing: {', '.join(result['missing'])}"
+    if result.get("missing_equipment"):
+        missing_note = "Needs equipment you did not select: " + ", ".join(result["missing_equipment"])
+    elif not result["missing"]:
+        missing_note = "No required ingredients missing"
+    else:
+        missing_note = "Missing: " + ", ".join(result["missing"])
     st.markdown(
         f"""
         <div class="recipe-card">
@@ -1050,7 +1101,7 @@ def recipe_card(result, key):
                 <div class="score-badge">{result['score']}% ChefNova match</div><br>
                 <span class="{result['status_class']}">{result['status']}</span>
                 <div class="recipe-name" style="margin-top:10px;">{recipe['title']}</div>
-                <div class="recipe-meta">⏱ {recipe['time']} min &nbsp; · &nbsp; 💪 {recipe['protein']}g protein &nbsp; · &nbsp; {recipe['diet']}</div>
+                <div class="recipe-meta">⏱ {recipe['time']} min &nbsp; · &nbsp; 💪 {recipe['protein']}g protein (demo estimate) &nbsp; · &nbsp; {recipe['diet']}</div>
                 <div>{''.join('<span class="pill">'+tag+'</span>' for tag in recipe['tags'])}</div>
                 <div class="recipe-reason"><b>Why this?</b> {result['reason']}<br>{missing_note}</div>
             </div>
@@ -1067,11 +1118,15 @@ def recipe_card(result, key):
 def show_recommendations():
     st.markdown('<div class="page-title">Recommendations</div>', unsafe_allow_html=True)
     st.markdown(
-        '<div class="page-subtitle">ChefNova first applies hard filters, then ranks the remaining recipes using pantry match, preferences, time, and your selected priority.</div>',
+        '<div class="page-subtitle">Hard filters run first. Cook Now recipes are then listed before recipes that need a store trip. High protein changes the order and does not override a dietary restriction.</div>',
         unsafe_allow_html=True,
     )
 
     chips = [st.session_state.diet_pref, st.session_state.max_time_pref, st.session_state.priority_pref]
+    if st.session_state.avoid_dairy:
+        chips.append("No dairy")
+    if st.session_state.equipment:
+        chips.append("Kitchen: " + ", ".join(st.session_state.equipment))
     if st.session_state.cuisine_pref != "Any":
         chips.append(st.session_state.cuisine_pref)
     if st.session_state.high_protein_pref:
@@ -1101,7 +1156,7 @@ def show_recommendations():
                 - **20%** cooking-time fit
                 - **15%** selected ranking priority
 
-                Dietary choice and maximum cooking time are treated as **hard filters**, not just score bonuses.
+                Diet, maximum time, and dairy avoidance are **hard filters**. Cook Now is ordered ahead of Almost Ready and Needs Shopping. Protein grams are demo estimates, not database calculations. A recipe that needs an oven stays visible and is labeled Needs equipment when the oven is not in the kitchen profile.
                 """
             )
 
@@ -1159,7 +1214,7 @@ def show_recipe_details():
 
     st.markdown(f'<div class="page-title">{recipe["title"]}</div>', unsafe_allow_html=True)
     st.markdown(
-        f'<div class="page-subtitle">{recipe["time"]} min · {recipe["protein"]}g protein · {recipe["diet"]} · Source: {recipe["source"]}</div>',
+        f'<div class="page-subtitle">{recipe["time"]} min · {recipe["protein"]}g protein (demo estimate, not a measured value) · {recipe["diet"]} · Equipment: {", ".join(recipe.get("equipment", ["pan"]))} · Source: {recipe["source"]}</div>',
         unsafe_allow_html=True,
     )
 
@@ -1212,6 +1267,7 @@ def show_recipe_details():
                     substitution_lines.append(f"**{item}:** try {recipe['substitutions'][item]}")
             if substitution_lines:
                 st.markdown("**Possible substitutions**")
+                st.caption("Confidence: possible, not a guaranteed safe swap. Check the change in flavor, texture, or protein before you accept it.")
                 for line in substitution_lines:
                     st.markdown(f"- {line}")
         else:

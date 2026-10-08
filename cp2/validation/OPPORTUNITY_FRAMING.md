@@ -4,36 +4,42 @@
 
 Translate CP2 evidence and the complementarity lens into prioritized product requirements.
 
-## Hypothesis evolution
+Evidence below is the ChatGPT transcript, phone interview 1, and simulated interviews 3–9. Interview 2 was not supplied. This is not a ranking from eight live speed-dating sessions, and it is not a second AI platform.
 
-The following are the assumptions established from CP1 and the proposed ChefNova design. CP2 evidence determines which assumptions are confirmed, weakened, or rejected.
+## Hypothesis evolution
 
 | Initial assumption | CP2 evidence | Updated understanding | Resulting design change |
 |---|---|---|---|
-| Receipt extraction is a major source of ambiguity. | Insert actual prompting/interview receipt | Confirm / revise based on evidence | Keep multimodal extraction plus user correction where justified |
-| Users should remain the source of truth for current inventory. | Insert actual prompting/interview receipt | Confirm / revise based on evidence | Preserve user-confirmed inventory as authoritative |
-| Recipe feasibility depends on more than ingredient-name matching. | Insert actual prompting/interview receipt | Confirm / revise based on evidence | Distinguish required, optional, flavoring, staple, and substitutable ingredients in context |
-| Conversational constraints need explicit state. | Insert actual prompting/interview receipt | Confirm / revise based on evidence | Persist active constraints across turns |
+| Receipt extraction is a major source of ambiguity. | ChatGPT T01 did not invent quantities. T02 merged “whole” and “2%” and promoted a likely count. Interview 1 and simulated interview 4 also refuse automatic saves from a receipt. | The failure to design for is an unresolved parse and mixed ownership, not wholesale invention. | Keep raw text, flag conflicts, and confirm before save. |
+| Users should remain the source of truth for current inventory. | T09, interview 1, and simulated interview 4 all separate purchase from on-hand or personal stock. | Confirmed. A receipt is not the pantry. | User-confirmed inventory stays authoritative. |
+| We thought variety and discovery were the main value. | Simulated interview 3: “If I still have to go buy three things, then I could have just looked up a recipe myself.” | Feasibility beats variety for time-constrained cooks. | Rank Cook Now before recipes that need shopping. |
+| Recipe feasibility is ingredient-name matching. | Simulated interview 6 (oven). ChatGPT T11 (oil treated as owned). Interview 1 distinguishes a missing lemon from missing chicken. | Feasibility includes core versus optional ingredients, staples, and equipment. | Required / optional / substitutable roles, plus a kitchen profile. |
+| Dietary and protein goals are similar preferences. | Simulated interview 7 says vegetarian must not be outranked. Simulated interview 8 says high protein should influence order, not erase other recipes. | Diet is a hard constraint. Protein is a soft preference. | Filter diet before scoring. Protein only changes rank. |
+| Conversational memory is enough to hold constraints. | T04 and T05 retained constraints in one chat, and T05 may have used account memory. Simulated interview 9 is afraid one constraint in a stack will be dropped. | The application, not the chat transcript, has to hold the profile. | Structured persistent constraints, plus one clarification when they conflict. |
+| A confident substitution is helpful. | Simulated interview 5 would not know enough to question sour cream for yogurt. T08 approved it without the recipe. | Beginners over-trust fluent advice. That is a complementarity break, not a feature request. | Show confidence and the effect on flavor, texture, or protein. |
+| Generated nutrition can be shown as a fact. | Simulated interview 8 asks whether 40 g was calculated or guessed. | A number without a source is a knowledge-infrastructure failure. | Label estimates. Do not present a model guess as a measurement. |
 
 ## Prioritized requirements
 
-The ordering below is the current design hypothesis derived from the ChefNova concept and CP1. CP2 evidence should confirm or reorder it; it should not be presented as an empirical ranking until the receipts are attached.
+Each row uses the form: evidence shows a complementarity break; a Gonzalez design principle addresses it.
 
 | Priority | Requirement | Evidence | Theory | Design response |
 |---|---|---|---|---|
-| P0 | User-confirmed inventory | Insert actual receipt | Role partitioning / meta-coordination | User reviews extracted items and quantities |
-| P0 | Hard-constraint preservation | Insert actual receipt | Goals & constraints / memory | Persist hard constraints and block silent relaxation |
-| P0 | Deterministic inventory checks | Insert actual receipt | Knowledge infrastructure / role partitioning | Compare compatible quantities in application logic |
-| P1 | Uncertainty + clarification | Insert actual receipt | Attention / interrogation orchestration | Ask only when evidence is insufficient |
-| P1 | Ingredient-role reasoning | Insert actual receipt | Reasoning complementarity | Treat ingredient importance as recipe-specific |
-| P1 | Missing-item explanation | Insert actual receipt | Shared mental model | Show required missing ingredients and available substitutions |
-| P2 | Conversational refinement | Insert actual receipt | Attention orchestration | Let users revise time, diet, protein, cuisine, and other constraints |
-| P2 | Recipe-source provenance | Insert actual receipt | Knowledge infrastructure | Surface recipe/source information used for recommendations |
+| P0 | User-confirmed inventory | Interview 1 and simulated interview 4 show the break where the model would own pantry truth. T09 shows the model can state the right rule and still must not be the writer of record. | Role partitioning / meta-coordination | AI suggestion → review → explicit confirmation → persistent update |
+| P0 | Hard-constraint preservation | Simulated interviews 7 and 9 show a ranking score or a long prompt must not relax diet. T10 shows a time claim that skipped prep state. | Goals and constraints / memory | Persist diet, exclusions, and max time. Enforce them in code before ranking. |
+| P0 | Cook Now feasibility, including equipment and staples | Simulated interview 3 shows variety without pantry fit is not complementary. Interview 6 shows ingredients without the oven are not feasible. T11 shows unlisted oil. | Knowledge infrastructure / role partitioning | Order Cook Now, then Almost Ready, then Needs Shopping. Check equipment. Do not treat staples as owned unless they are in inventory. |
+| P1 | Substitution confidence | Simulated interview 5 and T08 show over-trust and missing recipe context. | Trust calibration / interrogation | Label safe, possible, or not recommended. Say what changes. Ask before a permanent acceptance. |
+| P1 | Clarification on conflict | Simulated interview 9 and T10 show a confident answer when a question was required. | Attention and interrogation orchestration | Ask one focused question. Do not ask when structured state is already enough. |
+| P1 | Explain the recommendation | Interview 1 trusts a recipe more when the reason is visible, and does not trust a bare match score. | Shared mental model | Show “Why this?” and the factors behind a score: pantry, diet, time, protein. |
+| P1 | Nutrition provenance | Simulated interview 8 shows an unlabeled protein number is not usable. | Knowledge infrastructure | Demo figures say “estimate.” A later version uses a nutrition source and labels calculated versus estimated. |
+| P2 | Lightweight inventory edits | Interview 1 and simulated interview 3 show upkeep can erase the time saved. | Attention orchestration | Receipt, typed lists, voice, and quick edits. Confirmation stays short. |
+| P2 | Saved kitchen and preference profile | Simulated interviews 6 and 9 show repeated entry of equipment and diet. | Memory / shared mental model | Equipment and hard preferences persist until the user changes them. |
 
 ## Scope boundaries
 
-- Automatic consumption tracking is outside the initial scope.
+- Automatic consumption tracking is outside the initial scope. Simulated interview 4 supports that: do not reduce stock unless the user says an item was used.
 - Purchased quantities are never assumed to equal current inventory.
 - Grocery ordering APIs are outside the initial scope.
-- ChefNova does not make medical/allergy-grade safety claims.
+- ChefNova does not make medical or allergy-grade safety claims.
 - Nutrition values are not presented as model-measured facts.
+- Shared-versus-personal ownership (interview 4) is recorded as a requirement to confirm what is yours. A full household account model is not in this prototype.

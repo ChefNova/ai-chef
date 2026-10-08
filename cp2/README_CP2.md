@@ -4,15 +4,15 @@ This directory is the **CP2 submission layer** for the existing ChefNova reposit
 
 ## Submission status
 
-The package is **submission-ready except for evidence that can only come from real-world execution**. No AI-platform output or interview finding is fabricated here.
+The evidence chain is filled from the ChatGPT transcript, one phone interview, and seven notes that were supplied as **simulated** interviews. Those simulated notes are labeled as simulated in `validation/interviews/simulated-interviews-03-09.md`. They are not presented as live speed-dating transcripts.
 
-The only evidence-dependent inputs are:
+Still open before this is a complete Checkpoint 2 package:
 
-1. **Prompting receipts:** actual outputs/screenshots from at least two AI platforms using the controlled scenarios in `validation/PROMPTING_PROTOCOL.md`.
-2. **Speed-dating receipts:** two interviews per team member (eight total), recorded in `validation/GAP_ANALYSIS.md` and individual validation reflections.
-3. **Evidence-linked revisions:** once those receipts exist, the evidence columns/rows in `GAP_ANALYSIS.md`, `THEORY_LENS.md`, and `OPPORTUNITY_FRAMING.md` are populated with the observed results. The surrounding analysis, theory structure, requirements, design, prototype, and presentation structure are already prepared.
-
-These are empirical inputs, not missing project design work.
+1. A second AI platform. `validation/transcripts/gemini_outputs.md` is still empty. ChatGPT is in `validation/transcripts/chatgpt_outputs.md`.
+2. Interview 2. It was not supplied.
+3. Each member's own reflection and the class storyboard in `validation/reflections/`.
+4. Screenshot files named in the ChatGPT log are not in the repo. The transcript is the receipt.
+5. Slides still need to be posted to Canvas. The outline is in `presentation/CP2_SLIDE_OUTLINE.md`.
 
 ## CP2 structure
 

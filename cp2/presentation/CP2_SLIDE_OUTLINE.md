@@ -14,8 +14,10 @@ Show: AI platforms, typical/edge/failure scenarios, controlled-prompt procedure,
 ## Slide 4 — Evidence: worked and failed (~1.5–2 min)
 Show actual screenshots/transcripts. Use at least one successful behavior and representative failures. Each example should identify the failure and why it matters.
 
+ChatGPT receipts to show: T09 (purchase is not on-hand inventory) and T02 or T08 or T10 (partials). Do not describe a hypothetical failure as if the transcript showed it.
+
 ## Slide 5 — Gap analysis (~1–1.5 min)
-Each member briefly reports one speed-dating finding. Present the strongest examples as:
+Each member briefly reports one speed-dating finding. Interview 1 is the phone note. Interviews 3–9 were supplied as simulated notes and should be described that way. Interview 2 is missing. Present the strongest examples as:
 
 **failure receipt → theory → design response**
 
