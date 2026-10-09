@@ -2,7 +2,7 @@
 
 ## Role
 
-Opportunity Framing & Validation. I own CP2-05 (`validation/OPPORTUNITY_FRAMING.md`): the hypothesis-evolution table and the prioritized requirements. I also ran speed-dating interviews 4, 5, 6, and 7.
+Opportunity Framing & Validation. I own CP2-05 (`validation/OPPORTUNITY_FRAMING.md`): the hypothesis-evolution table and the prioritized requirements. I also ran speed-dating interviews 4 and 7.
 
 ---
 
@@ -51,7 +51,7 @@ ChatGPT: 7 pass, 4 partial, T01 not run. Gemini: 9 pass, 1 partial, 1 fail, T09 
 
 ## Speed-dating interviews
 
-All four were live speed-dating sessions that I ran. The full notes are in `validation/interviews/speed-dating-interviews-03-09.md`.
+Both were live speed-dating sessions that I ran. The full notes are in `validation/interviews/speed-dating-interviews-03-09.md`.
 
 ### Interview 4 — Shared apartment
 
@@ -62,49 +62,33 @@ All four were live speed-dating sessions that I ran. The full notes are in `vali
 - **Complementarity interpretation:** The AI is good at turning a receipt into purchase evidence. Only the human knows who owns an item and whether it is still there. If the AI writes pantry truth, the hybrid takes on the AI's blind spot instead of covering it. This is meta-coordination: the AI proposes and the human signs off. The participant's view matches ChatGPT T09, which said purchased stock is not on-hand stock.
 - **Design implication:** Inventory is user-confirmed state. Receipt items enter as proposals. Stock is never reduced unless the user says an item was used. Shared versus personal ownership is recorded as a "confirm what is yours" step. A full household account model is out of scope for CP2.
 
-### Interview 5 — Beginner cook, low confidence
-
-- **Participant:** Young professional who recently started cooking and follows recipes exactly.
-- **Task shown:** A substitution suggestion: sour cream offered in place of Greek yogurt, the same case as prompting scenario T08.
-- **Main finding:** Beginners will accept a substitution they cannot evaluate. The participant liked substitutions because buying a whole ingredient for one recipe feels wasteful, but they had no way to tell a good swap from a bad one.
-- **Quote:** "If the app tells me sour cream works instead of yogurt, I probably won't know enough to question it."
-- **Complementarity interpretation:** The hybrid only beats AI-alone when the human can catch what the AI gets wrong. For substitutions, a beginner cannot, so the hybrid falls back to AI-alone at exactly the point where the AI is weakest. This is a trust-calibration break: the user reads the model's confidence as correctness.
-- **Design implication:** Label every substitution as safe, possible, or not recommended. Say what changes (flavor, texture, protein). Ask which recipe it is for before approving the swap.
-
-### Interview 6 — Minimal kitchen equipment
-
-- **Participant:** College student in a small apartment with one pan, one pot, a microwave, and no oven.
-- **Task shown:** Recipe recommendations from a pantry that already contained the needed ingredients.
-- **Main finding:** A recipe is not feasible if it needs equipment the user does not own, even when every ingredient is available. The participant also wanted three good options rather than a long list, and did not want to re-enter their equipment for every request.
-- **Quote:** "Having all the ingredients doesn't help if the recipe suddenly tells me to put something in an oven."
-- **Complementarity interpretation:** This is a knowledge-infrastructure gap. The AI cannot know the kitchen unless it is stored. Without a stored kitchen, the user is the one who discovers the oven step, halfway through the recipe. It is the same pattern as T11, where both platforms treated oil as owned: anything not recorded gets assumed.
-- **Design implication:** Equipment is part of the feasibility check. A recipe that needs missing equipment is blocked, not just ranked lower. The spec puts equipment in a saved kitchen profile so it is entered once.
-
 ### Interview 7 — Vegetarian user
 
 - **Participant:** Graduate student who follows a vegetarian diet and sometimes cooks for friends who eat meat.
 - **Task shown:** A ranked recipe list with match scores.
-- **Main finding:** A dietary restriction is a hard constraint, not a preference. A higher score must never let a non-vegetarian recipe through. Once vegetarian is set, it should apply until the user changes it.
+- **Main finding:** A dietary restriction is a hard constraint, not a preference. The participant saw a diet violation as far more serious than an ordinary recipe mismatch. A higher score must never let a non-vegetarian recipe through. Once vegetarian is set, it should apply until the user changes it, without being retyped on every request.
 - **Quote:** "Vegetarian isn't something the ranking algorithm should decide to ignore because another recipe scores higher."
 - **Complementarity interpretation:** The human sets the boundary and the AI optimizes inside it. If the score can outrank the diet, the AI is overriding a decision that belongs to the user. It is also a shared-mental-model mismatch: the user thinks "vegetarian" is a filter, while a scoring model treats it as one weight among many.
 - **Design implication:** Application code filters by diet *before* ranking, and diet persists across requests. Goals such as high protein stay as ranking preferences only.
 
 ---
 
+
 ## Finding that changed my assumption
 
-**Initial assumption:** My hypothesis-evolution table starts the substitution row with "A confident substitution is helpful." It saves a grocery trip, and beginners benefit most because they do not know the swaps themselves.
+**Initial assumption:** My hypothesis-evolution table starts the diet row with "Dietary and protein goals are similar preferences." I expected vegetarian and high-protein to work as weights in the same match score. I also expected the model's conversation memory to be enough to carry them from one request to the next.
 
-**What changed it:** Interview 5 and T08, read together.
+**What changed it:** Interview 7, read alongside T04, T05, and T10.
 
-The beginner said plainly that they would not question a substitution. On T08, ChatGPT answered the same sour-cream question with "you can safely use the sour cream you have." It did not know which recipe was involved, and one variant pulled in a "chicken rice bowl" from somewhere outside the prompt. Gemini answered the identical prompt with "I am uncertain and must clarify" and asked for the recipe. The helpfulness I assumed depended on the user being able to judge the advice, and the user most likely to want substitutions is the least able to judge them.
+The participant drew a line I had not drawn. Missing a protein target makes a recipe worse. Serving meat to a vegetarian makes it wrong. They also expected "vegetarian" to stay on without retyping it. The prompting study showed why model memory does not settle this. On T04 and T05, both platforms kept "vegetarian" and "no chicken" across turns in a short chat. On T10, with eight constraints in one prompt, ChatGPT listed every constraint in its header, including "<20 min," and met the time limit only by assuming the rice was already cooked. Gemini flagged the same conflict instead. A constraint that has been quietly relaxed looks the same as one that has been met. If diet were one weight in a score, or a line in the chat history, nothing would stop the same thing from happening to "vegetarian."
 
 **Connection to the lens (Gonzalez et al., 2026):**
 
-- **Complementarity.** The working claim is that ChefNova's hybrid beats human-alone and AI-alone because each side covers the other's weakness. For a beginner, substitution is a task where the human covers nothing. If the AI decides the swap, the hybrid is AI-alone with extra steps. The design has to give the human enough information to take that decision back.
-- **Trust calibration.** The beginner uses the answer's confidence as the signal. ChatGPT's confidence was not tied to evidence, since it never knew the recipe. That is overtrust waiting to happen. The fix is to make the uncertainty visible (a "possible" label and the trade-off), not to hide the suggestion.
-- **Shared mental model.** "Sour cream works instead of yogurt" means "same result" to a beginner. The model meant "fine in savory dishes, less protein, different texture in baking." The qualifications were in the text, but the user reads the "Yes." The interface has to put the trade-off where the user will see it, next to the label.
-- **Reasoning.** T08 is a reasoning scenario. The failure was not a wrong fact. The model closed an ambiguous context with an assumption instead of asking. Because the two platforms behaved differently on the same prompt, "ask first" cannot be left to whichever model is underneath.
+- **Complementarity.** The theory lens gives the human final decision rights over dietary constraints. A score that can outrank the diet hands that decision to the AI. The hybrid only works if the human sets the boundary and the AI optimizes inside it, so the boundary has to be enforced by application logic, not weighed by the model.
+- **Goals and constraints.** Interview 7 split what I had treated as one category into two: a constraint that defines the feasible set (vegetarian) and a goal that orders it (high protein).
+- **Memory.** T04 and T05 passed, but only inside one chat, and T05 may have drawn on account memory from outside the test. Chat memory that the user cannot see or edit is not the same as a profile they set. "Apply it until I change it" is a request for the second.
+- **Attention.** T10 is an attention scenario. ChatGPT kept the salient words and skipped a quieter requirement. A long constraint list is where a diet rule is most likely to slip, and a vegetarian who also wants high protein, a time limit, and one pan is exactly that case.
+- **Shared mental model.** The user thinks of "vegetarian" as a filter. A scoring model treats it as one weight among many. Showing that a recipe was filtered, and why, brings the system's behavior in line with the user's model.
 
 **An assumption that was confirmed, not changed:** Interview 4 confirmed that users must own inventory truth. I expected this going in. The shared-apartment case made it stronger than I expected: the problem is not only that a receipt is out of date, but that it can describe groceries that were never the user's.
 
@@ -112,15 +96,12 @@ The beginner said plainly that they would not question a substitution. On T08, C
 
 ## How this affected the design
 
-1. **Substitution confidence became a P1 requirement** in `OPPORTUNITY_FRAMING.md`, citing Interview 5 and T08. `DESIGN_SPEC.md` §8 now requires every substitution to be labeled safe, possible, or not recommended and to state what changes (flavor, texture, or protein).
-2. **A substitution is an interrogation moment.** §10 tells ChefNova to ask when "a substitution has meaningful uncertainty." In practice, it asks which recipe the swap is for before approving it. This is the behavior Gemini showed on T08 and ChatGPT did not.
-3. **Decision rights are explicit.** In the §4 decision-rights table, "Is a substitution acceptable?" reads *AI proposes; user decides*. The model can suggest a swap but cannot quietly apply it to the recipe.
-4. **What is built vs. specified.** The prototype currently shows only a caption: "Any suggested swap is possible, not a guaranteed safe substitution." The three-level label and the clarifying question are specified but not yet built. They are on the CP3 list.
+1. **Hard-constraint preservation became a P0 requirement** in `OPPORTUNITY_FRAMING.md`, citing Interview 7 and T10. The diet row of the hypothesis table now reads "Diet is a hard constraint. Protein is a soft preference."
+2. **Diet is filtered before ranking.** `DESIGN_SPEC.md` §8 says to "treat diet and explicit exclusions as hard filters, and treat goals such as high protein as ranking preferences." Application logic applies the filter, so no score can override it.
+3. **Decision rights are explicit.** In the §4 decision-rights table, "Is a hard dietary restriction active?" belongs to the user. The model cannot relax or drop it.
+4. **A conflict is an interrogation moment.** §10 tells ChefNova to ask when "a hard constraint conflicts with all feasible candidates," instead of quietly relaxing one, which is what ChatGPT did on T10.
+5. **What is built vs. specified.** The prototype runs the diet check in code before ranking, and a failing recipe shows "Filtered — a hard dietary constraint is not a ranking tie-break." Two gaps remain. All three demo recipes are vegetarian, so that message never appears in the demo. Constraints are also re-read from each new request, so "vegetarian" does not yet persist. The saved preference profile is a P2 requirement and is on the CP3 list.
 
-My other three interviews also show up in the prototype:
+Interview 4 also shows up in the prototype. Receipt items carry a "Confirmed" checkbox, only confirmed items count as available, and the demo's spinach starts unconfirmed so it is not treated as owned. Stock is never reduced automatically, and `OPPORTUNITY_FRAMING.md` lists automatic consumption tracking as out of scope.
 
-- **Interview 4:** Only confirmed inventory counts as available. The receipt flow ends in a confirm step.
-- **Interview 6:** An "I have an oven" toggle blocks the oven recipe with "Not feasible with the saved kitchen." The spec calls for a saved kitchen profile. The prototype's version is a per-session toggle.
-- **Interview 7:** The diet check runs in code before ranking. A failing recipe shows "Filtered — a hard dietary constraint is not a ranking tie-break."
-
-**For CP3:** The claim I most want to test is whether substitution labels change what beginners accept. Give a beginner group the same bad swap with and without the label and measure how many accept it. That is a direct test of whether the hybrid restores the human's half of the work.
+**For CP3:** The claim I most want to test is that diet holds across a session. Set vegetarian once, then send several requests that do not restate it, with a high-scoring meat recipe in the candidate pool. The pass condition is that no non-vegetarian recipe is ever shown. Running the same sequence on chat memory alone gives the AI-alone baseline, which makes this a direct test of whether the structured profile is what keeps the user's boundary in place.
