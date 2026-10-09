@@ -93,4 +93,5 @@ Both changes implement the role-partitioning principle from Gonzalez et al.: con
 
 ## Class storyboard
 
-*To be added after in-class session.*
+<img width="1536" height="1024" alt="image" src="https://github.com/user-attachments/assets/3d928d19-8d28-49a0-aad0-009530ca7890" />
+
