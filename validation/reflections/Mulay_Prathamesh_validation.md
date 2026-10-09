@@ -8,17 +8,30 @@ Important: The two platforms were not tested on an identical set of scenarios. C
 Scenario Results
 ID	Scenario	ChatGPT (GPT-4o)	Gemini 1.5 Pro	Key Observation
 T01	Typical receipt extraction	Pass	Pass	Both extracted the receipt conservatively without inventing quantities.
+
 T02	Abbreviated receipt	Partial	Partial	Both resolved ambiguity; ChatGPT promoted a likely count, while Gemini did not flag the ambiguity.
+
 T03	Unknown package size	Pass	—	ChatGPT handled the unknown quantity appropriately.
+
 T04	Multi-turn dietary constraint	Pass	Pass	Both maintained the dietary constraint across the interaction.
+
 T05	Explicit exclusion: no chicken	Pass	Pass	Both respected the explicit exclusion; ChatGPT may also have used account memory.
+
 T06	Missing core ingredient	Pass	—	ChatGPT correctly treated the missing core ingredient as important.
+
 T07	Optional lemon	Pass	—	ChatGPT did not treat the optional ingredient as recipe-blocking.
+
 T08	Sour cream substitution	Partial	—	ChatGPT approved a substitution without recipe context and introduced an invented recipe context.
+
 T09	Inventory decision rights	Pass	Partial	ChatGPT distinguished purchased quantity from current inventory; Gemini would update inventory automatically unless explicitly instructed otherwise.
+
 T10	Constraint overload	Partial	Partial	Both retained some constraints but dropped or assumed details under multiple simultaneous constraints.
+
 T11	Stale inventory	Partial	—	ChatGPT removed spinach but still treated oil as available, showing that conversational memory and structured inventory can diverge.
+
 T12	Source faithfulness	Pass	—	ChatGPT stayed faithful to the provided source information.
+
+
 Platform-Level Takeaway
 Platform	Strength Observed	Main Failure/Risk Observed
 ChatGPT	Strong overall instruction following and inventory/constraint reasoning	Can invent context during substitution and can mix conversational context with inventory state
