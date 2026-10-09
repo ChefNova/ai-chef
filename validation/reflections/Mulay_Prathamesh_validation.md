@@ -4,8 +4,6 @@ Platforms Tested
 Platform	Model	Date Tested	Scenarios Run	Coverage
 ChatGPT	GPT-4o	Oct. 7–8, 2026	12 / 12	Full study
 Gemini	Gemini 1.5 Pro	Oct. 7–8, 2026	5 / 12	T01, T04, T05, T09, T10
-
-
 Important: The two platforms were not tested on an identical set of scenarios. ChatGPT was used for all 12 scenarios, while Gemini was used for a subset of 5 scenarios. Therefore, the comparison is directional rather than a complete head-to-head benchmark.
 Scenario Results
 ID	Scenario	ChatGPT (GPT-4o)	Gemini 1.5 Pro	Key Observation
@@ -21,12 +19,11 @@ T09	Inventory decision rights	Pass	Partial	ChatGPT distinguished purchased quant
 T10	Constraint overload	Partial	Partial	Both retained some constraints but dropped or assumed details under multiple simultaneous constraints.
 T11	Stale inventory	Partial	—	ChatGPT removed spinach but still treated oil as available, showing that conversational memory and structured inventory can diverge.
 T12	Source faithfulness	Pass	—	ChatGPT stayed faithful to the provided source information.
-
-
 Platform-Level Takeaway
 Platform	Strength Observed	Main Failure/Risk Observed
 ChatGPT	Strong overall instruction following and inventory/constraint reasoning	Can invent context during substitution and can mix conversational context with inventory state
 Gemini	Conservative behavior in some receipt and substitution-related cases	Can make incorrect assumptions about inventory ownership and can drop constraints under overload
+
 
 
 Speed-Dating Interviews
