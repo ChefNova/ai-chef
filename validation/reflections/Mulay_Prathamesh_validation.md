@@ -1,95 +1,34 @@
 CP2 Validation Findings and Design Implications
 Prompting Study
 Platforms Tested
-- ChatGPT (GPT-4o) --- primary platform, 7--8 Oct 2026
-- Gemini 1.5 Pro --- secondary platform; outputs are documented in
-  validation/transcripts/gemini_outputs.md
-Scenarios Run
-All twelve scenarios in validation/PROMPTING_PROTOCOL.md were run on
-ChatGPT. Gemini was run on a focused subset (T01, T04, T05, T09, T10)
-for cross-platform comparison.
-  Scenario       Type           Pillar              ChatGPT result    Gemini result
-  T01 ---        typical        reasoning           Pass --- did  Pass ---
-  Typical                                           not invent        similar
-  receipt                                           quantities        conservative
-  extraction                                                          output
-  T02 ---        edge           reasoning           Partial ---   Partial ---
-  Abbreviated                                       merged "whole"    resolved
-  receipt                                           and "2%," and     ambiguity
-                                                    promoted a likely without
-                                                    count             flagging it
-  T03 ---        edge           reasoning           Pass ---      Pass
-  Unknown                                           asked for
-  package size                                      confirmation      
-  T04 ---        typical        memory              Pass ---      Pass ---
-  Multi-turn                                        retained          retained
-  dietary                                           vegetarian,       constraints
-  constraint                                        protein, and time
-                                                    constraints
-                                                    across turns      
-  T05 ---        failure        memory              Pass --- kept Pass
-  Explicit                                          chicken out;
-  exclusion (no                                     account memory
-  chicken)                                          may have
-                                                    influenced the
-                                                    response          
-  T06 ---        failure        reasoning           Pass ---      Not tested
-  Missing core                                      flagged chicken
-  ingredient                                        as missing        
-  T07 ---        edge           reasoning           Pass ---      Not tested
-  Optional                                          correctly treated
-  ingredient (no                                    lemon as optional
-  lemon)                                                              
-  T08 ---        edge           reasoning           Partial ---   Not tested
-  Substitution                                      approved the swap
-  (sour cream                                       without asking
-  for yogurt)                                       which recipe and
-                                                    invented a
-                                                    chicken rice bowl
-                                                    context           
-  T09 ---        failure        meta-coordination   Pass ---      Partial ---
-  Inventory                                         stated that       said it would
-  decision                                          purchased 2 lb    update
-  rights                                            does not          inventory
-                                                    necessarily mean  automatically
-                                                    2 lb is currently unless told
-                                                    on hand           otherwise
-  T10 ---        edge           attention           Partial ---   Partial ---
-  Constraint                                        retained salient  dropped "no
-  overload                                          constraints but   mushrooms" from
-                                                    claimed ~15      the output
-                                                    minutes while
-                                                    assuming cooked
-                                                    rice              
-  T11 --- Stale  failure        memory              Partial ---   Not tested
-  inventory                                         removed spinach
-                                                    from
-                                                    recommendations
-                                                    but still listed
-                                                    oil as available  
-  T12 --- Source edge           reasoning           Pass ---      Not tested
-  faithfulness                                      listed missing
-                                                    ingredients
-                                                explicitly        
-Key Failure Cases
-- T08 --- Ambiguous substitution: ChatGPT approved sour cream as a
-  substitute for Greek yogurt and introduced a chicken rice bowl that
-  was not in the prompt. This is a reasoning failure: the model
-  closed an ambiguous context by inventing one rather than asking for
-  the missing context.
-- T09 --- Inventory ownership: Gemini said it would update
-  inventory automatically from a receipt unless told otherwise. This
-  is a meta-coordination failure: the AI assumed it owned pantry
-  truth rather than recognizing that the user owns the inventory
-  decision.
-- T10 --- Constraint overload: Gemini dropped "no mushrooms" from
-  an eight-constraint prompt and produced a recipe containing
-  mushrooms. This is an attention failure: a lower-salience
-  constraint was lost in a dense instruction set.
-- T11 --- Stale inventory: ChatGPT removed spinach from active
-  recommendations but still listed oil as an available ingredient in
-  the same response. This shows that conversational context and
-  structured inventory state are not necessarily the same thing.
+Platform	Model	Date Tested	Scenarios Run	Coverage
+ChatGPT	GPT-4o	Oct. 7–8, 2026	12 / 12	Full study
+Gemini	Gemini 1.5 Pro	Oct. 7–8, 2026	5 / 12	T01, T04, T05, T09, T10
+
+
+Important: The two platforms were not tested on an identical set of scenarios. ChatGPT was used for all 12 scenarios, while Gemini was used for a subset of 5 scenarios. Therefore, the comparison is directional rather than a complete head-to-head benchmark.
+Scenario Results
+ID	Scenario	ChatGPT (GPT-4o)	Gemini 1.5 Pro	Key Observation
+T01	Typical receipt extraction	Pass	Pass	Both extracted the receipt conservatively without inventing quantities.
+T02	Abbreviated receipt	Partial	Partial	Both resolved ambiguity; ChatGPT promoted a likely count, while Gemini did not flag the ambiguity.
+T03	Unknown package size	Pass	—	ChatGPT handled the unknown quantity appropriately.
+T04	Multi-turn dietary constraint	Pass	Pass	Both maintained the dietary constraint across the interaction.
+T05	Explicit exclusion: no chicken	Pass	Pass	Both respected the explicit exclusion; ChatGPT may also have used account memory.
+T06	Missing core ingredient	Pass	—	ChatGPT correctly treated the missing core ingredient as important.
+T07	Optional lemon	Pass	—	ChatGPT did not treat the optional ingredient as recipe-blocking.
+T08	Sour cream substitution	Partial	—	ChatGPT approved a substitution without recipe context and introduced an invented recipe context.
+T09	Inventory decision rights	Pass	Partial	ChatGPT distinguished purchased quantity from current inventory; Gemini would update inventory automatically unless explicitly instructed otherwise.
+T10	Constraint overload	Partial	Partial	Both retained some constraints but dropped or assumed details under multiple simultaneous constraints.
+T11	Stale inventory	Partial	—	ChatGPT removed spinach but still treated oil as available, showing that conversational memory and structured inventory can diverge.
+T12	Source faithfulness	Pass	—	ChatGPT stayed faithful to the provided source information.
+
+
+Platform-Level Takeaway
+Platform	Strength Observed	Main Failure/Risk Observed
+ChatGPT	Strong overall instruction following and inventory/constraint reasoning	Can invent context during substitution and can mix conversational context with inventory state
+Gemini	Conservative behavior in some receipt and substitution-related cases	Can make incorrect assumptions about inventory ownership and can drop constraints under overload
+
+
 Speed-Dating Interviews
 Interview 5 --- Beginner Cook, Low Confidence
 - Participant: Young professional who recently started cooking and
@@ -229,5 +168,6 @@ Gonzalez, C., et al. (2026). Toward a science of human--AI teaming for
 decision making: A complementarity framework. PNAS Nexus, 5(3),
 pgag030.
 
+=====================================================
 Class Storyboard
 <img width="1536" height="1024" alt="image" src="https://github.com/user-attachments/assets/e58ef8d2-e9eb-40b9-b62c-9a715deae482" />
