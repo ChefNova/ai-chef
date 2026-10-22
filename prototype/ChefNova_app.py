@@ -11,13 +11,13 @@ except ImportError:
     sr = None
 
 from pantry_extraction import (
-    MissingApiKey,
     confirm_review_into_inventory,
     extract_receipt,
     issue_text,
-    model_from_env,
     validate_row,
 )
+from pantry_extraction.gemini import GeminiReceiptModel
+from pantry_extraction.key_store import prefill_api_key, save_api_key
 
 
 st.set_page_config(page_title="ChefNova", page_icon="🍳", layout="wide")
@@ -517,12 +517,12 @@ def _rows_from_extraction(result):
     return rows
 
 
-def run_receipt_extraction(upload):
-    """Extract into review rows. Inventory is unchanged here."""
-    try:
-        model = model_from_env()
-    except MissingApiKey:
-        return [], "Set GEMINI_API_KEY to read a receipt. No items were added.", None
+def run_receipt_extraction(upload, api_key):
+    """Extract into review rows using the key from the scan prompt. Inventory is unchanged."""
+    key = str(api_key or "").strip()
+    if not key:
+        return [], "Enter a Gemini API key to read this receipt. No items were added.", None
+    model = GeminiReceiptModel(api_key=key)
     result = extract_receipt(upload.getvalue(), _mime_type(upload), model)
     if not result.ok:
         return [], result.failure_reason, None
@@ -871,12 +871,36 @@ def show_inventory():
                 receipt = st.file_uploader(
                     "Upload a receipt or grocery-order screenshot",
                     type=["png", "jpg", "jpeg", "pdf"],
-                    help="Extraction runs only when GEMINI_API_KEY is set. Items stay in this review table until you confirm them.",
+                    help="Each scan asks for a Gemini API key before extraction. Items stay in this review table until you confirm them.",
                 )
                 if receipt is not None:
                     st.success(f"Receipt ready: {receipt.name}")
+                    receipt_id = f"{receipt.name}:{getattr(receipt, 'size', 0)}"
+                    key_widget = f"gemini_key_{receipt_id}"
+                    save_widget = f"gemini_save_{receipt_id}"
+                    if key_widget not in st.session_state:
+                        prefilled, source = prefill_api_key()
+                        st.session_state[key_widget] = prefilled
+                        st.session_state[f"gemini_source_{receipt_id}"] = source
+                    source = st.session_state.get(f"gemini_source_{receipt_id}", "none")
+                    if source == "saved":
+                        st.caption("A key saved on this computer is filled in. Reuse it, edit it, or replace it. Nothing is sent until you extract.")
+                    elif source == "env":
+                        st.caption("Filled in from GEMINI_API_KEY. Save it below if this computer should remember it. Nothing is sent until you extract.")
+                    else:
+                        st.caption("Enter a Gemini API key for this scan. Nothing is sent until you extract.")
+                    st.text_input(
+                        "Gemini API key",
+                        type="password",
+                        key=key_widget,
+                        autocomplete="off",
+                    )
+                    st.checkbox("Save this key on this computer for later scans", key=save_widget)
                     if st.button("Extract grocery items", key="extract_receipt", use_container_width=True):
-                        rows, error, notice = run_receipt_extraction(receipt)
+                        typed_key = st.session_state.get(key_widget, "")
+                        if st.session_state.get(save_widget) and str(typed_key).strip():
+                            save_api_key(typed_key)
+                        rows, error, notice = run_receipt_extraction(receipt, typed_key)
                         st.session_state.review_items = rows
                         st.session_state.extraction_error = error
                         st.session_state.extraction_notice = notice

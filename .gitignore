@@ -2,6 +2,7 @@
 .env
 .env.*
 !.env.example
+prototype/.chefnova/
 
 # Python
 __pycache__/
