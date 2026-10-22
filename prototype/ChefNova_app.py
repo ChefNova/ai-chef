@@ -526,7 +526,11 @@ def run_receipt_extraction(upload, api_key):
     result = extract_receipt(upload.getvalue(), _mime_type(upload), model)
     if not result.ok:
         return [], result.failure_reason, None
-    return _rows_from_extraction(result), None, result.notice
+    notice = result.notice
+    if model.model_used and model.model_used != model._model:
+        fallback = f"Gemini used {model.model_used} because {model._model} was busy."
+        notice = f"{notice} {fallback}" if notice else fallback
+    return _rows_from_extraction(result), None, notice
 
 
 def recipe_is_diet_compatible(recipe, diet):

@@ -7,7 +7,7 @@ from urllib.error import HTTPError, URLError
 
 import pytest
 
-from pantry_extraction.gemini import DEFAULT_MODEL, GeminiReceiptModel
+from pantry_extraction.gemini import DEFAULT_MODEL, FALLBACK_MODEL, GeminiReceiptModel
 from pantry_extraction.pipeline import (
     MissingApiKey,
     confirm_review_into_inventory,
@@ -260,3 +260,126 @@ def test_gemini_http_error_reports_status_without_the_api_key():
 def test_gemini_client_refuses_a_blank_key():
     with pytest.raises(MissingApiKey):
         GeminiReceiptModel(api_key="  ")
+
+
+def _http_error(request, code, message):
+    body = {"error": {"code": code, "message": message, "status": "UNAVAILABLE"}}
+    return HTTPError(
+        request.full_url,
+        code,
+        "error",
+        hdrs=None,
+        fp=io.BytesIO(json.dumps(body).encode()),
+    )
+
+
+def _ok_response():
+    class _Response:
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *args):
+            return False
+
+        def read(self):
+            body = {
+                "readable": True,
+                "failure_reason": None,
+                "items": [{"name": "Kale", "quantity": 1, "unit": "bunch", "missing_fields": []}],
+            }
+            return json.dumps(
+                {"candidates": [{"content": {"parts": [{"text": json.dumps(body)}]}}]}
+            ).encode()
+
+    return _Response()
+
+
+def test_gemini_retries_a_busy_model_then_reads_the_receipt():
+    calls = []
+
+    def _urlopen(request, timeout):
+        calls.append(request.full_url)
+        if len(calls) < 3:
+            raise _http_error(request, 503, "This model is currently experiencing high demand.")
+        return _ok_response()
+
+    with patch("pantry_extraction.gemini.urlopen", _urlopen), patch("pantry_extraction.gemini.time.sleep"):
+        model = GeminiReceiptModel(api_key="test-key-not-real")
+        raw = model.extract(b"\x89PNG", "image/png")
+
+    parsed = parse_model_output(raw)
+    assert parsed.ok and parsed.items[0].name == "Kale"
+    assert len(calls) == 3
+    assert all(DEFAULT_MODEL in url for url in calls)
+    assert FALLBACK_MODEL not in "".join(calls)
+    assert model.model_used == DEFAULT_MODEL
+
+
+def test_gemini_falls_back_when_the_default_model_stays_busy():
+    calls = []
+
+    def _urlopen(request, timeout):
+        calls.append(request.full_url)
+        if DEFAULT_MODEL in request.full_url:
+            raise _http_error(request, 503, "This model is currently experiencing high demand.")
+        return _ok_response()
+
+    with patch("pantry_extraction.gemini.urlopen", _urlopen), patch("pantry_extraction.gemini.time.sleep"):
+        model = GeminiReceiptModel(api_key="test-key-not-real")
+        result = extract_receipt(b"\x89PNG", "image/png", model)
+
+    assert result.ok and result.items[0].name == "Kale"
+    assert sum(DEFAULT_MODEL in url for url in calls) == 3
+    assert sum(FALLBACK_MODEL in url for url in calls) == 1
+    assert model.model_used == FALLBACK_MODEL
+
+
+def test_gemini_does_not_retry_a_rejected_request():
+    calls = []
+
+    def _urlopen(request, timeout):
+        calls.append(request.full_url)
+        raise _http_error(request, 400, "Invalid JSON payload.")
+
+    with patch("pantry_extraction.gemini.urlopen", _urlopen), patch("pantry_extraction.gemini.time.sleep"):
+        model = GeminiReceiptModel(api_key="test-key-not-real")
+        result = extract_receipt(b"\x89PNG", "image/png", model)
+
+    assert result.ok is False and result.items == []
+    assert len(calls) == 1
+    assert "HTTP 400" in result.failure_reason
+    assert FALLBACK_MODEL not in result.failure_reason
+
+
+def test_gemini_reports_both_models_when_they_are_busy():
+    def _urlopen(request, timeout):
+        raise _http_error(request, 503, "This model is currently experiencing high demand.")
+
+    with patch("pantry_extraction.gemini.urlopen", _urlopen), patch("pantry_extraction.gemini.time.sleep"):
+        model = GeminiReceiptModel(api_key="test-key-not-real")
+        result = extract_receipt(b"\x89PNG", "image/png", model)
+
+    assert result.ok is False and result.items == []
+    assert "HTTP 503" in result.failure_reason
+    assert "high demand" in result.failure_reason
+    assert DEFAULT_MODEL in result.failure_reason
+    assert FALLBACK_MODEL in result.failure_reason
+    assert "test-key-not-real" not in result.failure_reason
+
+
+def test_pinned_model_does_not_fall_back_when_busy(monkeypatch):
+    monkeypatch.setenv("GEMINI_MODEL", "gemini-3.1-pro-preview")
+    calls = []
+
+    def _urlopen(request, timeout):
+        calls.append(request.full_url)
+        raise _http_error(request, 503, "This model is currently experiencing high demand.")
+
+    with patch("pantry_extraction.gemini.urlopen", _urlopen), patch("pantry_extraction.gemini.time.sleep"):
+        model = GeminiReceiptModel(api_key="test-key-not-real")
+        result = extract_receipt(b"\x89PNG", "image/png", model)
+
+    assert result.ok is False and result.items == []
+    assert len(calls) == 3
+    assert all("gemini-3.1-pro-preview" in url for url in calls)
+    assert FALLBACK_MODEL not in result.failure_reason
