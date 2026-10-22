@@ -7,7 +7,7 @@ from urllib.error import HTTPError, URLError
 
 import pytest
 
-from pantry_extraction.gemini import DEFAULT_MODEL, FALLBACK_MODEL, GeminiReceiptModel
+from pantry_extraction.gemini import DEFAULT_MODEL, FALLBACK_MODELS, GeminiReceiptModel
 from pantry_extraction.pipeline import (
     MissingApiKey,
     confirm_review_into_inventory,
@@ -299,7 +299,7 @@ def test_gemini_retries_a_busy_model_then_reads_the_receipt():
 
     def _urlopen(request, timeout):
         calls.append(request.full_url)
-        if len(calls) < 3:
+        if len(calls) < 2:
             raise _http_error(request, 503, "This model is currently experiencing high demand.")
         return _ok_response()
 
@@ -309,18 +309,19 @@ def test_gemini_retries_a_busy_model_then_reads_the_receipt():
 
     parsed = parse_model_output(raw)
     assert parsed.ok and parsed.items[0].name == "Kale"
-    assert len(calls) == 3
+    assert len(calls) == 2
     assert all(DEFAULT_MODEL in url for url in calls)
-    assert FALLBACK_MODEL not in "".join(calls)
+    assert all(name not in "".join(calls) for name in FALLBACK_MODELS)
     assert model.model_used == DEFAULT_MODEL
 
 
-def test_gemini_falls_back_when_the_default_model_stays_busy():
+def test_gemini_uses_flash_lite_when_flash_models_are_busy():
     calls = []
+    busy = {DEFAULT_MODEL, "gemini-3.6-flash"}
 
     def _urlopen(request, timeout):
         calls.append(request.full_url)
-        if DEFAULT_MODEL in request.full_url:
+        if any(name in request.full_url for name in busy):
             raise _http_error(request, 503, "This model is currently experiencing high demand.")
         return _ok_response()
 
@@ -329,9 +330,9 @@ def test_gemini_falls_back_when_the_default_model_stays_busy():
         result = extract_receipt(b"\x89PNG", "image/png", model)
 
     assert result.ok and result.items[0].name == "Kale"
-    assert sum(DEFAULT_MODEL in url for url in calls) == 3
-    assert sum(FALLBACK_MODEL in url for url in calls) == 1
-    assert model.model_used == FALLBACK_MODEL
+    assert sum(DEFAULT_MODEL in url for url in calls) == 2
+    assert sum("gemini-3.6-flash" in url for url in calls) == 2
+    assert model.model_used == "gemini-3.5-flash-lite"
 
 
 def test_gemini_does_not_retry_a_rejected_request():
@@ -348,7 +349,7 @@ def test_gemini_does_not_retry_a_rejected_request():
     assert result.ok is False and result.items == []
     assert len(calls) == 1
     assert "HTTP 400" in result.failure_reason
-    assert FALLBACK_MODEL not in result.failure_reason
+    assert all(name not in result.failure_reason for name in FALLBACK_MODELS)
 
 
 def test_gemini_reports_both_models_when_they_are_busy():
@@ -363,7 +364,7 @@ def test_gemini_reports_both_models_when_they_are_busy():
     assert "HTTP 503" in result.failure_reason
     assert "high demand" in result.failure_reason
     assert DEFAULT_MODEL in result.failure_reason
-    assert FALLBACK_MODEL in result.failure_reason
+    assert all(name in result.failure_reason for name in FALLBACK_MODELS)
     assert "test-key-not-real" not in result.failure_reason
 
 
@@ -380,6 +381,6 @@ def test_pinned_model_does_not_fall_back_when_busy(monkeypatch):
         result = extract_receipt(b"\x89PNG", "image/png", model)
 
     assert result.ok is False and result.items == []
-    assert len(calls) == 3
+    assert len(calls) == 2
     assert all("gemini-3.1-pro-preview" in url for url in calls)
-    assert FALLBACK_MODEL not in result.failure_reason
+    assert all(name not in result.failure_reason for name in FALLBACK_MODELS)
