@@ -10,6 +10,15 @@ try:
 except ImportError:
     sr = None
 
+from pantry_extraction import (
+    MissingApiKey,
+    confirm_review_into_inventory,
+    extract_receipt,
+    issue_text,
+    model_from_env,
+    validate_row,
+)
+
 
 st.set_page_config(page_title="ChefNova", page_icon="🍳", layout="wide")
 
@@ -339,6 +348,8 @@ def init_state():
         "priority_pref": "Best pantry match",
         "high_protein_pref": True,
         "feedback": {},
+        "extraction_error": None,
+        "extraction_notice": None,
     }
     for key, value in defaults.items():
         if key not in st.session_state:
@@ -483,19 +494,39 @@ def speech_to_text(audio_file):
         return None, f"Voice was captured, but transcription failed: {exc}"
 
 
-def prototype_receipt_extraction(filename):
-    """
-    Prototype boundary: this simulates output from a future OCR/Vision pipeline.
-    Replace this function with actual receipt OCR/API extraction later.
-    """
-    _ = filename
-    return [
-        {"Ingredient": "Rice", "Quantity": 2, "Unit": "lb"},
-        {"Ingredient": "Chickpeas", "Quantity": 2, "Unit": "cans"},
-        {"Ingredient": "Tomatoes", "Quantity": 4, "Unit": "count"},
-        {"Ingredient": "Greek Yogurt", "Quantity": 1, "Unit": "container"},
-        {"Ingredient": "Spinach", "Quantity": 1, "Unit": "bag"},
-    ]
+def _mime_type(upload) -> str:
+    media_type = getattr(upload, "type", None) or ""
+    if media_type in {"image/png", "image/jpeg", "image/jpg", "application/pdf"}:
+        return "image/jpeg" if media_type == "image/jpg" else media_type
+    name = (getattr(upload, "name", "") or "").lower()
+    if name.endswith(".png"):
+        return "image/png"
+    if name.endswith(".pdf"):
+        return "application/pdf"
+    if name.endswith(".jpg") or name.endswith(".jpeg"):
+        return "image/jpeg"
+    return media_type or "application/octet-stream"
+
+
+def _rows_from_extraction(result):
+    rows = []
+    for item in result.items:
+        row = item.as_review_dict()
+        row["missing_fields"] = list(item.missing_fields)
+        rows.append(row)
+    return rows
+
+
+def run_receipt_extraction(upload):
+    """Extract into review rows. Inventory is unchanged here."""
+    try:
+        model = model_from_env()
+    except MissingApiKey:
+        return [], "Set GEMINI_API_KEY to read a receipt. No items were added.", None
+    result = extract_receipt(upload.getvalue(), _mime_type(upload), model)
+    if not result.ok:
+        return [], result.failure_reason, None
+    return _rows_from_extraction(result), None, result.notice
 
 
 def recipe_is_diet_compatible(recipe, diet):
@@ -840,13 +871,16 @@ def show_inventory():
                 receipt = st.file_uploader(
                     "Upload a receipt or grocery-order screenshot",
                     type=["png", "jpg", "jpeg", "pdf"],
-                    help="The prototype review workflow works now. Replace the demo extraction function with OCR/Vision when your backend is ready.",
+                    help="Extraction runs only when GEMINI_API_KEY is set. Items stay in this review table until you confirm them.",
                 )
                 if receipt is not None:
                     st.success(f"Receipt ready: {receipt.name}")
                     if st.button("Extract grocery items", key="extract_receipt", use_container_width=True):
-                        st.session_state.review_items = prototype_receipt_extraction(receipt.name)
-                        st.info("Prototype extraction populated the review table below. The review/edit/confirm flow is fully functional.")
+                        rows, error, notice = run_receipt_extraction(receipt)
+                        st.session_state.review_items = rows
+                        st.session_state.extraction_error = error
+                        st.session_state.extraction_notice = notice
+                        st.rerun()
 
             with type_tab:
                 manual_text = st.text_area(
@@ -858,7 +892,9 @@ def show_inventory():
                     parsed = parse_grocery_text(manual_text)
                     if parsed:
                         st.session_state.review_items = parsed
-                        st.success(f"Parsed {len(parsed)} item(s). Review them below before adding them.")
+                        st.session_state.extraction_error = None
+                        st.session_state.extraction_notice = "Review the typed items below. They are not in the pantry until you confirm them."
+                        st.success(f"Parsed {len(parsed)} item(s). Review them below before confirming.")
                     else:
                         st.warning("I couldn't find grocery items in that text. Try separating items with commas.")
 
@@ -877,14 +913,20 @@ def show_inventory():
                             parsed = parse_grocery_text(transcript)
                             if parsed:
                                 st.session_state.review_items = parsed
+                                st.session_state.extraction_error = None
+                                st.session_state.extraction_notice = "Review the voice items below. They are not in the pantry until you confirm them."
                                 st.info("I converted the voice input into structured grocery items. Review them below.")
 
         with right:
             st.markdown('<div class="section-title">2. Review before adding</div>', unsafe_allow_html=True)
             st.markdown(
-                '<div class="small-note">Nothing becomes part of your pantry until you review it and choose <b>Add reviewed items</b>.</div>',
+                '<div class="small-note">Nothing becomes part of your pantry until every row has a valid name, quantity, and unit and you choose <b>Confirm reviewed items</b>.</div>',
                 unsafe_allow_html=True,
             )
+            if st.session_state.extraction_error:
+                st.error(st.session_state.extraction_error)
+            elif st.session_state.extraction_notice:
+                st.info(st.session_state.extraction_notice)
 
             review_df = pd.DataFrame(st.session_state.review_items, columns=["Ingredient", "Quantity", "Unit"])
             edited_review_df = st.data_editor(
@@ -900,17 +942,32 @@ def show_inventory():
                 },
             )
 
+            pending = edited_review_df.fillna("").to_dict("records")
+            for row in pending:
+                item = validate_row(row)
+                if not item.ok:
+                    label = item.name or "This row"
+                    st.warning(f"{label}: {issue_text(item)}")
+
             c1, c2 = st.columns(2)
             with c1:
-                if st.button("Add reviewed items", use_container_width=True, disabled=edited_review_df.empty):
-                    reviewed = edited_review_df.fillna("").to_dict("records")
-                    merge_inventory_items(reviewed)
-                    st.session_state.review_items = []
-                    st.success("Reviewed items were added. Confirm the pantry after checking the final list.")
-                    st.rerun()
+                if st.button("Confirm reviewed items", use_container_width=True, disabled=edited_review_df.empty):
+                    outcome = confirm_review_into_inventory(st.session_state.inventory, pending)
+                    if not outcome.accepted:
+                        st.error(outcome.message)
+                    else:
+                        st.session_state.inventory = outcome.inventory
+                        st.session_state.confirmed = False
+                        st.session_state.review_items = []
+                        st.session_state.extraction_error = None
+                        st.session_state.extraction_notice = None
+                        st.success(outcome.message)
+                        st.rerun()
             with c2:
                 if st.button("Clear review", use_container_width=True, disabled=edited_review_df.empty):
                     st.session_state.review_items = []
+                    st.session_state.extraction_error = None
+                    st.session_state.extraction_notice = None
                     st.rerun()
 
     with pantry_tab:

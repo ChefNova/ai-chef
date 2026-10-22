@@ -1,0 +1,206 @@
+"""Pantry extraction tests. Model responses are fixtures. No network."""
+
+import json
+from unittest.mock import patch
+from urllib.error import URLError
+
+import pytest
+
+from pantry_extraction.gemini import GeminiReceiptModel
+from pantry_extraction.pipeline import (
+    MissingApiKey,
+    confirm_review_into_inventory,
+    extract_receipt,
+    parse_model_output,
+)
+from pantry_extraction.schema import EXTRACTION_PROMPT, EXTRACTION_SCHEMA
+from pantry_extraction.validate import validate_item
+
+
+class FakeModel:
+    def __init__(self, raw):
+        self.raw = raw
+        self.calls = []
+
+    def extract(self, image_bytes, mime_type):
+        self.calls.append((image_bytes, mime_type))
+        if isinstance(self.raw, Exception):
+            raise self.raw
+        return self.raw
+
+
+def _payload(readable, items, failure_reason=None):
+    return json.dumps(
+        {"readable": readable, "failure_reason": failure_reason, "items": items}
+    )
+
+
+def test_unreadable_receipt_returns_failure_and_drops_invented_items():
+    raw = _payload(
+        False,
+        [{"name": "Invented Rice", "quantity": 2, "unit": "lb", "missing_fields": []}],
+        "Image is too blurry to read.",
+    )
+    result = parse_model_output(raw)
+    assert result.ok is False
+    assert result.items == []
+    assert "blurry" in result.failure_reason
+
+
+def test_partial_read_keeps_readable_items_and_marks_gaps():
+    raw = _payload(
+        True,
+        [
+            {"name": "Milk", "quantity": 1, "unit": "gallon", "missing_fields": []},
+            {"name": "Bananas", "quantity": None, "unit": None, "missing_fields": ["quantity", "unit"]},
+        ],
+    )
+    result = parse_model_output(raw)
+    assert result.ok is True
+    assert len(result.items) == 2
+    assert result.items[0].ok
+    assert result.items[0].name == "Milk"
+    assert result.items[1].ok is False
+    assert result.items[1].missing_fields == ["quantity", "unit"]
+    assert "still need" in result.notice
+
+
+def test_invalid_json_and_non_object_extract_nothing():
+    broken = parse_model_output("not json")
+    assert broken.ok is False and broken.items == []
+    listed = parse_model_output(json.dumps([{"name": "Rice"}]))
+    assert listed.ok is False and listed.items == []
+
+
+def test_missing_readable_flag_extracts_nothing():
+    result = parse_model_output(json.dumps({"items": []}))
+    assert result.ok is False
+    assert result.items == []
+
+
+def test_validate_rejects_blank_name_bad_quantity_and_unknown_unit():
+    blank = validate_item(name="  ", quantity=1, unit="lb")
+    assert "name" in blank.missing_fields
+    bad_qty = validate_item(name="Rice", quantity=-2, unit="lb")
+    assert any("quantity" in error for error in bad_qty.errors)
+    text_qty = validate_item(name="Rice", quantity="two", unit="lb")
+    assert text_qty.ok is False
+    money = validate_item(name="Rice", quantity=4.29, unit="$")
+    assert any("unit" in error for error in money.errors)
+    good = validate_item(name=" whole milk ", quantity="1", unit="gallons")
+    assert good.ok
+    assert good.unit == "gallon"
+    assert good.quantity == 1
+
+
+def test_confirm_does_not_write_inventory_until_every_row_is_valid():
+    inventory = [{"Ingredient": "Rice", "Quantity": 1, "Unit": "lb"}]
+    rejected = confirm_review_into_inventory(
+        inventory,
+        [
+            {"Ingredient": "Milk", "Quantity": 1, "Unit": "gallon"},
+            {"Ingredient": "Bananas", "Quantity": None, "Unit": ""},
+        ],
+    )
+    assert rejected.accepted is False
+    assert rejected.inventory == inventory
+    assert inventory == [{"Ingredient": "Rice", "Quantity": 1, "Unit": "lb"}]
+
+    accepted = confirm_review_into_inventory(
+        inventory,
+        [{"Ingredient": "Rice", "Quantity": 2, "Unit": "lbs"}],
+    )
+    assert accepted.accepted is True
+    assert accepted.inventory[0]["Quantity"] == 3
+    assert accepted.inventory[0]["Unit"] == "lb"
+    # The original list is unchanged until the caller saves the returned one.
+    assert inventory[0]["Quantity"] == 1
+
+
+def test_confirm_keeps_different_units_separate():
+    outcome = confirm_review_into_inventory(
+        [{"Ingredient": "Rice", "Quantity": 1, "Unit": "lb"}],
+        [{"Ingredient": "Rice", "Quantity": 2, "Unit": "cups"}],
+    )
+    assert outcome.accepted
+    assert len(outcome.inventory) == 2
+
+
+def test_empty_or_unsupported_file_does_not_call_the_model():
+    model = FakeModel(_payload(True, [{"name": "Rice", "quantity": 1, "unit": "lb", "missing_fields": []}]))
+    empty = extract_receipt(b"", "image/png", model)
+    weird = extract_receipt(b"abc", "text/plain", model)
+    assert empty.ok is False and empty.items == []
+    assert weird.ok is False and weird.items == []
+    assert model.calls == []
+
+
+def test_model_exception_extracts_nothing():
+    model = FakeModel(URLError("blocked"))
+    result = extract_receipt(b"png", "image/png", model)
+    assert result.ok is False
+    assert result.items == []
+    assert "URLError" in result.failure_reason
+
+
+def test_successful_mock_extraction_does_not_touch_inventory():
+    model = FakeModel(
+        _payload(True, [{"name": "Chickpeas", "quantity": 2, "unit": "cans", "missing_fields": []}])
+    )
+    result = extract_receipt(b"fake-image", "image/jpeg", model)
+    assert result.ok
+    assert result.items[0].name == "Chickpeas"
+    assert model.calls == [(b"fake-image", "image/jpeg")]
+
+
+def test_missing_api_key_does_not_build_a_client(monkeypatch):
+    monkeypatch.delenv("GEMINI_API_KEY", raising=False)
+    from pantry_extraction.gemini import model_from_env
+
+    with pytest.raises(MissingApiKey):
+        model_from_env()
+
+
+def test_gemini_request_sends_prompt_and_schema_without_opening_a_real_socket():
+    captured = {}
+
+    class _Response:
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *args):
+            return False
+
+        def read(self):
+            body = {
+                "readable": True,
+                "failure_reason": None,
+                "items": [{"name": "Spinach", "quantity": 1, "unit": "bag", "missing_fields": []}],
+            }
+            return json.dumps(
+                {"candidates": [{"content": {"parts": [{"text": json.dumps(body)}]}}]}
+            ).encode()
+
+    def _urlopen(request, timeout):
+        captured["url"] = request.full_url
+        captured["body"] = json.loads(request.data.decode())
+        captured["timeout"] = timeout
+        return _Response()
+
+    with patch("pantry_extraction.gemini.urlopen", _urlopen):
+        model = GeminiReceiptModel(api_key="test-key-not-real", model="gemini-2.5-flash")
+        raw = model.extract(b"\x89PNG", "image/png")
+
+    parsed = parse_model_output(raw)
+    assert parsed.ok and parsed.items[0].name == "Spinach"
+    assert captured["body"]["contents"][0]["parts"][0]["text"] == EXTRACTION_PROMPT
+    assert captured["body"]["generationConfig"]["responseSchema"] == EXTRACTION_SCHEMA
+    assert captured["body"]["generationConfig"]["responseMimeType"] == "application/json"
+    assert "test-key-not-real" in captured["url"]
+    assert "test-key-not-real" not in json.dumps(captured["body"])
+    assert captured["body"]["contents"][0]["parts"][1]["inline_data"]["mime_type"] == "image/png"
+
+
+def test_gemini_client_refuses_a_blank_key():
+    with pytest.raises(MissingApiKey):
+        GeminiReceiptModel(api_key="  ")
