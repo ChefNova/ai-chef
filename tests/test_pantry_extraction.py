@@ -1,8 +1,9 @@
 """Pantry extraction tests. Model responses are fixtures. No network."""
 
+import io
 import json
 from unittest.mock import patch
-from urllib.error import URLError
+from urllib.error import HTTPError, URLError
 
 import pytest
 
@@ -184,6 +185,7 @@ def test_gemini_request_sends_prompt_and_schema_without_opening_a_real_socket():
     def _urlopen(request, timeout):
         captured["url"] = request.full_url
         captured["body"] = json.loads(request.data.decode())
+        captured["headers"] = {key.lower(): value for key, value in request.header_items()}
         captured["timeout"] = timeout
         return _Response()
 
@@ -195,10 +197,46 @@ def test_gemini_request_sends_prompt_and_schema_without_opening_a_real_socket():
     assert parsed.ok and parsed.items[0].name == "Spinach"
     assert captured["body"]["contents"][0]["parts"][0]["text"] == EXTRACTION_PROMPT
     assert captured["body"]["generationConfig"]["responseSchema"] == EXTRACTION_SCHEMA
+    assert "additionalProperties" not in json.dumps(captured["body"]["generationConfig"]["responseSchema"])
     assert captured["body"]["generationConfig"]["responseMimeType"] == "application/json"
-    assert "test-key-not-real" in captured["url"]
+    assert captured["headers"]["x-goog-api-key"] == "test-key-not-real"
+    assert "test-key-not-real" not in captured["url"]
     assert "test-key-not-real" not in json.dumps(captured["body"])
-    assert captured["body"]["contents"][0]["parts"][1]["inline_data"]["mime_type"] == "image/png"
+    image = captured["body"]["contents"][0]["parts"][1]["inlineData"]
+    assert image["mimeType"] == "image/png"
+    assert "inline_data" not in captured["body"]["contents"][0]["parts"][1]
+
+
+def test_gemini_http_error_reports_status_without_the_api_key():
+    secret = "test-key-not-real"
+
+    def _urlopen(request, timeout):
+        body = {
+            "error": {
+                "code": 400,
+                "message": f"Invalid JSON payload received. Request URL had key={secret}",
+                "status": "INVALID_ARGUMENT",
+            }
+        }
+        raise HTTPError(
+            request.full_url + "?key=" + secret,
+            400,
+            "Bad Request",
+            hdrs=None,
+            fp=io.BytesIO(json.dumps(body).encode()),
+        )
+
+    with patch("pantry_extraction.gemini.urlopen", _urlopen):
+        model = GeminiReceiptModel(api_key=secret, model="gemini-2.5-flash")
+        result = extract_receipt(b"\x89PNG", "image/png", model)
+
+    assert result.ok is False
+    assert result.items == []
+    assert result.failure_reason is not None
+    assert "HTTP 400" in result.failure_reason
+    assert "Invalid JSON payload" in result.failure_reason
+    assert secret not in result.failure_reason
+    assert "key=[redacted]" in result.failure_reason
 
 
 def test_gemini_client_refuses_a_blank_key():

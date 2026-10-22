@@ -13,9 +13,10 @@ Rules:
 - Name is the grocery, not the brand code, unless the brand is the only visible description.
 """
 
+# Gemini's response schema accepts type, properties, required, items, enum, and nullable.
+# It rejects additionalProperties, which was making generateContent return HTTP 400.
 EXTRACTION_SCHEMA = {
     "type": "object",
-    "additionalProperties": False,
     "required": ["readable", "failure_reason", "items"],
     "properties": {
         "readable": {"type": "boolean"},
@@ -24,7 +25,6 @@ EXTRACTION_SCHEMA = {
             "type": "array",
             "items": {
                 "type": "object",
-                "additionalProperties": False,
                 "required": ["name", "quantity", "unit", "missing_fields"],
                 "properties": {
                     "name": {"type": "string", "nullable": True},

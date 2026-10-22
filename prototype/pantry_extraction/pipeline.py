@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import re
 from copy import deepcopy
 from dataclasses import dataclass, field
 
@@ -118,8 +119,23 @@ def extract_receipt(image_bytes: bytes, mime_type: str, model) -> ExtractionResu
     try:
         raw = model.extract(image_bytes, mime_type)
     except Exception as exc:  # noqa: BLE001 — surface a failure instead of inventing rows
-        return _failure(f"Receipt extraction failed ({exc.__class__.__name__}). No items were extracted.")
+        return _failure(
+            f"Receipt extraction failed ({_public_error(exc)}). No items were extracted."
+        )
     return parse_model_output(raw)
+
+
+def _public_error(exc: Exception) -> str:
+    """Class name plus a short message, with API keys stripped out."""
+    name = exc.__class__.__name__
+    text = " ".join(str(exc).split())
+    text = re.sub(r"(?i)([?&]key=)[^&\s\"']+", r"\1[redacted]", text)
+    text = re.sub(r"AIza[0-9A-Za-z_\-]{10,}", "[redacted]", text)
+    if not text or text == name:
+        return name
+    if len(text) > 240:
+        text = text[:239].rstrip() + "…"
+    return f"{name}: {text}"
 
 
 def confirm_review_into_inventory(inventory: list, rows: list[dict]) -> ConfirmOutcome:

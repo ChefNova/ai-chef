@@ -5,6 +5,8 @@ from __future__ import annotations
 import base64
 import json
 import os
+import re
+from urllib.error import HTTPError
 from urllib.request import Request, urlopen
 
 from pantry_extraction.pipeline import MissingApiKey
@@ -32,8 +34,8 @@ class GeminiReceiptModel:
                     "parts": [
                         {"text": EXTRACTION_PROMPT},
                         {
-                            "inline_data": {
-                                "mime_type": mime_type,
+                            "inlineData": {
+                                "mimeType": mime_type,
                                 "data": base64.b64encode(image_bytes).decode("ascii"),
                             }
                         },
@@ -46,15 +48,21 @@ class GeminiReceiptModel:
                 "responseSchema": EXTRACTION_SCHEMA,
             },
         }
-        url = _ENDPOINT.format(model=self._model) + f"?key={self._api_key}"
+        # The key stays in a header so an error URL cannot carry it.
         request = Request(
-            url,
+            _ENDPOINT.format(model=self._model),
             data=json.dumps(body).encode("utf-8"),
-            headers={"Content-Type": "application/json"},
+            headers={
+                "Content-Type": "application/json",
+                "x-goog-api-key": self._api_key,
+            },
             method="POST",
         )
-        with urlopen(request, timeout=self._timeout) as response:
-            payload = json.loads(response.read().decode("utf-8"))
+        try:
+            with urlopen(request, timeout=self._timeout) as response:
+                payload = json.loads(response.read().decode("utf-8"))
+        except HTTPError as exc:
+            raise RuntimeError(_http_error_message(exc, self._api_key)) from exc
         return _response_text(payload)
 
 
@@ -64,6 +72,43 @@ def model_from_env() -> GeminiReceiptModel:
     if not api_key:
         raise MissingApiKey(API_ENV_VAR)
     return GeminiReceiptModel(api_key=api_key)
+
+
+def _http_error_message(exc: HTTPError, api_key: str) -> str:
+    """Status plus Gemini's message. Never include the key or the request URL."""
+    detail = ""
+    try:
+        raw = exc.read()
+    except Exception:
+        raw = b""
+    if raw:
+        text = raw.decode("utf-8", errors="replace").strip()
+        try:
+            payload = json.loads(text)
+        except json.JSONDecodeError:
+            payload = None
+        message = None
+        if isinstance(payload, dict):
+            error = payload.get("error")
+            if isinstance(error, dict) and isinstance(error.get("message"), str):
+                message = error["message"]
+        detail = (message or text).strip()
+    if not detail:
+        reason = getattr(exc, "reason", None)
+        detail = reason.strip() if isinstance(reason, str) and reason.strip() else "request rejected"
+    detail = _redact_secret(detail, api_key)
+    detail = " ".join(detail.split())
+    if len(detail) > 240:
+        detail = detail[:239].rstrip() + "…"
+    return f"HTTP {exc.code}: {detail}"
+
+
+def _redact_secret(text: str, api_key: str) -> str:
+    if api_key:
+        text = text.replace(api_key, "[redacted]")
+    text = re.sub(r"(?i)([?&]key=)[^&\s\"']+", r"\1[redacted]", text)
+    text = re.sub(r"AIza[0-9A-Za-z_\-]{10,}", "[redacted]", text)
+    return text
 
 
 def _response_text(payload: dict) -> str:
