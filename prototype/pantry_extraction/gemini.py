@@ -13,7 +13,7 @@ from pantry_extraction.pipeline import MissingApiKey
 from pantry_extraction.schema import EXTRACTION_PROMPT, EXTRACTION_SCHEMA
 
 API_ENV_VAR = "GEMINI_API_KEY"
-DEFAULT_MODEL = "gemini-2.5-flash"
+DEFAULT_MODEL = "gemini-3.8-flash"
 _ENDPOINT = "https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
 
 
@@ -43,9 +43,13 @@ class GeminiReceiptModel:
                 }
             ],
             "generationConfig": {
-                "temperature": 0,
-                "responseMimeType": "application/json",
-                "responseSchema": EXTRACTION_SCHEMA,
+                "thinkingConfig": {"thinkingLevel": "low"},
+                "responseFormat": {
+                    "text": {
+                        "mimeType": "APPLICATION_JSON",
+                        "schema": EXTRACTION_SCHEMA,
+                    }
+                },
             },
         }
         # The key stays in a header so an error URL cannot carry it.
@@ -116,7 +120,11 @@ def _response_text(payload: dict) -> str:
         parts = payload["candidates"][0]["content"]["parts"]
     except (KeyError, IndexError, TypeError) as exc:
         raise RuntimeError("Gemini returned no candidate text") from exc
-    texts = [part.get("text", "") for part in parts if isinstance(part, dict) and part.get("text")]
+    texts = [
+        part.get("text", "")
+        for part in parts
+        if isinstance(part, dict) and part.get("text") and not part.get("thought")
+    ]
     if not texts:
         raise RuntimeError("Gemini returned no candidate text")
     return "\n".join(texts)

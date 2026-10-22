@@ -8,7 +8,7 @@ pip install -r requirements.txt
 streamlit run ChefNova_app.py
 ```
 
-Each receipt scan asks for a Gemini API key before extraction. A saved key, or `GEMINI_API_KEY` when nothing is saved, only prefills that prompt. Checking **Save this key on this computer for later scans** writes it to `prototype/.chefnova/gemini_api_key`, which is gitignored. Optional model override: `GEMINI_MODEL` (default `gemini-2.5-flash`). Reviewed rows are written to inventory only after **Confirm reviewed items**, and only when every row has a valid name, quantity, and unit.
+Each receipt scan asks for a Gemini API key before extraction. A saved key, or `GEMINI_API_KEY` when nothing is saved, only prefills that prompt. Checking **Save this key on this computer for later scans** writes it to `prototype/.chefnova/gemini_api_key`, which is gitignored. Optional model override: `GEMINI_MODEL` (default `gemini-3.8-flash`). Reviewed rows are written to inventory only after **Confirm reviewed items**, and only when every row has a valid name, quantity, and unit.
 
 ## Tests
 From the repository root:

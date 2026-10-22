@@ -7,7 +7,7 @@ from urllib.error import HTTPError, URLError
 
 import pytest
 
-from pantry_extraction.gemini import GeminiReceiptModel
+from pantry_extraction.gemini import DEFAULT_MODEL, GeminiReceiptModel
 from pantry_extraction.pipeline import (
     MissingApiKey,
     confirm_review_into_inventory,
@@ -162,7 +162,8 @@ def test_missing_api_key_does_not_build_a_client(monkeypatch):
         model_from_env()
 
 
-def test_gemini_request_sends_prompt_and_schema_without_opening_a_real_socket():
+def test_gemini_request_sends_prompt_and_schema_without_opening_a_real_socket(monkeypatch):
+    monkeypatch.delenv("GEMINI_MODEL", raising=False)
     captured = {}
 
     class _Response:
@@ -179,7 +180,18 @@ def test_gemini_request_sends_prompt_and_schema_without_opening_a_real_socket():
                 "items": [{"name": "Spinach", "quantity": 1, "unit": "bag", "missing_fields": []}],
             }
             return json.dumps(
-                {"candidates": [{"content": {"parts": [{"text": json.dumps(body)}]}}]}
+                {
+                    "candidates": [
+                        {
+                            "content": {
+                                "parts": [
+                                    {"thought": True, "text": "checking the receipt"},
+                                    {"text": json.dumps(body)},
+                                ]
+                            }
+                        }
+                    ]
+                }
             ).encode()
 
     def _urlopen(request, timeout):
@@ -190,15 +202,21 @@ def test_gemini_request_sends_prompt_and_schema_without_opening_a_real_socket():
         return _Response()
 
     with patch("pantry_extraction.gemini.urlopen", _urlopen):
-        model = GeminiReceiptModel(api_key="test-key-not-real", model="gemini-2.5-flash")
+        model = GeminiReceiptModel(api_key="test-key-not-real")
         raw = model.extract(b"\x89PNG", "image/png")
 
     parsed = parse_model_output(raw)
     assert parsed.ok and parsed.items[0].name == "Spinach"
+    assert f"/models/{DEFAULT_MODEL}:generateContent" in captured["url"]
+    assert DEFAULT_MODEL == "gemini-3.8-flash"
     assert captured["body"]["contents"][0]["parts"][0]["text"] == EXTRACTION_PROMPT
-    assert captured["body"]["generationConfig"]["responseSchema"] == EXTRACTION_SCHEMA
-    assert "additionalProperties" not in json.dumps(captured["body"]["generationConfig"]["responseSchema"])
-    assert captured["body"]["generationConfig"]["responseMimeType"] == "application/json"
+    config = captured["body"]["generationConfig"]
+    assert config["responseFormat"]["text"]["schema"] == EXTRACTION_SCHEMA
+    assert config["responseFormat"]["text"]["mimeType"] == "APPLICATION_JSON"
+    assert config["thinkingConfig"]["thinkingLevel"] == "low"
+    assert "temperature" not in config
+    assert "responseSchema" not in config
+    assert "additionalProperties" not in json.dumps(config["responseFormat"]["text"]["schema"])
     assert captured["headers"]["x-goog-api-key"] == "test-key-not-real"
     assert "test-key-not-real" not in captured["url"]
     assert "test-key-not-real" not in json.dumps(captured["body"])
@@ -227,7 +245,7 @@ def test_gemini_http_error_reports_status_without_the_api_key():
         )
 
     with patch("pantry_extraction.gemini.urlopen", _urlopen):
-        model = GeminiReceiptModel(api_key=secret, model="gemini-2.5-flash")
+        model = GeminiReceiptModel(api_key=secret, model="gemini-3.8-flash")
         result = extract_receipt(b"\x89PNG", "image/png", model)
 
     assert result.ok is False
