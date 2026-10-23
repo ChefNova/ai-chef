@@ -1,4 +1,4 @@
-"""Gemini vision client. This module performs the only networked model call."""
+"""Gemini vision client. This module performs the only networked receipt call."""
 
 from __future__ import annotations
 

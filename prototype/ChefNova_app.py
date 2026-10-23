@@ -1,3 +1,4 @@
+import html
 import io
 import re
 from copy import deepcopy
@@ -18,6 +19,8 @@ from pantry_extraction import (
 )
 from pantry_extraction.gemini import GeminiReceiptModel
 from pantry_extraction.key_store import prefill_api_key, save_api_key
+from recipe_recommendation import Constraints, rank_recipes, recommend_recipes
+from recipe_recommendation.gemini import GeminiRecipeModel
 
 
 st.set_page_config(page_title="ChefNova", page_icon="🍳", layout="wide")
@@ -171,162 +174,6 @@ DEFAULT_INVENTORY = [
     {"Ingredient": "Garlic", "Quantity": 1, "Unit": "bulb"},
 ]
 
-RECIPE_DB = [
-    {
-        "id": "spinach_chickpea_bowl",
-        "title": "Spinach Chickpea Rice Bowl",
-        "emoji": "🥗",
-        "time": 18,
-        "protein": 24,
-        "diet": "Vegetarian",
-        "cuisine": "Mediterranean",
-        "tags": ["High protein", "Pantry-friendly"],
-        "ingredients": ["Rice", "Chickpeas", "Spinach", "Tomatoes", "Garlic", "Greek Yogurt"],
-        "instructions": [
-            "Sauté chopped garlic and tomatoes for 3–4 minutes.",
-            "Add chickpeas, salt, pepper, and your preferred seasoning.",
-            "Fold in spinach until just wilted.",
-            "Serve over warm rice and finish with Greek yogurt.",
-        ],
-        "substitutions": {"Spinach": "kale or another leafy green", "Greek Yogurt": "plain yogurt or a dairy-free yogurt"},
-        "source": "ChefNova curated demo recipe dataset",
-    },
-    {
-        "id": "creamy_chickpea_curry",
-        "title": "Creamy Spinach Chickpea Curry",
-        "emoji": "🍛",
-        "time": 20,
-        "protein": 22,
-        "diet": "Vegetarian",
-        "cuisine": "Indian",
-        "tags": ["High protein", "One pot"],
-        "ingredients": ["Chickpeas", "Spinach", "Tomatoes", "Garlic", "Greek Yogurt", "Rice"],
-        "instructions": [
-            "Cook garlic and tomatoes until softened.",
-            "Add chickpeas and curry spices, then simmer briefly.",
-            "Stir in spinach until wilted.",
-            "Remove from high heat, fold in yogurt, and serve with rice.",
-        ],
-        "substitutions": {"Spinach": "kale", "Greek Yogurt": "coconut yogurt"},
-        "source": "ChefNova curated demo recipe dataset",
-    },
-    {
-        "id": "garlic_tomato_chickpea_rice",
-        "title": "Garlic Tomato Chickpea Rice",
-        "emoji": "🍚",
-        "time": 17,
-        "protein": 18,
-        "diet": "Vegan",
-        "cuisine": "Mediterranean",
-        "tags": ["Quick", "Vegan"],
-        "ingredients": ["Rice", "Chickpeas", "Tomatoes", "Garlic"],
-        "instructions": [
-            "Sauté garlic in a lightly oiled pan.",
-            "Add tomatoes and cook until they break down slightly.",
-            "Stir in chickpeas and cooked rice.",
-            "Season and cook for another 2–3 minutes before serving.",
-        ],
-        "substitutions": {},
-        "source": "ChefNova curated demo recipe dataset",
-    },
-    {
-        "id": "yogurt_chickpea_bowl",
-        "title": "Garlic Yogurt Chickpea Bowl",
-        "emoji": "🥣",
-        "time": 12,
-        "protein": 21,
-        "diet": "Vegetarian",
-        "cuisine": "Mediterranean",
-        "tags": ["Fast", "High protein"],
-        "ingredients": ["Chickpeas", "Greek Yogurt", "Tomatoes", "Garlic"],
-        "instructions": [
-            "Mix Greek yogurt with finely chopped garlic, salt, and pepper.",
-            "Warm chickpeas and chopped tomatoes in a pan.",
-            "Spoon the yogurt sauce into a bowl and add the warm chickpeas.",
-            "Finish with herbs or chili flakes if available.",
-        ],
-        "substitutions": {"Greek Yogurt": "plain yogurt or dairy-free yogurt"},
-        "source": "ChefNova curated demo recipe dataset",
-    },
-    {
-        "id": "tomato_garlic_rice",
-        "title": "Tomato Garlic Rice",
-        "emoji": "🍅",
-        "time": 12,
-        "protein": 8,
-        "diet": "Vegan",
-        "cuisine": "Asian",
-        "tags": ["Very fast", "Few ingredients"],
-        "ingredients": ["Rice", "Tomatoes", "Garlic"],
-        "instructions": [
-            "Sauté garlic until fragrant.",
-            "Add chopped tomatoes and cook until softened.",
-            "Add cooked rice and toss until evenly coated.",
-            "Season to taste and serve hot.",
-        ],
-        "substitutions": {},
-        "source": "ChefNova curated demo recipe dataset",
-    },
-    {
-        "id": "spicy_chickpea_rice",
-        "title": "Spicy Chickpea Tomato Rice",
-        "emoji": "🌶️",
-        "time": 16,
-        "protein": 19,
-        "diet": "Vegan",
-        "cuisine": "Indian",
-        "tags": ["Spicy", "Quick"],
-        "ingredients": ["Rice", "Chickpeas", "Tomatoes", "Garlic"],
-        "instructions": [
-            "Sauté garlic with chili flakes or chili powder.",
-            "Add tomatoes and cook into a quick sauce.",
-            "Add chickpeas and rice, then toss well.",
-            "Adjust spice level and serve immediately.",
-        ],
-        "substitutions": {},
-        "source": "ChefNova curated demo recipe dataset",
-    },
-    {
-        "id": "chickpea_spinach_salad",
-        "title": "Chickpea Spinach Tomato Salad",
-        "emoji": "🥬",
-        "time": 10,
-        "protein": 17,
-        "diet": "Vegan",
-        "cuisine": "Mediterranean",
-        "tags": ["No-cook", "Fresh"],
-        "ingredients": ["Chickpeas", "Spinach", "Tomatoes"],
-        "instructions": [
-            "Rinse and drain chickpeas.",
-            "Combine chickpeas, spinach, and chopped tomatoes.",
-            "Season with salt, pepper, and any preferred dressing.",
-            "Toss and serve immediately.",
-        ],
-        "substitutions": {"Spinach": "mixed greens or kale"},
-        "source": "ChefNova curated demo recipe dataset",
-    },
-    {
-        "id": "creamy_tomato_rice",
-        "title": "Creamy Tomato Yogurt Rice",
-        "emoji": "🍲",
-        "time": 15,
-        "protein": 12,
-        "diet": "Vegetarian",
-        "cuisine": "Indian",
-        "tags": ["Comfort food", "Quick"],
-        "ingredients": ["Rice", "Tomatoes", "Greek Yogurt", "Garlic"],
-        "instructions": [
-            "Cook garlic and tomatoes until soft.",
-            "Fold in cooked rice and warm through.",
-            "Lower the heat and mix in Greek yogurt.",
-            "Season gently and serve warm.",
-        ],
-        "substitutions": {"Greek Yogurt": "plain yogurt"},
-        "source": "ChefNova curated demo recipe dataset",
-    },
-]
-
-
 # ---------- Session state ----------
 def init_state():
     defaults = {
@@ -350,6 +197,12 @@ def init_state():
         "feedback": {},
         "extraction_error": None,
         "extraction_notice": None,
+        "avoid_pref": "",
+        "recommendation_candidates": None,
+        "recommendation_error": None,
+        "recommendation_notice": None,
+        "recommendation_model": None,
+        "selected_recipe": None,
     }
     for key, value in defaults.items():
         if key not in st.session_state:
@@ -362,13 +215,6 @@ init_state()
 # ---------- Helpers ----------
 def normalize_name(name):
     return re.sub(r"\s+", " ", str(name).strip()).lower()
-
-
-def inventory_names(include_temporary_exclusions=False):
-    names = {normalize_name(item["Ingredient"]) for item in st.session_state.inventory if str(item.get("Ingredient", "")).strip()}
-    if include_temporary_exclusions:
-        names -= {normalize_name(x) for x in st.session_state.temporary_exclusions}
-    return names
 
 
 def clean_number(value, fallback=1):
@@ -533,16 +379,6 @@ def run_receipt_extraction(upload, api_key):
     return _rows_from_extraction(result), None, notice
 
 
-def recipe_is_diet_compatible(recipe, diet):
-    if diet == "No preference":
-        return True
-    if diet == "Vegetarian":
-        return recipe["diet"] in {"Vegetarian", "Vegan"}
-    if diet == "Vegan":
-        return recipe["diet"] == "Vegan"
-    return True
-
-
 def effective_max_time():
     if st.session_state.conversation_max_time:
         return st.session_state.conversation_max_time
@@ -552,132 +388,48 @@ def effective_max_time():
     return int(value.split()[0])
 
 
-def requested_terms():
-    text = st.session_state.request.lower()
-    terms = []
-    for keyword in ["spicy", "quick", "protein", "curry", "salad", "rice", "chickpea", "creamy", "fresh", "indian", "mediterranean"]:
-        if keyword in text:
-            terms.append(keyword)
-    terms.extend(st.session_state.conversation_keywords)
-    return list(dict.fromkeys(terms))
+def constraints_from_session():
+    avoid = [part.strip() for part in str(st.session_state.avoid_pref).split(",") if part.strip()]
+    avoid.extend(st.session_state.temporary_exclusions)
+    request = st.session_state.request.strip()
+    if st.session_state.conversation_keywords:
+        extra = ", ".join(st.session_state.conversation_keywords)
+        request = f"{request}\nAlso prefer: {extra}".strip()
+    return Constraints(
+        diet=st.session_state.diet_pref,
+        max_minutes=effective_max_time(),
+        avoid=avoid,
+        cuisine=st.session_state.cuisine_pref,
+        priority=st.session_state.priority_pref,
+        high_protein=bool(st.session_state.high_protein_pref),
+        request=request,
+    )
 
 
-def score_recipe(recipe):
-    available = inventory_names(include_temporary_exclusions=True)
-    required = [normalize_name(x) for x in recipe["ingredients"]]
-    present = [x for x in required if x in available]
-    missing = [recipe["ingredients"][required.index(x)] for x in required if x not in available]
-    pantry_ratio = len(present) / max(len(required), 1)
-
-    # Hard filters
-    if not recipe_is_diet_compatible(recipe, st.session_state.diet_pref):
-        return None
-    max_time = effective_max_time()
-    if max_time is not None and recipe["time"] > max_time:
-        return None
-    if any(normalize_name(x) in required for x in st.session_state.temporary_exclusions):
-        return None
-
-    # 40 points: inventory match
-    pantry_points = pantry_ratio * 40
-
-    # 25 points: preference/request match
-    pref_points = 0
-    if st.session_state.cuisine_pref == "Any":
-        pref_points += 8
-    elif recipe["cuisine"] == st.session_state.cuisine_pref:
-        pref_points += 12
-
-    if st.session_state.high_protein_pref:
-        pref_points += min(recipe["protein"] / 24, 1) * 8
-    else:
-        pref_points += 5
-
-    searchable = " ".join([recipe["title"], recipe["cuisine"], *recipe["tags"], *recipe["ingredients"]]).lower()
-    terms = requested_terms()
-    matched_terms = [term for term in terms if term in searchable]
-    if terms:
-        pref_points += min(len(matched_terms) / len(terms), 1) * 5
-    else:
-        pref_points += 5
-    pref_points = min(pref_points, 25)
-
-    # 20 points: cooking time, favoring faster recipes that satisfy the hard filter
-    time_points = max(5, 20 - max(recipe["time"] - 10, 0) * 0.6)
-
-    # 15 points: selected ranking priority
-    priority = st.session_state.priority_pref
-    if priority in {"Best pantry match", "Fewest missing ingredients"}:
-        priority_points = pantry_ratio * 15
-    elif priority == "Fastest":
-        priority_points = max(0, 15 * (1 - recipe["time"] / 60))
-    elif priority == "Highest protein":
-        priority_points = min(recipe["protein"] / 30, 1) * 15
-    else:
-        priority_points = pantry_ratio * 15
-
-    total = round(pantry_points + pref_points + time_points + priority_points)
-
-    if not missing:
-        status = "Cook now"
-        status_class = "status-cook"
-    elif len(missing) <= 2:
-        status = "Almost ready"
-        status_class = "status-almost"
-    else:
-        status = "Needs shopping"
-        status_class = "status-shop"
-
-    reasons = []
-    if not missing:
-        reasons.append("all required ingredients are available")
-    else:
-        reasons.append(f"{len(required) - len(missing)}/{len(required)} required ingredients are available")
-    reasons.append(f"takes {recipe['time']} minutes")
-    if recipe["protein"] >= 20:
-        reasons.append("high protein")
-    if st.session_state.cuisine_pref != "Any" and recipe["cuisine"] == st.session_state.cuisine_pref:
-        reasons.append(f"matches your {recipe['cuisine']} preference")
-    if matched_terms:
-        reasons.append("matches your meal request")
-
-    return {
-        "recipe": recipe,
-        "score": max(0, min(total, 100)),
-        "missing": missing,
-        "available_count": len(required) - len(missing),
-        "required_count": len(required),
-        "status": status,
-        "status_class": status_class,
-        "reason": "; ".join(reasons[:3]).capitalize() + ".",
-    }
+def current_recommendation_cards():
+    candidates = st.session_state.recommendation_candidates or []
+    return rank_recipes(candidates, constraints_from_session(), st.session_state.inventory)
 
 
-def ranked_recipes():
-    scored = []
-    for recipe in RECIPE_DB:
-        result = score_recipe(recipe)
-        if result is not None:
-            scored.append(result)
-    return sorted(scored, key=lambda x: (x["score"], -len(x["missing"])), reverse=True)
-
-
-def get_selected_recipe():
-    for recipe in RECIPE_DB:
-        if recipe["id"] == st.session_state.selected_recipe_id:
-            return recipe
-    return None
+def run_recipe_ranking(api_key):
+    """One Gemini call. Later filters reuse the stored recipes."""
+    model = GeminiRecipeModel(api_key=api_key)
+    result = recommend_recipes(st.session_state.inventory, constraints_from_session(), model)
+    st.session_state.recommendation_candidates = result.candidates
+    st.session_state.recommendation_error = result.error
+    st.session_state.recommendation_notice = result.notice
+    st.session_state.recommendation_model = model.model_used
+    return result.ok
 
 
 def extract_known_ingredient_from_message(text):
-    all_names = sorted(
-        {normalize_name(i["Ingredient"]) for i in st.session_state.inventory}
-        | {normalize_name(x) for r in RECIPE_DB for x in r["ingredients"]},
-        key=len,
-        reverse=True,
-    )
+    names = {normalize_name(item["Ingredient"]) for item in st.session_state.inventory}
+    for recipe in st.session_state.recommendation_candidates or []:
+        for ingredient in recipe.get("ingredients") or []:
+            names.add(normalize_name(ingredient))
+    names.discard("")
     lower = text.lower()
-    for name in all_names:
+    for name in sorted(names, key=len, reverse=True):
         if name in lower:
             return name.title()
     return None
@@ -690,7 +442,7 @@ def process_refinement(text):
 
     st.session_state.messages.append({"role": "user", "text": text})
     lower = text.lower()
-    reply = "I used that request to rerank the current recipe options."
+    reply = "I applied that to the recipes Gemini already returned. Rank again if you want a new set."
 
     ingredient = extract_known_ingredient_from_message(text)
     negative_patterns = ["don't have", "do not have", "no ", "without ", "don't want", "do not want"]
@@ -698,25 +450,25 @@ def process_refinement(text):
         if ingredient not in st.session_state.temporary_exclusions:
             st.session_state.temporary_exclusions.append(ingredient)
         reply = (
-            f"I excluded recipes requiring {ingredient} for this search. "
-            "Your confirmed pantry was not changed; remove it from My Inventory only if it is permanently unavailable."
+            f"I removed recipes that use {ingredient}. "
+            "The confirmed pantry was not changed."
         )
     else:
         minute_match = re.search(r"(\d{1,2})\s*(?:min|minute)", lower)
         if minute_match:
             st.session_state.conversation_max_time = int(minute_match.group(1))
-            reply = f"I limited the current recommendations to recipes that take {minute_match.group(1)} minutes or less."
+            reply = f"I kept only Gemini recipes that take {minute_match.group(1)} minutes or less."
         elif "spicy" in lower:
             if "spicy" not in st.session_state.conversation_keywords:
                 st.session_state.conversation_keywords.append("spicy")
-            reply = "I prioritized recipes that match your request for something spicy."
+            reply = "I noted spicy for the next ranking. Choose Ask Gemini again to generate a new set."
         elif "quick" in lower or "faster" in lower:
             st.session_state.priority_pref = "Fastest"
-            reply = "I reranked the results to prioritize the fastest recipes."
+            reply = "I reordered these Gemini recipes toward the fastest ones."
         elif "protein" in lower:
             st.session_state.high_protein_pref = True
             st.session_state.priority_pref = "Highest protein"
-            reply = "I reranked the results to prioritize higher-protein options."
+            reply = "I reordered these Gemini recipes toward higher protein."
 
     st.session_state.messages.append({"role": "assistant", "text": reply})
 
@@ -1075,6 +827,12 @@ def show_get_recipe():
         st.selectbox("Diet", ["No preference", "Vegetarian", "Vegan"], key="diet_pref")
     with c2:
         st.selectbox("Maximum cooking time", ["15 min", "20 min", "30 min", "45 min", "No limit"], key="max_time_pref")
+    st.text_input(
+        "Avoid",
+        key="avoid_pref",
+        placeholder="peanuts, shellfish",
+        help="Allergies and other ingredients. A recipe that includes one is removed.",
+    )
 
     st.markdown('<div class="section-title" style="font-size:15px;">Ranking preferences</div>', unsafe_allow_html=True)
     c3, c4, c5 = st.columns([1, 1.3, 1])
@@ -1089,17 +847,36 @@ def show_get_recipe():
     with c5:
         st.checkbox("Prefer high protein", key="high_protein_pref")
 
+    saved_key, key_source = prefill_api_key()
+    if not saved_key:
+        st.caption("Recipe ranking needs a Gemini key. Save it here and receipt scans can reuse it. Nothing is sent until you rank.")
+        st.text_input("Gemini API key", type="password", key="recipe_gemini_key", autocomplete="off")
+        st.checkbox("Save this key on this computer for later", key="recipe_gemini_save")
+    elif key_source == "saved":
+        st.caption("Recipe ranking uses the Gemini key already saved on this computer. Nothing is sent until you rank.")
+    else:
+        st.caption("Recipe ranking uses GEMINI_API_KEY. Nothing is sent until you rank.")
+
     st.markdown("<br>", unsafe_allow_html=True)
     if st.button("Rank My Recipes  →", use_container_width=True):
         if not st.session_state.confirmed:
             st.warning("Confirm your inventory first so ChefNova knows what you actually have.")
+        elif not any(str(item.get("Ingredient", "")).strip() for item in st.session_state.inventory):
+            st.warning("Add at least one pantry item before ranking. No recipes were invented.")
         else:
-            st.session_state.temporary_exclusions = []
-            st.session_state.conversation_max_time = None
-            st.session_state.conversation_keywords = []
-            st.session_state.messages = []
-            st.session_state.page = "Recommendations"
-            st.rerun()
+            api_key = saved_key or str(st.session_state.get("recipe_gemini_key", "")).strip()
+            if not api_key:
+                st.error("Add a Gemini API key to rank recipes. Nothing was sent.")
+            else:
+                if not saved_key and st.session_state.get("recipe_gemini_save") and api_key:
+                    save_api_key(api_key)
+                st.session_state.temporary_exclusions = []
+                st.session_state.conversation_max_time = None
+                st.session_state.conversation_keywords = []
+                st.session_state.messages = []
+                run_recipe_ranking(api_key)
+                st.session_state.page = "Recommendations"
+                st.rerun()
 
     st.markdown("</div>", unsafe_allow_html=True)
 
@@ -1109,19 +886,35 @@ def show_get_recipe():
 
 
 # ---------- Recommendations ----------
+def _recipe_meta(recipe):
+    if recipe.get("time") is None:
+        time_bit = "time not listed"
+    else:
+        time_bit = f"{recipe['time']} min"
+    if recipe.get("protein") is None:
+        protein_bit = "protein not listed"
+    else:
+        protein_bit = f"{recipe['protein']}g protein"
+    diet_bit = recipe.get("diet") or "diet not listed"
+    return time_bit, protein_bit, diet_bit
+
+
 def recipe_card(result, key):
     recipe = result["recipe"]
-    missing_note = "No required ingredients missing" if not result["missing"] else f"Missing: {', '.join(result['missing'])}"
+    time_bit, protein_bit, diet_bit = _recipe_meta(recipe)
+    missing_note = "No required ingredients missing" if not result["missing"] else "Missing: " + ", ".join(result["missing"])
+    field_notes = "".join(f"<br>{html.escape(note)}" for note in result.get("field_notes") or [])
+    tags = "".join(f'<span class="pill">{html.escape(str(tag))}</span>' for tag in recipe.get("tags") or [])
     st.markdown(
         f"""
         <div class="recipe-card">
-            <div class="recipe-image">{recipe['emoji']}</div>
+            <div class="recipe-image">{html.escape(recipe.get('emoji') or '🍽️')}</div>
             <div class="recipe-body">
-                <span class="{result['status_class']}">{result['status']}</span>
-                <div class="recipe-name" style="margin-top:10px;">{recipe['title']}</div>
-                <div class="recipe-meta">⏱ {recipe['time']} min &nbsp; · &nbsp; 💪 {recipe['protein']}g protein &nbsp; · &nbsp; {recipe['diet']}</div>
-                <div>{''.join('<span class="pill">'+tag+'</span>' for tag in recipe['tags'])}</div>
-                <div class="recipe-reason"><b>Why this?</b> {result['reason']}<br>{missing_note}</div>
+                <span class="{result['status_class']}">{html.escape(result['status'])}</span>
+                <div class="recipe-name" style="margin-top:10px;">{html.escape(recipe['title'])}</div>
+                <div class="recipe-meta">⏱ {html.escape(time_bit)} &nbsp; · &nbsp; 💪 {html.escape(protein_bit)} &nbsp; · &nbsp; {html.escape(diet_bit)}</div>
+                <div>{tags}</div>
+                <div class="recipe-reason"><b>Why this?</b> {html.escape(result['reason'])}<br>{html.escape(missing_note)}{field_notes}</div>
             </div>
         </div>
         """,
@@ -1129,6 +922,7 @@ def recipe_card(result, key):
     )
     if st.button("View recipe", key=key, use_container_width=True):
         st.session_state.selected_recipe_id = recipe["id"]
+        st.session_state.selected_recipe = result
         st.session_state.page = "Recipe Details"
         st.rerun()
 
@@ -1145,20 +939,35 @@ def show_recommendations():
         chips.append(st.session_state.cuisine_pref)
     if st.session_state.high_protein_pref:
         chips.append("High protein preferred")
+    if str(st.session_state.avoid_pref).strip():
+        chips.append("Avoid: " + st.session_state.avoid_pref.strip())
     if st.session_state.temporary_exclusions:
         chips.append("Avoiding: " + ", ".join(st.session_state.temporary_exclusions))
-    st.markdown("".join(f'<span class="pill">{chip}</span>' for chip in chips), unsafe_allow_html=True)
+    st.markdown("".join(f'<span class="pill">{html.escape(str(chip))}</span>' for chip in chips), unsafe_allow_html=True)
+    if st.session_state.recommendation_model:
+        st.caption(
+            f"Last ranking model: {st.session_state.recommendation_model}. "
+            "Pantry match, diet, time, and avoid are checked again on this page."
+        )
 
-    recipes = ranked_recipes()
-    if not recipes:
-        st.warning("No recipes satisfy all current hard filters. Try increasing the time limit or changing the diet/cuisine preferences.")
+    if st.session_state.recommendation_error:
+        st.error(st.session_state.recommendation_error)
+    elif st.session_state.recommendation_candidates is None:
+        st.info("Rank My Recipes to ask Gemini. Nothing is sent until you do.")
     else:
-        st.markdown('<div class="section-title">ChefNova recommends</div>', unsafe_allow_html=True)
-        top_results = recipes[:3]
-        cols = st.columns(len(top_results), gap="medium")
-        for i, (col, result) in enumerate(zip(cols, top_results)):
-            with col:
-                recipe_card(result, key=f"view_{result['recipe']['id']}_{i}")
+        recipes = current_recommendation_cards()
+        if not recipes:
+            st.warning(
+                st.session_state.recommendation_notice
+                or "No recipes satisfy all current hard filters. Try increasing the time limit or changing the diet or avoid list."
+            )
+        else:
+            st.markdown('<div class="section-title">ChefNova recommends</div>', unsafe_allow_html=True)
+            top_results = recipes[:3]
+            cols = st.columns(len(top_results), gap="medium")
+            for i, (col, result) in enumerate(zip(cols, top_results)):
+                with col:
+                    recipe_card(result, key=f"view_{result['recipe']['id']}_{i}")
 
     st.markdown("<div style='height:10px;'></div>", unsafe_allow_html=True)
     st.markdown('<div style="font-size:19px;font-weight:650;margin-bottom:5px;">Ask ChefNova</div>', unsafe_allow_html=True)
@@ -1188,61 +997,77 @@ def show_recommendations():
         with st.chat_message(msg["role"]):
             st.write(msg["text"])
 
-    if st.session_state.temporary_exclusions or st.session_state.conversation_max_time or st.session_state.conversation_keywords:
-        if st.button("Reset conversational refinements"):
-            st.session_state.temporary_exclusions = []
-            st.session_state.conversation_max_time = None
-            st.session_state.conversation_keywords = []
-            st.session_state.messages = []
+    again, reset = st.columns(2)
+    if again.button("Ask Gemini again", use_container_width=True):
+        key, _source = prefill_api_key()
+        if not key:
+            key = str(st.session_state.get("recipe_gemini_key", "")).strip()
+        if not key:
+            st.error("Add a Gemini API key on Get Recipe. Nothing was sent.")
+        elif not st.session_state.confirmed:
+            st.warning("Confirm your inventory first.")
+        else:
+            run_recipe_ranking(key)
             st.rerun()
+    if reset.button("Reset conversational refinements", use_container_width=True):
+        st.session_state.temporary_exclusions = []
+        st.session_state.conversation_max_time = None
+        st.session_state.conversation_keywords = []
+        st.session_state.messages = []
+        st.rerun()
 
 
 # ---------- Recipe details ----------
 def show_recipe_details():
-    recipe = get_selected_recipe()
-    if recipe is None:
+    result = st.session_state.selected_recipe
+    if not result:
         st.warning("Choose a recipe from Recommendations first.")
         if st.button("← Back to recommendations"):
             st.session_state.page = "Recommendations"
             st.rerun()
         return
 
-    result = score_recipe(recipe)
-    available = inventory_names(include_temporary_exclusions=True)
-    missing = [x for x in recipe["ingredients"] if normalize_name(x) not in available]
-    present = [x for x in recipe["ingredients"] if normalize_name(x) in available]
+    recipe = result["recipe"]
+    missing = list(result.get("missing") or [])
+    present = [item for item in recipe.get("ingredients") or [] if item not in missing]
+    time_bit, protein_bit, diet_bit = _recipe_meta(recipe)
 
-    st.markdown(f'<div class="page-title">{recipe["title"]}</div>', unsafe_allow_html=True)
+    st.markdown(f'<div class="page-title">{html.escape(recipe["title"])}</div>', unsafe_allow_html=True)
     st.markdown(
-        f'<div class="page-subtitle">{recipe["time"]} min · {recipe["protein"]}g protein · {recipe["diet"]} · Source: {recipe["source"]}</div>',
+        f'<div class="page-subtitle">{html.escape(time_bit)} · {html.escape(protein_bit)} · {html.escape(diet_bit)} · Source: {html.escape(recipe.get("source") or "Gemini")}</div>',
         unsafe_allow_html=True,
     )
 
     left, right = st.columns([1.55, 1], gap="large")
     with left:
         st.markdown(
-            f'<div class="card"><div style="font-size:54px;text-align:center;padding:18px;">{recipe["emoji"]}</div>',
+            f'<div class="card"><div style="font-size:54px;text-align:center;padding:18px;">{html.escape(recipe.get("emoji") or "🍽️")}</div>',
             unsafe_allow_html=True,
         )
         st.markdown('<div class="section-title">Ingredients</div>', unsafe_allow_html=True)
-        for ingredient in recipe["ingredients"]:
-            symbol = "✓" if normalize_name(ingredient) in available else "!"
-            st.markdown(f"- {symbol} {ingredient}")
+        if not recipe.get("ingredients"):
+            st.markdown("- Ingredients were not returned.")
+        for ingredient in recipe.get("ingredients") or []:
+            symbol = "✓" if ingredient in present else "!"
+            st.markdown(f"- {symbol} {html.escape(ingredient)}")
 
         st.markdown('<div class="section-title">Steps</div>', unsafe_allow_html=True)
-        for i, step in enumerate(recipe["instructions"], start=1):
-            st.markdown(f"**{i}.** {step}")
+        if not recipe.get("instructions"):
+            st.markdown("Steps were not returned.")
+        for i, step in enumerate(recipe.get("instructions") or [], start=1):
+            st.markdown(f"**{i}.** {html.escape(step)}")
         st.markdown("</div>", unsafe_allow_html=True)
 
     with right:
-        score_text = "ChefNova recommendation" if result else "Filtered by current constraints"
+        notes = " ".join(result.get("field_notes") or [])
+        why = result["reason"] + (f" {notes}" if notes else "")
         st.markdown(
             f"""
             <div class="card">
                 <div class="small-note">WHY CHEFNOVA RECOMMENDED THIS</div>
-                <div style="font-size:23px;font-weight:700;margin-top:8px;">{score_text}</div>
+                <div style="font-size:23px;font-weight:700;margin-top:8px;">ChefNova recommendation</div>
                 <div class="small-note" style="margin-top:10px;">
-                    {result['reason'] if result else 'This recipe no longer matches the current hard filters.'}
+                    {html.escape(why)}
                 </div>
             </div>
             """,
@@ -1253,18 +1078,20 @@ def show_recipe_details():
         st.markdown('<div class="card">', unsafe_allow_html=True)
         st.markdown('<div class="small-note">INVENTORY CHECK</div>', unsafe_allow_html=True)
         st.markdown(
-            f'<div class="available">✓ Available: {", ".join(present) if present else "None of the required ingredients"}</div>',
+            f'<div class="available">✓ Available: {html.escape(", ".join(present) if present else "None of the required ingredients")}</div>',
             unsafe_allow_html=True,
         )
         if missing:
             st.markdown(
-                f'<div class="missing">! Missing: {", ".join(missing)}</div>',
+                f'<div class="missing">! Missing: {html.escape(", ".join(missing))}</div>',
                 unsafe_allow_html=True,
             )
             substitution_lines = []
             for item in missing:
-                if item in recipe["substitutions"]:
-                    substitution_lines.append(f"**{item}:** try {recipe['substitutions'][item]}")
+                if item in recipe.get("substitutions", {}):
+                    substitution_lines.append(
+                        f"**{html.escape(item)}:** try {html.escape(recipe['substitutions'][item])}"
+                    )
             if substitution_lines:
                 st.markdown("**Possible substitutions**")
                 for line in substitution_lines:

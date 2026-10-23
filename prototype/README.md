@@ -10,6 +10,8 @@ streamlit run ChefNova_app.py
 
 Each receipt scan asks for a Gemini API key before extraction. A saved key, or `GEMINI_API_KEY` when nothing is saved, only prefills that prompt. Checking **Save this key on this computer for later scans** writes it to `prototype/.chefnova/gemini_api_key`, which is gitignored. Optional model override: `GEMINI_MODEL` (default `gemini-3.8-flash`). If that model is busy, the scan retries it and then tries `gemini-3.6-flash`, `gemini-3.5-flash-lite`, and `gemini-3.1-flash-lite`. Setting `GEMINI_MODEL` to another model skips that list. Reviewed rows are written to inventory only after **Confirm reviewed items**, and only when every row has a valid name, quantity, and unit.
 
+**Rank My Recipes** asks Gemini for recipes from the confirmed pantry. Diet, time, and the avoid list are hard filters. Cook now, Almost ready, and Needs shopping come from pantry overlap. See `RECIPE_RECOMMENDATIONS.md` for the model, latency, and cost. Ranking reuses the saved receipt key or `GEMINI_API_KEY` and does not ask again when one of those is set.
+
 ## Tests
 From the repository root:
 ```bash
