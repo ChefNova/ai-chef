@@ -13,7 +13,7 @@ from google import genai
 from google.genai import types
 from groq import Groq
 
-from schemas import ReceiptExtraction
+from app.schemas import ReceiptExtraction
 
 
 # ============================================================
@@ -23,6 +23,8 @@ from schemas import ReceiptExtraction
 ENV_PATH = Path(__file__).resolve().parent / ".env"
 load_dotenv(ENV_PATH)
 
+# These are defaults only.
+# API keys should normally be supplied by the application at runtime.
 GEMINI_MODEL = os.getenv(
     "GEMINI_MODEL",
     "gemini-3.8-flash"
@@ -112,11 +114,11 @@ Examples:
 10. Preserve ambiguity rather than guessing.
 
 11. Pay particular attention to:
-   - quantities such as 1, 2, 12
-   - weights such as 0.53 lb
-   - package sizes such as 32 OZ, 2 LB, 400G
-   - prices such as $2.99/lb
-   - product descriptions split across multiple OCR lines
+    - quantities such as 1, 2, 12
+    - weights such as 0.53 lb
+    - package sizes such as 32 OZ, 2 LB, 400G
+    - prices such as $2.99/lb
+    - product descriptions split across multiple OCR lines
 
 Return ONLY the structured JSON requested by the schema.
 """
@@ -182,17 +184,23 @@ def extract_text_with_ocr(image_path: str) -> str:
 # GEMINI
 # ============================================================
 
-def get_gemini_client():
+def get_gemini_client(api_key: Optional[str] = None):
     """
     Create Gemini client.
+
+    If an API key is supplied by the application at runtime,
+    use that key.
+
+    Otherwise, fall back to GEMINI_API_KEY from .env for
+    local development.
     """
 
-    api_key = os.getenv("GEMINI_API_KEY")
+    api_key = api_key or os.getenv("GEMINI_API_KEY")
 
     if not api_key:
         raise RuntimeError(
-            f"GEMINI_API_KEY is not set. "
-            f"Expected it in: {ENV_PATH}"
+            "Gemini API key was not provided. "
+            "Enter a Gemini API key in the application."
         )
 
     return genai.Client(api_key=api_key)
@@ -200,12 +208,13 @@ def get_gemini_client():
 
 def extract_with_gemini(
     ocr_text: str,
+    api_key: Optional[str] = None,
 ) -> ReceiptExtraction:
     """
     Primary AI extraction using Gemini.
     """
 
-    client = get_gemini_client()
+    client = get_gemini_client(api_key)
 
     try:
         response = client.models.generate_content(
@@ -247,17 +256,23 @@ def extract_with_gemini(
 # GROQ
 # ============================================================
 
-def get_groq_client():
+def get_groq_client(api_key: Optional[str] = None):
     """
     Create Groq client.
+
+    If an API key is supplied by the application at runtime,
+    use that key.
+
+    Otherwise, fall back to GROQ_API_KEY from .env for
+    local development.
     """
 
-    api_key = os.getenv("GROQ_API_KEY")
+    api_key = api_key or os.getenv("GROQ_API_KEY")
 
     if not api_key:
         raise RuntimeError(
-            f"GROQ_API_KEY is not set. "
-            f"Expected it in: {ENV_PATH}"
+            "Groq API key was not provided. "
+            "Enter a Groq API key in the application."
         )
 
     return Groq(api_key=api_key)
@@ -265,6 +280,7 @@ def get_groq_client():
 
 def extract_with_groq(
     ocr_text: str,
+    api_key: Optional[str] = None,
 ) -> ReceiptExtraction:
     """
     Fallback AI extraction using Groq.
@@ -272,7 +288,7 @@ def extract_with_groq(
     Groq receives the SAME OCR text used by Gemini.
     """
 
-    client = get_groq_client()
+    client = get_groq_client(api_key)
     schema = ReceiptExtraction.model_json_schema()
 
     response = client.chat.completions.create(
@@ -317,15 +333,40 @@ def extract_with_groq(
 
 def extract_receipt(
     image_path: str,
+    gemini_api_key: Optional[str] = None,
+    groq_api_key: Optional[str] = None,
 ) -> ExtractionResult:
+    """
+    Run the complete receipt extraction pipeline.
+
+    Pipeline:
+        Tesseract OCR
+            ↓
+        Gemini
+            ↓
+        Groq fallback
+            ↓
+        Manual review
+
+    API keys are supplied by the application at runtime.
+
+    For local development, the functions can fall back to
+    GEMINI_API_KEY and GROQ_API_KEY from .env.
+    """
 
     print("\n[1/3] Running local OCR...")
+
     ocr_text = extract_text_with_ocr(image_path)
+
     print("[OK] OCR completed.")
 
     print("\n========== OCR TEXT ==========")
     print(ocr_text)
     print("==============================\n")
+
+    # --------------------------------------------------------
+    # Gemini
+    # --------------------------------------------------------
 
     print(
         f"[2/3] Trying Gemini ({GEMINI_MODEL})..."
@@ -333,45 +374,73 @@ def extract_receipt(
 
     for attempt in range(3):
         try:
-            result = extract_with_gemini(ocr_text)
+            result = extract_with_gemini(
+                ocr_text,
+                api_key=gemini_api_key,
+            )
+
             print("[OK] Gemini extraction succeeded.")
+
             return ExtractionResult(
                 source="gemini",
                 extraction=result,
                 ocr_text=ocr_text,
             )
+
         except Exception as error:
             print(
-                f"[Gemini attempt {attempt + 1}/3 failed]"
+                f"[Gemini attempt {attempt + 1}/3 failed] "
+                f"{error}"
             )
+
             if attempt < 2:
                 wait_seconds = 5 * (2 ** attempt)
+
                 print(
                     f"Retrying Gemini in {wait_seconds} seconds..."
                 )
+
                 time.sleep(wait_seconds)
+
+    # --------------------------------------------------------
+    # Groq fallback
+    # --------------------------------------------------------
 
     print("\n[3/3] Gemini unavailable.")
     print(f"Trying Groq ({GROQ_MODEL})...")
 
     try:
-        result = extract_with_groq(ocr_text)
+        result = extract_with_groq(
+            ocr_text,
+            api_key=groq_api_key,
+        )
+
         print("[OK] Groq fallback extraction succeeded.")
+
         return ExtractionResult(
             source="groq_fallback",
             extraction=result,
             ocr_text=ocr_text,
         )
-    except Exception:
-        print("[Groq fallback failed.]")
+
+    except Exception as error:
+        print(
+            f"[Groq fallback failed] {error}"
+        )
+
         print("\nBoth AI extraction services failed.")
         print("Falling back to manual review.")
+
         return ExtractionResult(
             source="manual_review",
             extraction=None,
             ocr_text=ocr_text,
         )
 
+
+# ============================================================
+# COMMAND-LINE INTERFACE
+# ============================================================
 
 if __name__ == "__main__":
     import argparse
@@ -389,6 +458,7 @@ if __name__ == "__main__":
     )
 
     args = parser.parse_args()
+
     result = extract_receipt(args.image)
 
     print("\n========== EXTRACTION SOURCE ==========")
@@ -396,12 +466,25 @@ if __name__ == "__main__":
     print("=======================================\n")
 
     if result.extraction is not None:
+
         print("========== STRUCTURED RESULT ==========")
-        print(result.extraction.model_dump_json(indent=2))
+
+        print(
+            result.extraction.model_dump_json(
+                indent=2
+            )
+        )
+
         print("=======================================")
+
     else:
+
         print("========== MANUAL REVIEW ==========")
+
         print("AI extraction unavailable.")
+
         print("Review the OCR text below:")
+
         print(result.ocr_text)
+
         print("===================================")
