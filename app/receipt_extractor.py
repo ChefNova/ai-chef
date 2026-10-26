@@ -1,6 +1,5 @@
 import os
 import json
-import time
 from pathlib import Path
 from dataclasses import dataclass
 from typing import Optional
@@ -34,6 +33,12 @@ GROQ_MODEL = os.getenv(
     "GROQ_MODEL",
     "qwen/qwen3.8-27b"
 )
+
+# Gemini 3.8 Flash thinks at medium by default, so a receipt read can sit
+# for minutes. Low thinking and a 20 second limit keep that model, then
+# one faster Flash-Lite call if it does not answer. No pause between them.
+RECEIPT_GEMINI_TIMEOUT_MS = 20_000
+RECEIPT_FALLBACK_MODEL = "gemini-3.5-flash-lite"
 
 
 # ============================================================
@@ -184,7 +189,10 @@ def extract_text_with_ocr(image_path: str) -> str:
 # GEMINI
 # ============================================================
 
-def get_gemini_client(api_key: Optional[str] = None):
+def get_gemini_client(
+    api_key: Optional[str] = None,
+    timeout_ms: Optional[int] = None,
+):
     """
     Create Gemini client.
 
@@ -203,22 +211,31 @@ def get_gemini_client(api_key: Optional[str] = None):
             "Enter a Gemini API key in the application."
         )
 
-    return genai.Client(api_key=api_key)
+    http_options = None
+    if timeout_ms is not None:
+        http_options = types.HttpOptions(timeout=timeout_ms)
+
+    return genai.Client(api_key=api_key, http_options=http_options)
 
 
 def extract_with_gemini(
     ocr_text: str,
     api_key: Optional[str] = None,
+    model: Optional[str] = None,
 ) -> ReceiptExtraction:
     """
     Primary AI extraction using Gemini.
     """
 
-    client = get_gemini_client(api_key)
+    chosen = model or GEMINI_MODEL
+    client = get_gemini_client(
+        api_key,
+        timeout_ms=RECEIPT_GEMINI_TIMEOUT_MS,
+    )
 
     try:
         response = client.models.generate_content(
-            model=GEMINI_MODEL,
+            model=chosen,
             contents=[
                 types.Part.from_text(
                     text=(
@@ -232,6 +249,9 @@ def extract_with_gemini(
                 temperature=0,
                 response_mime_type="application/json",
                 response_schema=ReceiptExtraction,
+                thinking_config=types.ThinkingConfig(
+                    thinking_level="low",
+                ),
             ),
         )
     finally:
@@ -368,15 +388,18 @@ def extract_receipt(
     # Gemini
     # --------------------------------------------------------
 
-    print(
-        f"[2/3] Trying Gemini ({GEMINI_MODEL})..."
-    )
+    models = [GEMINI_MODEL]
+    if RECEIPT_FALLBACK_MODEL != GEMINI_MODEL:
+        models.append(RECEIPT_FALLBACK_MODEL)
 
-    for attempt in range(3):
+    for model in models:
+        print(f"[2/3] Trying Gemini ({model})...")
+
         try:
             result = extract_with_gemini(
                 ocr_text,
                 api_key=gemini_api_key,
+                model=model,
             )
 
             print("[OK] Gemini extraction succeeded.")
@@ -388,19 +411,7 @@ def extract_receipt(
             )
 
         except Exception as error:
-            print(
-                f"[Gemini attempt {attempt + 1}/3 failed] "
-                f"{error}"
-            )
-
-            if attempt < 2:
-                wait_seconds = 5 * (2 ** attempt)
-
-                print(
-                    f"Retrying Gemini in {wait_seconds} seconds..."
-                )
-
-                time.sleep(wait_seconds)
+            print(f"[Gemini {model} failed] {error}")
 
     # --------------------------------------------------------
     # Groq fallback
