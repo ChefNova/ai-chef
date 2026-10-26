@@ -1,0 +1,9 @@
+google-genai
+groq
+python-dotenv
+pydantic
+pillow
+pytesseract
+streamlit
+pandas
+pytest

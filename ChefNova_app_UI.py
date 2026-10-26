@@ -1,9 +1,13 @@
 import io
 import re
+import tempfile
+from pathlib import Path
 from copy import deepcopy
 
 import pandas as pd
 import streamlit as st
+
+from app.receipt_extractor import extract_receipt
 
 try:
     import speech_recognition as sr
@@ -350,6 +354,10 @@ def init_state():
         "priority_pref": "Best pantry match",
         "high_protein_pref": True,
         "feedback": {},
+        "gemini_api_key": "",
+        "groq_api_key": "",
+        "receipt_extraction_source": None,
+        "receipt_ocr_text": None,
     }
     for key, value in defaults.items():
         if key not in st.session_state:
@@ -495,18 +503,72 @@ def speech_to_text(audio_file):
 
 
 def prototype_receipt_extraction(filename):
-    """
-    Prototype boundary: this simulates output from a future OCR/Vision pipeline.
-    Replace this function with actual receipt OCR/API extraction later.
-    """
+    """Deprecated demo extractor kept for backward compatibility."""
     _ = filename
-    return [
-        {"Ingredient": "Rice", "Quantity": 2, "Unit": "lb"},
-        {"Ingredient": "Chickpeas", "Quantity": 2, "Unit": "cans"},
-        {"Ingredient": "Tomatoes", "Quantity": 4, "Unit": "count"},
-        {"Ingredient": "Greek Yogurt", "Quantity": 1, "Unit": "container"},
-        {"Ingredient": "Spinach", "Quantity": 1, "Unit": "bag"},
-    ]
+    return []
+
+
+def validate_receipt_item(item):
+    """Deterministic review checks for suspicious receipt extraction values."""
+    warnings = []
+
+    quantity = item.get("Quantity")
+    unit = str(item.get("Unit") or "").strip().lower()
+    package_size = str(item.get("Package Size") or "").strip().lower()
+    confidence = item.get("Confidence")
+
+    try:
+        quantity_num = float(quantity) if quantity not in (None, "") else None
+    except (TypeError, ValueError):
+        quantity_num = None
+        warnings.append("Quantity could not be interpreted as a number.")
+
+    # Flag implausible weights/sizes rather than silently correcting them.
+    weight_units = {"kg", "g", "lb", "lbs", "oz", "ounce", "ounces", "gram", "grams", "kilogram", "kilograms"}
+    if unit in weight_units and quantity_num is not None:
+        if unit in {"kg", "kilogram", "kilograms"} and quantity_num > 20:
+            warnings.append("Unusually large weight; verify the receipt.")
+        elif unit in {"g", "gram", "grams"} and quantity_num > 50000:
+            warnings.append("Unusually large weight; verify the receipt.")
+        elif unit in {"lb", "lbs"} and quantity_num > 100:
+            warnings.append("Unusually large weight; verify the receipt.")
+        elif unit in {"oz", "ounce", "ounces"} and quantity_num > 5000:
+            warnings.append("Unusually large weight; verify the receipt.")
+
+    if package_size:
+        if re.search(r"(?:175|250|500)\s*kg", package_size):
+            warnings.append("Package size looks implausibly large; verify the receipt.")
+
+    if confidence not in (None, ""):
+        try:
+            if float(confidence) < 0.80:
+                warnings.append("Low extraction confidence; verify this item.")
+        except (TypeError, ValueError):
+            warnings.append("Confidence value could not be interpreted.")
+
+    return " ".join(warnings)
+
+
+def build_receipt_review_items(extraction):
+    """Convert structured extractor output into the editable review-table format."""
+    items = []
+    if extraction is None:
+        return items
+
+    for item in extraction.items:
+        row = {
+            "Ingredient": item.name,
+            "Quantity": item.quantity,
+            "Unit": item.unit or "",
+            "Package Size": item.package_size or "",
+            "Brand": item.brand or "",
+            "Confidence": round(item.confidence, 2),
+        }
+        row["Review Reason"] = validate_receipt_item(row)
+        row["Needs Review"] = bool(row["Review Reason"])
+        items.append(row)
+
+    return items
 
 
 def recipe_is_diet_compatible(recipe, diet):
@@ -852,16 +914,88 @@ def show_inventory():
             receipt_tab, type_tab, voice_tab = st.tabs(["🧾 Receipt", "⌨️ Type", "🎙 Voice"])
 
             with receipt_tab:
+                st.markdown("### 🔑 AI API Keys")
+                st.caption("Keys are used only for this session and are not written to the repository, database, or logs.")
+
+                key_col1, key_col2 = st.columns(2)
+                with key_col1:
+                    st.session_state.gemini_api_key = st.text_input(
+                        "Gemini API key",
+                        value=st.session_state.gemini_api_key,
+                        type="password",
+                        placeholder="Enter Gemini API key",
+                        key="gemini_api_key_input",
+                    )
+                with key_col2:
+                    st.session_state.groq_api_key = st.text_input(
+                        "Groq API key",
+                        value=st.session_state.groq_api_key,
+                        type="password",
+                        placeholder="Enter Groq API key",
+                        key="groq_api_key_input",
+                    )
+
                 receipt = st.file_uploader(
                     "Upload a receipt or grocery-order screenshot",
-                    type=["png", "jpg", "jpeg", "pdf"],
-                    help="The prototype review workflow works now. Replace the demo extraction function with OCR/Vision when your backend is ready.",
+                    type=["png", "jpg", "jpeg", "webp"],
+                    help="ChefNova runs local Tesseract OCR, then Gemini, with Groq as the fallback model.",
                 )
+
                 if receipt is not None:
                     st.success(f"Receipt ready: {receipt.name}")
-                    if st.button("Extract grocery items", key="extract_receipt", use_container_width=True):
-                        st.session_state.review_items = prototype_receipt_extraction(receipt.name)
-                        st.info("Prototype extraction populated the review table below. The review/edit/confirm flow is fully functional.")
+
+                    if st.button(
+                        "Extract grocery items",
+                        key="extract_receipt",
+                        use_container_width=True,
+                        disabled=not st.session_state.gemini_api_key.strip(),
+                    ):
+                        temp_path = None
+                        try:
+                            suffix = "." + receipt.name.rsplit(".", 1)[-1].lower() if "." in receipt.name else ".png"
+
+                            with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
+                                tmp.write(receipt.getvalue())
+                                temp_path = tmp.name
+
+                            with st.spinner("Reading receipt and extracting grocery items..."):
+                                result = extract_receipt(
+                                    temp_path,
+                                    gemini_api_key=st.session_state.gemini_api_key.strip(),
+                                    groq_api_key=st.session_state.groq_api_key.strip() or None,
+                                )
+
+                            st.session_state.receipt_extraction_source = result.source
+                            st.session_state.receipt_ocr_text = result.ocr_text
+
+                            if result.extraction is not None:
+                                st.session_state.review_items = build_receipt_review_items(result.extraction)
+
+                                if result.source == "gemini":
+                                    st.success("Receipt extracted with Gemini. Review every item before adding it to your pantry.")
+                                elif result.source == "groq_fallback":
+                                    st.warning("Gemini failed, so ChefNova used Groq fallback. Review the extracted items carefully.")
+
+                                flagged = sum(
+                                    1 for item in st.session_state.review_items
+                                    if item.get("Needs Review")
+                                )
+                                if flagged:
+                                    st.warning(f"{flagged} extracted item(s) need review before being added to your pantry.")
+                            else:
+                                st.warning("AI extraction was unavailable. Review the OCR text and enter the grocery items manually.")
+                                if result.ocr_text:
+                                    with st.expander("View OCR text"):
+                                        st.text(result.ocr_text)
+
+                        except Exception as exc:
+                            st.error(f"Receipt extraction failed: {exc}")
+                        finally:
+                            if temp_path:
+                                try:
+                                    Path(temp_path).unlink(missing_ok=True)
+                                except Exception:
+                                    pass
 
             with type_tab:
                 manual_text = st.text_area(
@@ -901,7 +1035,23 @@ def show_inventory():
                 unsafe_allow_html=True,
             )
 
-            review_df = pd.DataFrame(st.session_state.review_items, columns=["Ingredient", "Quantity", "Unit"])
+            review_columns = [
+                "Ingredient",
+                "Quantity",
+                "Unit",
+                "Package Size",
+                "Brand",
+                "Confidence",
+                "Needs Review",
+                "Review Reason",
+            ]
+
+            review_df = pd.DataFrame(st.session_state.review_items)
+            for column in review_columns:
+                if column not in review_df.columns:
+                    review_df[column] = ""
+            review_df = review_df[review_columns]
+
             edited_review_df = st.data_editor(
                 review_df,
                 use_container_width=True,
@@ -912,6 +1062,11 @@ def show_inventory():
                     "Ingredient": st.column_config.TextColumn("Ingredient", required=True),
                     "Quantity": st.column_config.NumberColumn("Quantity", min_value=0.0, step=1.0),
                     "Unit": st.column_config.TextColumn("Unit"),
+                    "Package Size": st.column_config.TextColumn("Package Size"),
+                    "Brand": st.column_config.TextColumn("Brand"),
+                    "Confidence": st.column_config.NumberColumn("Confidence", min_value=0.0, max_value=1.0, step=0.01, disabled=True),
+                    "Needs Review": st.column_config.CheckboxColumn("Needs Review", disabled=True),
+                    "Review Reason": st.column_config.TextColumn("Review Reason", disabled=True),
                 },
             )
 
@@ -919,6 +1074,15 @@ def show_inventory():
             with c1:
                 if st.button("Add reviewed items", use_container_width=True, disabled=edited_review_df.empty):
                     reviewed = edited_review_df.fillna("").to_dict("records")
+                    reviewed = [
+                        {
+                            "Ingredient": row.get("Ingredient", ""),
+                            "Quantity": row.get("Quantity", ""),
+                            "Unit": row.get("Unit", ""),
+                        }
+                        for row in reviewed
+                        if str(row.get("Ingredient", "")).strip()
+                    ]
                     merge_inventory_items(reviewed)
                     st.session_state.review_items = []
                     st.success("Reviewed items were added. Confirm the pantry after checking the final list.")
