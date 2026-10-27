@@ -162,6 +162,39 @@ div.stButton > button:hover {
     border-color: #ae6239;
     color: white;
 }
+
+/* The page is light. Tab labels and typed fields were inheriting white theme text. */
+[data-testid="stTabs"] button,
+[data-testid="stTabs"] [data-baseweb="tab"],
+[data-testid="stTabs"] [data-baseweb="tab"] p {
+    color: #3a342c !important;
+}
+[data-testid="stTabs"] button[aria-selected="true"],
+[data-testid="stTabs"] [aria-selected="true"],
+[data-testid="stTabs"] [aria-selected="true"] p {
+    color: #171717 !important;
+}
+[data-testid="stTextInput"] input,
+[data-testid="stTextInput"] input:focus,
+[data-testid="stTextArea"] textarea,
+[data-baseweb="input"] input {
+    color: #171717 !important;
+    -webkit-text-fill-color: #171717 !important;
+    background-color: #fffdf9 !important;
+    caret-color: #171717 !important;
+}
+[data-testid="stTextInput"] input::placeholder,
+[data-baseweb="input"] input::placeholder {
+    color: #6f6a62 !important;
+    -webkit-text-fill-color: #6f6a62 !important;
+    opacity: 1 !important;
+}
+[data-testid="stTextInput"] label,
+[data-testid="stTextInput"] label p,
+[data-testid="stWidgetLabel"],
+[data-testid="stWidgetLabel"] p {
+    color: #202020 !important;
+}
 .pill-row { display:flex; align-items:center; gap:4px; flex-wrap:wrap; margin-top:8px; }
 .pill-row .pill { margin:0; }
 </style>
