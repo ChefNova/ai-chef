@@ -1,9 +1,16 @@
+import html
 import io
+import os
 import re
+import tempfile
+from pathlib import Path
 from copy import deepcopy
 
 import pandas as pd
 import streamlit as st
+
+from app.receipt_extractor import extract_receipt
+from app.recipe_recommendations import RECIPE_MODEL, Constraints, rank_recipes, recommend_recipes
 
 try:
     import speech_recognition as sr
@@ -155,6 +162,39 @@ div.stButton > button:hover {
     border-color: #ae6239;
     color: white;
 }
+
+/* The page is light. Tab labels and typed fields were inheriting white theme text. */
+[data-testid="stTabs"] button,
+[data-testid="stTabs"] [data-baseweb="tab"],
+[data-testid="stTabs"] [data-baseweb="tab"] p {
+    color: #3a342c !important;
+}
+[data-testid="stTabs"] button[aria-selected="true"],
+[data-testid="stTabs"] [aria-selected="true"],
+[data-testid="stTabs"] [aria-selected="true"] p {
+    color: #171717 !important;
+}
+[data-testid="stTextInput"] input,
+[data-testid="stTextInput"] input:focus,
+[data-testid="stTextArea"] textarea,
+[data-baseweb="input"] input {
+    color: #171717 !important;
+    -webkit-text-fill-color: #171717 !important;
+    background-color: #fffdf9 !important;
+    caret-color: #171717 !important;
+}
+[data-testid="stTextInput"] input::placeholder,
+[data-baseweb="input"] input::placeholder {
+    color: #6f6a62 !important;
+    -webkit-text-fill-color: #6f6a62 !important;
+    opacity: 1 !important;
+}
+[data-testid="stTextInput"] label,
+[data-testid="stTextInput"] label p,
+[data-testid="stWidgetLabel"],
+[data-testid="stWidgetLabel"] p {
+    color: #202020 !important;
+}
 .pill-row { display:flex; align-items:center; gap:4px; flex-wrap:wrap; margin-top:8px; }
 .pill-row .pill { margin:0; }
 </style>
@@ -173,6 +213,7 @@ DEFAULT_INVENTORY = [
     {"Ingredient": "Garlic", "Quantity": 1, "Unit": "bulb"},
 ]
 
+# Original demo recipes. Ranking does not read this list; Gemini proposes the recipes.
 RECIPE_DB = [
     {
         "id": "spinach_chickpea_bowl",
@@ -350,6 +391,15 @@ def init_state():
         "priority_pref": "Best pantry match",
         "high_protein_pref": True,
         "feedback": {},
+        "gemini_api_key": "",
+        "groq_api_key": "",
+        "receipt_extraction_source": None,
+        "receipt_ocr_text": None,
+        "avoid_pref": "",
+        "recommendation_candidates": None,
+        "recommendation_error": None,
+        "recommendation_notice": None,
+        "selected_recipe": None,
     }
     for key, value in defaults.items():
         if key not in st.session_state:
@@ -495,28 +545,72 @@ def speech_to_text(audio_file):
 
 
 def prototype_receipt_extraction(filename):
-    """
-    Prototype boundary: this simulates output from a future OCR/Vision pipeline.
-    Replace this function with actual receipt OCR/API extraction later.
-    """
+    """Deprecated demo extractor kept for backward compatibility."""
     _ = filename
-    return [
-        {"Ingredient": "Rice", "Quantity": 2, "Unit": "lb"},
-        {"Ingredient": "Chickpeas", "Quantity": 2, "Unit": "cans"},
-        {"Ingredient": "Tomatoes", "Quantity": 4, "Unit": "count"},
-        {"Ingredient": "Greek Yogurt", "Quantity": 1, "Unit": "container"},
-        {"Ingredient": "Spinach", "Quantity": 1, "Unit": "bag"},
-    ]
+    return []
 
 
-def recipe_is_diet_compatible(recipe, diet):
-    if diet == "No preference":
-        return True
-    if diet == "Vegetarian":
-        return recipe["diet"] in {"Vegetarian", "Vegan"}
-    if diet == "Vegan":
-        return recipe["diet"] == "Vegan"
-    return True
+def validate_receipt_item(item):
+    """Deterministic review checks for suspicious receipt extraction values."""
+    warnings = []
+
+    quantity = item.get("Quantity")
+    unit = str(item.get("Unit") or "").strip().lower()
+    package_size = str(item.get("Package Size") or "").strip().lower()
+    confidence = item.get("Confidence")
+
+    try:
+        quantity_num = float(quantity) if quantity not in (None, "") else None
+    except (TypeError, ValueError):
+        quantity_num = None
+        warnings.append("Quantity could not be interpreted as a number.")
+
+    # Flag implausible weights/sizes rather than silently correcting them.
+    weight_units = {"kg", "g", "lb", "lbs", "oz", "ounce", "ounces", "gram", "grams", "kilogram", "kilograms"}
+    if unit in weight_units and quantity_num is not None:
+        if unit in {"kg", "kilogram", "kilograms"} and quantity_num > 20:
+            warnings.append("Unusually large weight; verify the receipt.")
+        elif unit in {"g", "gram", "grams"} and quantity_num > 50000:
+            warnings.append("Unusually large weight; verify the receipt.")
+        elif unit in {"lb", "lbs"} and quantity_num > 100:
+            warnings.append("Unusually large weight; verify the receipt.")
+        elif unit in {"oz", "ounce", "ounces"} and quantity_num > 5000:
+            warnings.append("Unusually large weight; verify the receipt.")
+
+    if package_size:
+        if re.search(r"(?:175|250|500)\s*kg", package_size):
+            warnings.append("Package size looks implausibly large; verify the receipt.")
+
+    if confidence not in (None, ""):
+        try:
+            if float(confidence) < 0.80:
+                warnings.append("Low extraction confidence; verify this item.")
+        except (TypeError, ValueError):
+            warnings.append("Confidence value could not be interpreted.")
+
+    return " ".join(warnings)
+
+
+def build_receipt_review_items(extraction):
+    """Convert structured extractor output into the editable review-table format."""
+    items = []
+    if extraction is None:
+        return items
+
+    for item in extraction.items:
+        row = {
+            "Ingredient": item.name,
+            "Quantity": item.quantity,
+            "Unit": item.unit or "",
+            "Package Size": item.package_size or "",
+            "Brand": item.brand or "",
+            "Confidence": round(item.confidence, 2),
+        }
+        row["Review Reason"] = validate_receipt_item(row)
+        row["Needs Review"] = bool(row["Review Reason"])
+        items.append(row)
+
+    return items
 
 
 def effective_max_time():
@@ -528,132 +622,57 @@ def effective_max_time():
     return int(value.split()[0])
 
 
-def requested_terms():
-    text = st.session_state.request.lower()
-    terms = []
-    for keyword in ["spicy", "quick", "protein", "curry", "salad", "rice", "chickpea", "creamy", "fresh", "indian", "mediterranean"]:
-        if keyword in text:
-            terms.append(keyword)
-    terms.extend(st.session_state.conversation_keywords)
-    return list(dict.fromkeys(terms))
+def current_constraints():
+    avoid = []
+    for part in re.split(r"[,;\n]", st.session_state.avoid_pref or ""):
+        term = part.strip()
+        if term and term not in avoid:
+            avoid.append(term)
+    for item in st.session_state.temporary_exclusions:
+        if item not in avoid:
+            avoid.append(item)
+    request = (st.session_state.request or "").strip()
+    if st.session_state.conversation_keywords:
+        extra = ", ".join(st.session_state.conversation_keywords)
+        request = f"{request}\nAlso: {extra}".strip()
+    return Constraints(
+        diet=st.session_state.diet_pref,
+        max_minutes=effective_max_time(),
+        avoid=avoid,
+        cuisine=st.session_state.cuisine_pref,
+        priority=st.session_state.priority_pref,
+        high_protein=bool(st.session_state.high_protein_pref),
+        request=request,
+    )
 
 
-def score_recipe(recipe):
-    available = inventory_names(include_temporary_exclusions=True)
-    required = [normalize_name(x) for x in recipe["ingredients"]]
-    present = [x for x in required if x in available]
-    missing = [recipe["ingredients"][required.index(x)] for x in required if x not in available]
-    pantry_ratio = len(present) / max(len(required), 1)
-
-    # Hard filters
-    if not recipe_is_diet_compatible(recipe, st.session_state.diet_pref):
-        return None
-    max_time = effective_max_time()
-    if max_time is not None and recipe["time"] > max_time:
-        return None
-    if any(normalize_name(x) in required for x in st.session_state.temporary_exclusions):
-        return None
-
-    # 40 points: inventory match
-    pantry_points = pantry_ratio * 40
-
-    # 25 points: preference/request match
-    pref_points = 0
-    if st.session_state.cuisine_pref == "Any":
-        pref_points += 8
-    elif recipe["cuisine"] == st.session_state.cuisine_pref:
-        pref_points += 12
-
-    if st.session_state.high_protein_pref:
-        pref_points += min(recipe["protein"] / 24, 1) * 8
-    else:
-        pref_points += 5
-
-    searchable = " ".join([recipe["title"], recipe["cuisine"], *recipe["tags"], *recipe["ingredients"]]).lower()
-    terms = requested_terms()
-    matched_terms = [term for term in terms if term in searchable]
-    if terms:
-        pref_points += min(len(matched_terms) / len(terms), 1) * 5
-    else:
-        pref_points += 5
-    pref_points = min(pref_points, 25)
-
-    # 20 points: cooking time, favoring faster recipes that satisfy the hard filter
-    time_points = max(5, 20 - max(recipe["time"] - 10, 0) * 0.6)
-
-    # 15 points: selected ranking priority
-    priority = st.session_state.priority_pref
-    if priority in {"Best pantry match", "Fewest missing ingredients"}:
-        priority_points = pantry_ratio * 15
-    elif priority == "Fastest":
-        priority_points = max(0, 15 * (1 - recipe["time"] / 60))
-    elif priority == "Highest protein":
-        priority_points = min(recipe["protein"] / 30, 1) * 15
-    else:
-        priority_points = pantry_ratio * 15
-
-    total = round(pantry_points + pref_points + time_points + priority_points)
-
-    if not missing:
-        status = "Cook now"
-        status_class = "status-cook"
-    elif len(missing) <= 2:
-        status = "Almost ready"
-        status_class = "status-almost"
-    else:
-        status = "Needs shopping"
-        status_class = "status-shop"
-
-    reasons = []
-    if not missing:
-        reasons.append("all required ingredients are available")
-    else:
-        reasons.append(f"{len(required) - len(missing)}/{len(required)} required ingredients are available")
-    reasons.append(f"takes {recipe['time']} minutes")
-    if recipe["protein"] >= 20:
-        reasons.append("high protein")
-    if st.session_state.cuisine_pref != "Any" and recipe["cuisine"] == st.session_state.cuisine_pref:
-        reasons.append(f"matches your {recipe['cuisine']} preference")
-    if matched_terms:
-        reasons.append("matches your meal request")
-
-    return {
-        "recipe": recipe,
-        "score": max(0, min(total, 100)),
-        "missing": missing,
-        "available_count": len(required) - len(missing),
-        "required_count": len(required),
-        "status": status,
-        "status_class": status_class,
-        "reason": "; ".join(reasons[:3]).capitalize() + ".",
-    }
+def refresh_recommendations():
+    """Ask Gemini once. An empty pantry or a missing key never leaves this process."""
+    result = recommend_recipes(
+        st.session_state.inventory,
+        current_constraints(),
+        api_key=(st.session_state.gemini_api_key or "").strip() or None,
+    )
+    st.session_state.recommendation_candidates = result.candidates
+    st.session_state.recommendation_error = result.error
+    st.session_state.recommendation_notice = result.notice
+    st.session_state.selected_recipe = None
 
 
-def ranked_recipes():
-    scored = []
-    for recipe in RECIPE_DB:
-        result = score_recipe(recipe)
-        if result is not None:
-            scored.append(result)
-    return sorted(scored, key=lambda x: (x["score"], -len(x["missing"])), reverse=True)
-
-
-def get_selected_recipe():
-    for recipe in RECIPE_DB:
-        if recipe["id"] == st.session_state.selected_recipe_id:
-            return recipe
-    return None
+def visible_recommendations():
+    candidates = st.session_state.recommendation_candidates
+    if st.session_state.recommendation_error or not candidates:
+        return []
+    return rank_recipes(candidates, current_constraints(), st.session_state.inventory)
 
 
 def extract_known_ingredient_from_message(text):
-    all_names = sorted(
-        {normalize_name(i["Ingredient"]) for i in st.session_state.inventory}
-        | {normalize_name(x) for r in RECIPE_DB for x in r["ingredients"]},
-        key=len,
-        reverse=True,
-    )
+    names = {normalize_name(item["Ingredient"]) for item in st.session_state.inventory}
+    for recipe in st.session_state.recommendation_candidates or []:
+        names.update(normalize_name(ingredient) for ingredient in recipe.get("ingredients") or [])
+    names.discard("")
     lower = text.lower()
-    for name in all_names:
+    for name in sorted(names, key=len, reverse=True):
         if name in lower:
             return name.title()
     return None
@@ -666,7 +685,10 @@ def process_refinement(text):
 
     st.session_state.messages.append({"role": "user", "text": text})
     lower = text.lower()
-    reply = "I used that request to rerank the current recipe options."
+    reply = (
+        "I re-filtered the recipes Gemini already returned. "
+        "Nothing new was invented, and your confirmed pantry was not changed."
+    )
 
     ingredient = extract_known_ingredient_from_message(text)
     negative_patterns = ["don't have", "do not have", "no ", "without ", "don't want", "do not want"]
@@ -674,25 +696,28 @@ def process_refinement(text):
         if ingredient not in st.session_state.temporary_exclusions:
             st.session_state.temporary_exclusions.append(ingredient)
         reply = (
-            f"I excluded recipes requiring {ingredient} for this search. "
-            "Your confirmed pantry was not changed; remove it from My Inventory only if it is permanently unavailable."
+            f"I hid recipes that use {ingredient}. "
+            "This only filters the current Gemini list. Your confirmed pantry was not changed."
         )
     else:
         minute_match = re.search(r"(\d{1,2})\s*(?:min|minute)", lower)
         if minute_match:
             st.session_state.conversation_max_time = int(minute_match.group(1))
-            reply = f"I limited the current recommendations to recipes that take {minute_match.group(1)} minutes or less."
+            reply = (
+                f"I kept only returned recipes that take {minute_match.group(1)} minutes or less. "
+                "Recipes with no listed time are hidden, because they cannot prove the limit."
+            )
         elif "spicy" in lower:
             if "spicy" not in st.session_state.conversation_keywords:
                 st.session_state.conversation_keywords.append("spicy")
-            reply = "I prioritized recipes that match your request for something spicy."
+            reply = "I noted spicy for the next Gemini request. The cards on screen are still the recipes already returned."
         elif "quick" in lower or "faster" in lower:
             st.session_state.priority_pref = "Fastest"
-            reply = "I reranked the results to prioritize the fastest recipes."
+            reply = "I reordered the current Gemini recipes with the fastest listed time first."
         elif "protein" in lower:
             st.session_state.high_protein_pref = True
             st.session_state.priority_pref = "Highest protein"
-            reply = "I reranked the results to prioritize higher-protein options."
+            reply = "I reordered the current Gemini recipes with the highest listed protein first."
 
     st.session_state.messages.append({"role": "assistant", "text": reply})
 
@@ -824,7 +849,7 @@ def show_home():
                 <div style="min-height:115px;">
                     <div style="font-size:25px;">🎯</div>
                     <div style="font-size:18px;font-weight:650;margin-top:7px;">Explainable ranking</div>
-                    <div class="small-note" style="margin-top:6px;">Recipes are scored using pantry match, preferences, cooking time, and your selected priority.</div>
+                    <div class="small-note" style="margin-top:6px;">Gemini proposes recipes. Cook now, Almost ready, and Needs shopping come from how many ingredients you already have.</div>
                 </div>
                 """,
                 unsafe_allow_html=True,
@@ -852,16 +877,88 @@ def show_inventory():
             receipt_tab, type_tab, voice_tab = st.tabs(["🧾 Receipt", "⌨️ Type", "🎙 Voice"])
 
             with receipt_tab:
+                st.markdown("### 🔑 AI API Keys")
+                st.caption("Keys are used only for this session and are not written to the repository, database, or logs.")
+
+                key_col1, key_col2 = st.columns(2)
+                with key_col1:
+                    st.session_state.gemini_api_key = st.text_input(
+                        "Gemini API key",
+                        value=st.session_state.gemini_api_key,
+                        type="password",
+                        placeholder="Enter Gemini API key",
+                        key="gemini_api_key_input",
+                    )
+                with key_col2:
+                    st.session_state.groq_api_key = st.text_input(
+                        "Groq API key",
+                        value=st.session_state.groq_api_key,
+                        type="password",
+                        placeholder="Enter Groq API key",
+                        key="groq_api_key_input",
+                    )
+
                 receipt = st.file_uploader(
                     "Upload a receipt or grocery-order screenshot",
-                    type=["png", "jpg", "jpeg", "pdf"],
-                    help="The prototype review workflow works now. Replace the demo extraction function with OCR/Vision when your backend is ready.",
+                    type=["png", "jpg", "jpeg", "webp"],
+                    help="ChefNova runs local Tesseract OCR, then Gemini, with Groq as the fallback model.",
                 )
+
                 if receipt is not None:
                     st.success(f"Receipt ready: {receipt.name}")
-                    if st.button("Extract grocery items", key="extract_receipt", use_container_width=True):
-                        st.session_state.review_items = prototype_receipt_extraction(receipt.name)
-                        st.info("Prototype extraction populated the review table below. The review/edit/confirm flow is fully functional.")
+
+                    if st.button(
+                        "Extract grocery items",
+                        key="extract_receipt",
+                        use_container_width=True,
+                        disabled=not st.session_state.gemini_api_key.strip(),
+                    ):
+                        temp_path = None
+                        try:
+                            suffix = "." + receipt.name.rsplit(".", 1)[-1].lower() if "." in receipt.name else ".png"
+
+                            with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
+                                tmp.write(receipt.getvalue())
+                                temp_path = tmp.name
+
+                            with st.spinner("Reading receipt and extracting grocery items..."):
+                                result = extract_receipt(
+                                    temp_path,
+                                    gemini_api_key=st.session_state.gemini_api_key.strip(),
+                                    groq_api_key=st.session_state.groq_api_key.strip() or None,
+                                )
+
+                            st.session_state.receipt_extraction_source = result.source
+                            st.session_state.receipt_ocr_text = result.ocr_text
+
+                            if result.extraction is not None:
+                                st.session_state.review_items = build_receipt_review_items(result.extraction)
+
+                                if result.source == "gemini":
+                                    st.success("Receipt extracted with Gemini. Review every item before adding it to your pantry.")
+                                elif result.source == "groq_fallback":
+                                    st.warning("Gemini failed, so ChefNova used Groq fallback. Review the extracted items carefully.")
+
+                                flagged = sum(
+                                    1 for item in st.session_state.review_items
+                                    if item.get("Needs Review")
+                                )
+                                if flagged:
+                                    st.warning(f"{flagged} extracted item(s) need review before being added to your pantry.")
+                            else:
+                                st.warning("AI extraction was unavailable. Review the OCR text and enter the grocery items manually.")
+                                if result.ocr_text:
+                                    with st.expander("View OCR text"):
+                                        st.text(result.ocr_text)
+
+                        except Exception as exc:
+                            st.error(f"Receipt extraction failed: {exc}")
+                        finally:
+                            if temp_path:
+                                try:
+                                    Path(temp_path).unlink(missing_ok=True)
+                                except Exception:
+                                    pass
 
             with type_tab:
                 manual_text = st.text_area(
@@ -901,7 +998,23 @@ def show_inventory():
                 unsafe_allow_html=True,
             )
 
-            review_df = pd.DataFrame(st.session_state.review_items, columns=["Ingredient", "Quantity", "Unit"])
+            review_columns = [
+                "Ingredient",
+                "Quantity",
+                "Unit",
+                "Package Size",
+                "Brand",
+                "Confidence",
+                "Needs Review",
+                "Review Reason",
+            ]
+
+            review_df = pd.DataFrame(st.session_state.review_items)
+            for column in review_columns:
+                if column not in review_df.columns:
+                    review_df[column] = ""
+            review_df = review_df[review_columns]
+
             edited_review_df = st.data_editor(
                 review_df,
                 use_container_width=True,
@@ -912,6 +1025,11 @@ def show_inventory():
                     "Ingredient": st.column_config.TextColumn("Ingredient", required=True),
                     "Quantity": st.column_config.NumberColumn("Quantity", min_value=0.0, step=1.0),
                     "Unit": st.column_config.TextColumn("Unit"),
+                    "Package Size": st.column_config.TextColumn("Package Size"),
+                    "Brand": st.column_config.TextColumn("Brand"),
+                    "Confidence": st.column_config.NumberColumn("Confidence", min_value=0.0, max_value=1.0, step=0.01, disabled=True),
+                    "Needs Review": st.column_config.CheckboxColumn("Needs Review", disabled=True),
+                    "Review Reason": st.column_config.TextColumn("Review Reason", disabled=True),
                 },
             )
 
@@ -919,6 +1037,15 @@ def show_inventory():
             with c1:
                 if st.button("Add reviewed items", use_container_width=True, disabled=edited_review_df.empty):
                     reviewed = edited_review_df.fillna("").to_dict("records")
+                    reviewed = [
+                        {
+                            "Ingredient": row.get("Ingredient", ""),
+                            "Quantity": row.get("Quantity", ""),
+                            "Unit": row.get("Unit", ""),
+                        }
+                        for row in reviewed
+                        if str(row.get("Ingredient", "")).strip()
+                    ]
                     merge_inventory_items(reviewed)
                     st.session_state.review_items = []
                     st.success("Reviewed items were added. Confirm the pantry after checking the final list.")
@@ -1005,6 +1132,12 @@ def show_get_recipe():
         st.selectbox("Diet", ["No preference", "Vegetarian", "Vegan"], key="diet_pref")
     with c2:
         st.selectbox("Maximum cooking time", ["15 min", "20 min", "30 min", "45 min", "No limit"], key="max_time_pref")
+    st.text_input(
+        "Avoid ingredients",
+        key="avoid_pref",
+        placeholder="peanuts, shellfish",
+        help="Recipes that list these ingredients are dropped. This is a hard filter.",
+    )
 
     st.markdown('<div class="section-title" style="font-size:15px;">Ranking preferences</div>', unsafe_allow_html=True)
     c3, c4, c5 = st.columns([1, 1.3, 1])
@@ -1028,38 +1161,63 @@ def show_get_recipe():
             st.session_state.conversation_max_time = None
             st.session_state.conversation_keywords = []
             st.session_state.messages = []
+            refresh_recommendations()
             st.session_state.page = "Recommendations"
             st.rerun()
 
     st.markdown("</div>", unsafe_allow_html=True)
 
     st.caption(
-        "Hard filters remove incompatible recipes. Ranking preferences change the order of the remaining recipes instead of silently violating your constraints."
+        f"Ranking asks {RECIPE_MODEL} using the Gemini key from the receipt tab, or GEMINI_API_KEY. "
+        "Diet, time, and avoid are hard filters. An empty pantry or a missing key is not sent."
     )
 
 
 # ---------- Recommendations ----------
+def _esc(value):
+    return html.escape("" if value is None else str(value), quote=True)
+
+
+def _time_label(recipe):
+    minutes = recipe.get("time")
+    return "time not listed" if minutes is None else f"{minutes} min"
+
+
+def _protein_label(recipe):
+    protein = recipe.get("protein")
+    return "protein not listed" if protein is None else f"{protein}g protein"
+
+
 def recipe_card(result, key):
     recipe = result["recipe"]
-    missing_note = "No required ingredients missing" if not result["missing"] else f"Missing: {', '.join(result['missing'])}"
+    if not result["missing"]:
+        missing_note = "No required ingredients missing"
+    else:
+        missing_note = "Missing: " + ", ".join(str(item) for item in result["missing"])
+    notes = " ".join(result.get("field_notes") or [])
+    if notes:
+        missing_note = f"{missing_note}. {notes}"
+    diet = recipe.get("diet") or "diet not listed"
+    tags = "".join(f'<span class="pill">{_esc(tag)}</span>' for tag in recipe.get("tags") or [])
     st.markdown(
         f"""
         <div class="recipe-card">
-            <div class="recipe-image">{recipe['emoji']}</div>
+            <div class="recipe-image">{_esc(recipe.get('emoji') or '🍽️')}</div>
             <div class="recipe-body">
-                <div class="score-badge">{result['score']}% ChefNova match</div><br>
-                <span class="{result['status_class']}">{result['status']}</span>
-                <div class="recipe-name" style="margin-top:10px;">{recipe['title']}</div>
-                <div class="recipe-meta">⏱ {recipe['time']} min &nbsp; · &nbsp; 💪 {recipe['protein']}g protein &nbsp; · &nbsp; {recipe['diet']}</div>
-                <div>{''.join('<span class="pill">'+tag+'</span>' for tag in recipe['tags'])}</div>
-                <div class="recipe-reason"><b>Why this?</b> {result['reason']}<br>{missing_note}</div>
+                <div class="score-badge">{result['score']}% pantry match</div><br>
+                <span class="{result['status_class']}">{_esc(result['status'])}</span>
+                <div class="recipe-name" style="margin-top:10px;">{_esc(recipe.get('title'))}</div>
+                <div class="recipe-meta">⏱ {_esc(_time_label(recipe))} &nbsp; · &nbsp; 💪 {_esc(_protein_label(recipe))} &nbsp; · &nbsp; {_esc(diet)}</div>
+                <div>{tags}</div>
+                <div class="recipe-reason"><b>Why this?</b> {_esc(result['reason'])}<br>{_esc(missing_note)}</div>
             </div>
         </div>
         """,
         unsafe_allow_html=True,
     )
     if st.button("View recipe", key=key, use_container_width=True):
-        st.session_state.selected_recipe_id = recipe["id"]
+        st.session_state.selected_recipe = result
+        st.session_state.selected_recipe_id = recipe.get("id")
         st.session_state.page = "Recipe Details"
         st.rerun()
 
@@ -1067,7 +1225,7 @@ def recipe_card(result, key):
 def show_recommendations():
     st.markdown('<div class="page-title">Recommendations</div>', unsafe_allow_html=True)
     st.markdown(
-        '<div class="page-subtitle">ChefNova first applies hard filters, then ranks the remaining recipes using pantry match, preferences, time, and your selected priority.</div>',
+        '<div class="page-subtitle">Gemini proposes recipes from your confirmed pantry. Diet, time, and avoid ingredients then drop anything that breaks a hard filter. The percent on each card is pantry overlap.</div>',
         unsafe_allow_html=True,
     )
 
@@ -1076,14 +1234,30 @@ def show_recommendations():
         chips.append(st.session_state.cuisine_pref)
     if st.session_state.high_protein_pref:
         chips.append("High protein preferred")
+    if (st.session_state.avoid_pref or "").strip():
+        chips.append("Avoid: " + st.session_state.avoid_pref.strip())
     if st.session_state.temporary_exclusions:
-        chips.append("Avoiding: " + ", ".join(st.session_state.temporary_exclusions))
-    st.markdown("".join(f'<span class="pill">{chip}</span>' for chip in chips), unsafe_allow_html=True)
+        chips.append("Also avoiding: " + ", ".join(st.session_state.temporary_exclusions))
+    st.markdown("".join(f'<span class="pill">{_esc(chip)}</span>' for chip in chips), unsafe_allow_html=True)
 
-    recipes = ranked_recipes()
-    if not recipes:
-        st.warning("No recipes satisfy all current hard filters. Try increasing the time limit or changing the diet/cuisine preferences.")
+    if st.session_state.recommendation_error:
+        st.error(st.session_state.recommendation_error)
+    elif st.session_state.recommendation_notice:
+        st.info(st.session_state.recommendation_notice)
+
+    if st.session_state.recommendation_candidates is None and not st.session_state.recommendation_error:
+        st.info("Rank recipes from Get Recipe. Nothing is invented before Gemini answers.")
+        recipes = []
     else:
+        recipes = visible_recommendations()
+        if st.session_state.recommendation_error:
+            pass
+        elif not st.session_state.recommendation_candidates:
+            st.warning("Gemini returned no recipes. No meals were invented to fill the gap.")
+        elif not recipes:
+            st.warning("No returned recipes satisfy the current hard filters. Try a longer time, a different diet, or a shorter avoid list.")
+
+    if recipes:
         st.markdown('<div class="section-title">ChefNova recommends</div>', unsafe_allow_html=True)
         top_results = recipes[:3]
         cols = st.columns(len(top_results), gap="medium")
@@ -1091,17 +1265,18 @@ def show_recommendations():
             with col:
                 recipe_card(result, key=f"view_{result['recipe']['id']}_{i}")
 
-        with st.expander("How is the ChefNova score calculated?"):
+        with st.expander("How is the match calculated?"):
             st.markdown(
-                """
-                **Current prototype weighting**
+                f"""
+                Gemini `{RECIPE_MODEL}` proposes up to four recipes from the confirmed pantry.
+                The app then checks that JSON locally.
 
-                - **40%** pantry / required-ingredient match
-                - **25%** preference and meal-request match
-                - **20%** cooking-time fit
-                - **15%** selected ranking priority
-
-                Dietary choice and maximum cooking time are treated as **hard filters**, not just score bonuses.
+                - **Cook now** means every listed ingredient is already in the pantry.
+                - **Almost ready** means one or two ingredients are missing.
+                - **Needs shopping** means three or more ingredients are missing, or the ingredient list was blank.
+                - The percent is that pantry overlap. Diet, maximum time, and avoid ingredients are hard filters.
+                - A missing time or protein stays visible and is marked. It is not filled in.
+                - Chat refinements reorder or hide this list. Ask Gemini again when you want a new set.
                 """
             )
 
@@ -1133,61 +1308,87 @@ def show_recommendations():
         with st.chat_message(msg["role"]):
             st.write(msg["text"])
 
-    if st.session_state.temporary_exclusions or st.session_state.conversation_max_time or st.session_state.conversation_keywords:
-        if st.button("Reset conversational refinements"):
-            st.session_state.temporary_exclusions = []
-            st.session_state.conversation_max_time = None
-            st.session_state.conversation_keywords = []
-            st.session_state.messages = []
-            st.rerun()
+    action_left, action_right = st.columns(2)
+    with action_left:
+        if st.button("Ask Gemini again", use_container_width=True):
+            if not st.session_state.confirmed:
+                st.warning("Confirm your inventory before asking again.")
+            else:
+                refresh_recommendations()
+                st.rerun()
+    with action_right:
+        if st.session_state.temporary_exclusions or st.session_state.conversation_max_time or st.session_state.conversation_keywords:
+            if st.button("Reset conversational refinements", use_container_width=True):
+                st.session_state.temporary_exclusions = []
+                st.session_state.conversation_max_time = None
+                st.session_state.conversation_keywords = []
+                st.session_state.messages = []
+                st.rerun()
 
 
 # ---------- Recipe details ----------
 def show_recipe_details():
-    recipe = get_selected_recipe()
-    if recipe is None:
+    selected = st.session_state.selected_recipe
+    if not selected or not selected.get("recipe"):
         st.warning("Choose a recipe from Recommendations first.")
         if st.button("← Back to recommendations"):
             st.session_state.page = "Recommendations"
             st.rerun()
         return
 
-    result = score_recipe(recipe)
+    recipe = selected["recipe"]
+    checked = rank_recipes([recipe], current_constraints(), st.session_state.inventory)
+    result = checked[0] if checked else None
     available = inventory_names(include_temporary_exclusions=True)
-    missing = [x for x in recipe["ingredients"] if normalize_name(x) not in available]
-    present = [x for x in recipe["ingredients"] if normalize_name(x) in available]
+    ingredients = recipe.get("ingredients") or []
+    missing = [item for item in ingredients if normalize_name(item) not in available]
+    present = [item for item in ingredients if normalize_name(item) in available]
+    diet = recipe.get("diet") or "diet not listed"
+    field_notes = selected.get("field_notes") or []
 
-    st.markdown(f'<div class="page-title">{recipe["title"]}</div>', unsafe_allow_html=True)
+    st.markdown(f'<div class="page-title">{_esc(recipe.get("title"))}</div>', unsafe_allow_html=True)
     st.markdown(
-        f'<div class="page-subtitle">{recipe["time"]} min · {recipe["protein"]}g protein · {recipe["diet"]} · Source: {recipe["source"]}</div>',
+        f'<div class="page-subtitle">{_esc(_time_label(recipe))} · {_esc(_protein_label(recipe))} · {_esc(diet)} · Source: {_esc(recipe.get("source"))}</div>',
         unsafe_allow_html=True,
     )
+    if field_notes:
+        st.warning(" ".join(field_notes))
 
     left, right = st.columns([1.55, 1], gap="large")
     with left:
         st.markdown(
-            f'<div class="card"><div style="font-size:54px;text-align:center;padding:18px;">{recipe["emoji"]}</div>',
+            f'<div class="card"><div style="font-size:54px;text-align:center;padding:18px;">{_esc(recipe.get("emoji") or "🍽️")}</div>',
             unsafe_allow_html=True,
         )
         st.markdown('<div class="section-title">Ingredients</div>', unsafe_allow_html=True)
-        for ingredient in recipe["ingredients"]:
+        if not ingredients:
+            st.markdown("- Ingredients were not returned.")
+        for ingredient in ingredients:
             symbol = "✓" if normalize_name(ingredient) in available else "!"
-            st.markdown(f"- {symbol} {ingredient}")
+            st.markdown(f"- {symbol} {_esc(ingredient)}")
 
         st.markdown('<div class="section-title">Steps</div>', unsafe_allow_html=True)
-        for i, step in enumerate(recipe["instructions"], start=1):
-            st.markdown(f"**{i}.** {step}")
+        steps = recipe.get("instructions") or []
+        if not steps:
+            st.markdown("Steps were not returned.")
+        for i, step in enumerate(steps, start=1):
+            st.markdown(f"**{i}.** {_esc(step)}")
         st.markdown("</div>", unsafe_allow_html=True)
 
     with right:
-        score_text = f"{result['score']}% ChefNova match" if result else "Filtered by current constraints"
+        if result:
+            score_text = f"{result['score']}% pantry match"
+            reason = result["reason"]
+        else:
+            score_text = "Filtered by current constraints"
+            reason = "This recipe no longer matches the current hard filters."
         st.markdown(
             f"""
             <div class="card">
                 <div class="small-note">WHY CHEFNOVA RECOMMENDED THIS</div>
-                <div style="font-size:23px;font-weight:700;margin-top:8px;">{score_text}</div>
+                <div style="font-size:23px;font-weight:700;margin-top:8px;">{_esc(score_text)}</div>
                 <div class="small-note" style="margin-top:10px;">
-                    {result['reason'] if result else 'This recipe no longer matches the current hard filters.'}
+                    {_esc(reason)}
                 </div>
             </div>
             """,
@@ -1198,23 +1399,24 @@ def show_recipe_details():
         st.markdown('<div class="card">', unsafe_allow_html=True)
         st.markdown('<div class="small-note">INVENTORY CHECK</div>', unsafe_allow_html=True)
         st.markdown(
-            f'<div class="available">✓ Available: {", ".join(present) if present else "None of the required ingredients"}</div>',
+            f'<div class="available">✓ Available: {_esc(", ".join(present) if present else "None of the required ingredients")}</div>',
             unsafe_allow_html=True,
         )
         if missing:
             st.markdown(
-                f'<div class="missing">! Missing: {", ".join(missing)}</div>',
+                f'<div class="missing">! Missing: {_esc(", ".join(missing))}</div>',
                 unsafe_allow_html=True,
             )
+            substitutions = recipe.get("substitutions") or {}
             substitution_lines = []
             for item in missing:
-                if item in recipe["substitutions"]:
-                    substitution_lines.append(f"**{item}:** try {recipe['substitutions'][item]}")
+                if item in substitutions:
+                    substitution_lines.append(f"**{_esc(item)}:** try {_esc(substitutions[item])}")
             if substitution_lines:
                 st.markdown("**Possible substitutions**")
                 for line in substitution_lines:
                     st.markdown(f"- {line}")
-        else:
+        elif ingredients:
             st.success("Cook now: every required ingredient is available in your confirmed pantry.")
         st.markdown("</div>", unsafe_allow_html=True)
 
@@ -1222,15 +1424,16 @@ def show_recipe_details():
         st.markdown('<div class="card">', unsafe_allow_html=True)
         st.markdown('<div class="small-note">AFTER COOKING</div>', unsafe_allow_html=True)
         st.markdown('<div style="font-size:18px;font-weight:650;margin-top:8px;">How was this recipe?</div>', unsafe_allow_html=True)
+        recipe_id = recipe.get("id") or "recipe"
         f1, f2, f3 = st.columns(3)
-        if f1.button("👍 Loved", key=f"love_{recipe['id']}", use_container_width=True):
-            st.session_state.feedback[recipe["id"]] = "Loved"
-        if f2.button("😐 Okay", key=f"okay_{recipe['id']}", use_container_width=True):
-            st.session_state.feedback[recipe["id"]] = "Okay"
-        if f3.button("👎 No", key=f"no_{recipe['id']}", use_container_width=True):
-            st.session_state.feedback[recipe["id"]] = "Disliked"
-        if recipe["id"] in st.session_state.feedback:
-            st.caption(f"Saved feedback: {st.session_state.feedback[recipe['id']]}. This can be used for future personalization.")
+        if f1.button("👍 Loved", key=f"love_{recipe_id}", use_container_width=True):
+            st.session_state.feedback[recipe_id] = "Loved"
+        if f2.button("😐 Okay", key=f"okay_{recipe_id}", use_container_width=True):
+            st.session_state.feedback[recipe_id] = "Okay"
+        if f3.button("👎 No", key=f"no_{recipe_id}", use_container_width=True):
+            st.session_state.feedback[recipe_id] = "Disliked"
+        if recipe_id in st.session_state.feedback:
+            st.caption(f"Saved feedback: {st.session_state.feedback[recipe_id]}. This can be used for future personalization.")
         st.markdown("</div>", unsafe_allow_html=True)
 
         st.markdown("<br>", unsafe_allow_html=True)
@@ -1277,14 +1480,9 @@ def show_evaluation_plan():
         st.markdown('<div class="section-title">Recipe source</div>', unsafe_allow_html=True)
         st.markdown(
             """
-            **Current prototype:** ChefNova curated demo recipe dataset.
+            **Current ranking:** Gemini proposes recipes from the confirmed pantry. The app then applies diet, time, and avoid filters and labels Cook now, Almost ready, and Needs shopping from ingredient overlap. Invalid model output shows an error and no recipes.
 
-            **Next implementation choice:** replace or expand it with one clearly documented source such as:
-            - Spoonacular API
-            - TheMealDB
-            - RecipeNLG / another licensed dataset
-
-            Retrieval should happen **before** the LLM explanation step so ChefNova ranks grounded recipes instead of inventing every recipe from scratch.
+            A licensed recipe catalog, such as Spoonacular or TheMealDB, can still replace free generation later. Until then, every shown recipe comes from a Gemini response that passed the JSON checks.
             """
         )
         st.markdown("</div>", unsafe_allow_html=True)
