@@ -92,3 +92,7 @@ Proposed Roadmap:
 Upload receipt → Review extracted groceries → Save quantities → Request a recipe → Confirm/edit inventory → Recommend recipes.
 
 The prototype accepts PNG/JPG receipt images and stores groceries in local SQLite. Identical receipt bytes are deduplicated per user; rescanned receipts may still need manual correction. Matching names and units are added together; different units remain separate. Receipt images are sent to Gemini and are not persisted locally. User names identify local profiles, but are not authentication. Automatic consumption tracking is outside the initial scope.
+
+## Recipe recommendations
+
+Confirmed pantry items and dietary preferences are sent to Gemini Flash-Lite. Diet, time, and avoid constraints are hard filters, and Cook now, Almost ready, and Needs shopping come from ingredient overlap. Model choice, latency, and cost are in [app/RECIPE_RECOMMENDATIONS.md](app/RECIPE_RECOMMENDATIONS.md). Ranking uses the Gemini key from the receipt tab, or `GEMINI_API_KEY`. No key is stored in this repository.

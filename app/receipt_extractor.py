@@ -339,6 +339,20 @@ def _require_items(extraction, provider):
 # GEMINI
 # ============================================================
 
+def get_gemini_client(api_key: Optional[str] = None, timeout_ms: Optional[int] = None):
+    """Gemini client used by recipe ranking and the receipt fallback."""
+    api_key = (api_key or os.getenv("GEMINI_API_KEY") or "").strip()
+    if not api_key:
+        raise RuntimeError(
+            "Gemini API key was not provided. "
+            "Enter a Gemini API key in the application."
+        )
+    if genai is None or types is None:
+        raise RuntimeError("Gemini SDK is missing. Install the google-genai package.")
+    http_options = types.HttpOptions(timeout=timeout_ms) if timeout_ms is not None else None
+    return genai.Client(api_key=api_key, http_options=http_options)
+
+
 def extract_with_gemini(ocr_text: str, api_key: str) -> ReceiptExtraction:
     """Fallback AI extraction using Gemini, with a lighter-model deadline retry."""
     if not api_key:
@@ -348,10 +362,8 @@ def extract_with_gemini(ocr_text: str, api_key: str) -> ReceiptExtraction:
 
     # Allow enough client-side time for structured output, then use a lighter
     # stable Flash model if the configured model returns a server deadline error.
-    client = genai.Client(
-        api_key=api_key,
-        http_options=types.HttpOptions(timeout=60000),
-    )
+    # Low thinking keeps that call from sitting on Gemini 3's default medium thinking.
+    client = get_gemini_client(api_key, timeout_ms=60000)
     fallback_model = os.getenv("GEMINI_DEADLINE_FALLBACK_MODEL", "gemini-3.6-flash")
     models_to_try = [GEMINI_MODEL, fallback_model] if fallback_model != GEMINI_MODEL else [GEMINI_MODEL]
     last_error = None
@@ -376,6 +388,7 @@ def extract_with_gemini(ocr_text: str, api_key: str) -> ReceiptExtraction:
                         temperature=0,
                         response_mime_type="application/json",
                         response_schema=ReceiptExtraction,
+                        thinking_config=types.ThinkingConfig(thinking_level="low"),
                     ),
                 )
                 break
