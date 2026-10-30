@@ -1,18 +1,32 @@
-import io
 import re
 import tempfile
+import time
 from pathlib import Path
 from copy import deepcopy
 
 import pandas as pd
 import streamlit as st
 
-from app.receipt_extractor import extract_receipt
+from app.receipt_extractor import (
+    extract_receipt,
+    groq_chat_completion_with_schema_fallback,
+    groq_extract_items_with_empty_retry,
+)
+from app.schemas import ReceiptExtraction
 
 try:
-    import speech_recognition as sr
+    from google import genai
+    from google.genai import types
 except ImportError:
-    sr = None
+    genai = None
+    types = None
+
+try:
+    from groq import Groq
+except ImportError:
+    Groq = None
+
+
 
 
 st.set_page_config(page_title="ChefNova", page_icon="🍳", layout="wide")
@@ -405,60 +419,187 @@ def merge_inventory_items(items):
     st.session_state.confirmed = False
 
 
+def extract_groceries_from_text(text, gemini_api_key=None, groq_api_key=None):
+    """Groq-first grocery structuring with Gemini as fallback."""
+    text = (text or "").strip()
+    if not text:
+        return None, "No grocery text was provided."
+
+    prompt = f"""You are ChefNova's grocery input parser.
+Convert the user's natural-language grocery list into structured grocery items.
+
+Rules:
+- Extract every grocery/food item explicitly mentioned.
+- Never invent a quantity, unit, package size, or brand.
+- If a field is unclear, return null.
+- Preserve quantities and package descriptions exactly when stated.
+- Ignore cooking instructions and unrelated commentary.
+- Return only the requested JSON structure.
+
+User input:
+{text}
+"""
+
+    errors = []
+    # PRIMARY: Groq. Grocery structuring does not require a reasoning-heavy call.
+    if groq_api_key and Groq is not None:
+        try:
+            started = time.perf_counter()
+            client = Groq(api_key=groq_api_key, timeout=20.0)
+            typed_messages = [
+                {
+                    "role": "system",
+                    "content": (
+                        "Extract grocery items from the user's text. "
+                        "Never invent missing fields. Return every explicitly "
+                        "mentioned grocery item, even when quantity is unknown. "
+                        "Return valid JSON only."
+                    ),
+                },
+                {"role": "user", "content": prompt},
+            ]
+            typed_retry_messages = [
+                {
+                    "role": "system",
+                    "content": (
+                        "Parse a user's grocery list into JSON. If any grocery items are mentioned, "
+                        "the items array must contain each of them. Use null for unknown quantity, "
+                        "unit, package size, or brand. Do not return an empty items array unless the "
+                        "input contains no groceries. Return only a JSON object with an items array."
+                    ),
+                },
+                {
+                    "role": "user",
+                    "content": "The prior attempt returned no items. Extract this list now:\n" + text,
+                },
+            ]
+            extraction, response_mode = groq_extract_items_with_empty_retry(
+                client,
+                model="qwen/qwen3.8-27b",
+                messages=typed_messages,
+                retry_messages=typed_retry_messages,
+                schema=ReceiptExtraction.model_json_schema(),
+                task_label="typed/voice grocery structuring",
+                temperature=0,
+                reasoning_effort="none",
+            )
+            print(f"[Groq typed-input] Response format used: {response_mode}")
+
+            elapsed = time.perf_counter() - started
+            st.session_state.last_grocery_extraction_time = elapsed
+
+            items = []
+            for item in extraction.items:
+                items.append({
+                    "Ingredient": item.name,
+                    "Quantity": item.quantity,
+                    "Unit": item.unit,
+                    "Package Size": item.package_size,
+                    "Brand": item.brand,
+                    "Confidence": item.confidence,
+                    "Needs Review": item.confidence < 0.80,
+                    "Review Reason": "Low extraction confidence" if item.confidence < 0.80 else "",
+                })
+            return items, "groq"
+        except Exception as exc:
+            errors.append(f"Groq: {exc}")
+
+    # FALLBACK: Gemini only if Groq failed or was unavailable.
+    if gemini_api_key and genai is not None:
+        try:
+            started = time.perf_counter()
+            client = genai.Client(
+                api_key=gemini_api_key,
+                http_options=types.HttpOptions(timeout=20000),
+            )
+            try:
+                response = None
+                for attempt in range(2):  # One retry only for transient deadline errors.
+                    try:
+                        response = client.models.generate_content(
+                            model="gemini-3.8-flash",
+                            contents=prompt,
+                            config=types.GenerateContentConfig(
+                                temperature=0,
+                                response_mime_type="application/json",
+                                response_schema=ReceiptExtraction,
+                            ),
+                        )
+                        break
+                    except Exception as exc:
+                        message = str(exc).upper()
+                        transient_deadline = (
+                            "504" in message
+                            or "DEADLINE_EXCEEDED" in message
+                            or "DEADLINE EXPIRED" in message
+                        )
+                        if attempt == 0 and transient_deadline:
+                            continue
+                        raise
+            finally:
+                try:
+                    client.close()
+                except Exception:
+                    pass
+
+            extraction = (
+                ReceiptExtraction.model_validate(response.parsed)
+                if getattr(response, "parsed", None) is not None
+                else ReceiptExtraction.model_validate_json(response.text)
+            )
+            if not extraction.items:
+                raise RuntimeError("Gemini returned zero grocery items.")
+
+            elapsed = time.perf_counter() - started
+            st.session_state.last_grocery_extraction_time = elapsed
+
+            items = []
+            for item in extraction.items:
+                items.append({
+                    "Ingredient": item.name,
+                    "Quantity": item.quantity,
+                    "Unit": item.unit,
+                    "Package Size": item.package_size,
+                    "Brand": item.brand,
+                    "Confidence": item.confidence,
+                    "Needs Review": item.confidence < 0.80,
+                    "Review Reason": "Low extraction confidence" if item.confidence < 0.80 else "",
+                })
+            return items, "gemini_fallback"
+        except Exception as exc:
+            errors.append(f"Gemini fallback: {exc}")
+
+    if not gemini_api_key and not groq_api_key:
+        return None, "Enter a Gemini or Groq API key first."
+    return None, "AI grocery extraction failed. " + " | ".join(errors)
+
 def parse_grocery_text(text):
-    """Simple deterministic parser for prototype manual/voice grocery entry."""
+    """Legacy deterministic parser retained as a fallback if AI extraction is unavailable."""
     if not text or not text.strip():
         return []
 
     number_words = {
-        "a": 1,
-        "an": 1,
-        "one": 1,
-        "two": 2,
-        "three": 3,
-        "four": 4,
-        "five": 5,
-        "six": 6,
-        "seven": 7,
-        "eight": 8,
-        "nine": 9,
-        "ten": 10,
+        "a": 1, "an": 1, "one": 1, "two": 2, "three": 3, "four": 4,
+        "five": 5, "six": 6, "seven": 7, "eight": 8, "nine": 9, "ten": 10,
         "twelve": 12,
     }
     unit_map = {
-        "can": "cans",
-        "cans": "cans",
-        "bag": "bag",
-        "bags": "bags",
-        "cup": "cups",
-        "cups": "cups",
-        "container": "container",
-        "containers": "containers",
-        "bulb": "bulb",
-        "bulbs": "bulbs",
-        "lb": "lb",
-        "lbs": "lb",
-        "pound": "lb",
-        "pounds": "lb",
-        "gallon": "gallon",
-        "gallons": "gallons",
-        "oz": "oz",
-        "ounce": "oz",
-        "ounces": "oz",
-        "dozen": "dozen",
-        "count": "count",
+        "can": "cans", "cans": "cans", "bag": "bag", "bags": "bags",
+        "cup": "cups", "cups": "cups", "container": "container",
+        "containers": "containers", "bulb": "bulb", "bulbs": "bulbs",
+        "lb": "lb", "lbs": "lb", "pound": "lb", "pounds": "lb",
+        "gallon": "gallon", "gallons": "gallons", "oz": "oz",
+        "ounce": "oz", "ounces": "oz", "dozen": "dozen", "count": "count",
     }
 
     text = re.sub(r"\b(i have|i bought|i got|add|we have|we bought)\b", "", text, flags=re.I)
     parts = [p.strip(" .") for p in re.split(r",|\band\b", text, flags=re.I) if p.strip(" .")]
     results = []
-
     for part in parts:
         part = re.sub(r"^(some|about)\s+", "", part.strip(), flags=re.I)
         tokens = part.split()
         qty = 1
         unit = "count"
-
         if tokens:
             first = tokens[0].lower()
             if re.fullmatch(r"\d+(?:\.\d+)?", first):
@@ -467,39 +608,57 @@ def parse_grocery_text(text):
             elif first in number_words:
                 qty = number_words[first]
                 tokens = tokens[1:]
-
         if tokens and tokens[0].lower() in unit_map:
             unit = unit_map[tokens[0].lower()]
             tokens = tokens[1:]
             if tokens and tokens[0].lower() == "of":
                 tokens = tokens[1:]
-
         ingredient = " ".join(tokens).strip()
         if not ingredient:
             continue
-
-        # Sensible default for uncounted food phrases.
         if qty == 1 and unit == "count" and ingredient.lower() in {"rice", "milk", "yogurt"}:
             unit = "item"
-
         results.append({"Ingredient": ingredient.title(), "Quantity": qty, "Unit": unit})
-
     return results
 
 
-def speech_to_text(audio_file):
+def speech_to_text(audio_file, groq_api_key=None):
+    """Transcribe Streamlit microphone audio using Groq Whisper."""
     if audio_file is None:
         return None, None
-    if sr is None:
-        return None, "Speech-to-text requires the SpeechRecognition package."
+
+    if not groq_api_key:
+        return None, "Enter a Groq API key to use voice input."
+
+    if Groq is None:
+        return None, "Voice transcription requires the Groq Python package."
+
     try:
-        recognizer = sr.Recognizer()
-        with sr.AudioFile(io.BytesIO(audio_file.getvalue())) as source:
-            audio_data = recognizer.record(source)
-        transcript = recognizer.recognize_google(audio_data)
+        audio_bytes = audio_file.getvalue()
+        if not audio_bytes:
+            return None, "No audio was captured. Please record your grocery list again."
+
+        client = Groq(api_key=groq_api_key)
+        transcription = client.audio.transcriptions.create(
+            file=("chefnova_voice.webm", audio_bytes),
+            model="whisper-large-v3-turbo",
+            language="en",
+            response_format="json",
+            temperature=0,
+            prompt=(
+                "Grocery inventory dictation. Preserve food names, quantities, "
+                "units, package sizes, and brands exactly when spoken."
+            ),
+        )
+
+        transcript = (getattr(transcription, "text", None) or "").strip()
+        if not transcript:
+            return None, "Voice was captured, but Whisper returned an empty transcript."
+
         return transcript, None
+
     except Exception as exc:
-        return None, f"Voice was captured, but transcription failed: {exc}"
+        return None, f"Voice was captured, but Groq Whisper transcription failed: {exc}"
 
 
 def prototype_receipt_extraction(filename):
@@ -911,34 +1070,33 @@ def show_inventory():
 
         with left:
             st.markdown('<div class="section-title">1. Choose an input method</div>', unsafe_allow_html=True)
+            st.markdown("### 🔑 AI API Keys")
+            st.caption("Keys are used only for this session and are not written to the repository, database, or logs.")
+            key_col1, key_col2 = st.columns(2)
+            with key_col1:
+                st.session_state.gemini_api_key = st.text_input(
+                    "Gemini API key",
+                    value=st.session_state.gemini_api_key,
+                    type="password",
+                    placeholder="Enter Gemini API key",
+                    key="gemini_api_key_input",
+                )
+            with key_col2:
+                st.session_state.groq_api_key = st.text_input(
+                    "Groq API key",
+                    value=st.session_state.groq_api_key,
+                    type="password",
+                    placeholder="Enter Groq API key",
+                    key="groq_api_key_input",
+                )
+
             receipt_tab, type_tab, voice_tab = st.tabs(["🧾 Receipt", "⌨️ Type", "🎙 Voice"])
 
             with receipt_tab:
-                st.markdown("### 🔑 AI API Keys")
-                st.caption("Keys are used only for this session and are not written to the repository, database, or logs.")
-
-                key_col1, key_col2 = st.columns(2)
-                with key_col1:
-                    st.session_state.gemini_api_key = st.text_input(
-                        "Gemini API key",
-                        value=st.session_state.gemini_api_key,
-                        type="password",
-                        placeholder="Enter Gemini API key",
-                        key="gemini_api_key_input",
-                    )
-                with key_col2:
-                    st.session_state.groq_api_key = st.text_input(
-                        "Groq API key",
-                        value=st.session_state.groq_api_key,
-                        type="password",
-                        placeholder="Enter Groq API key",
-                        key="groq_api_key_input",
-                    )
-
                 receipt = st.file_uploader(
                     "Upload a receipt or grocery-order screenshot",
                     type=["png", "jpg", "jpeg", "webp"],
-                    help="ChefNova runs local Tesseract OCR, then Gemini, with Groq as the fallback model.",
+                    help="ChefNova runs local Tesseract OCR, then Groq, with Gemini as the fallback model.",
                 )
 
                 if receipt is not None:
@@ -948,7 +1106,7 @@ def show_inventory():
                         "Extract grocery items",
                         key="extract_receipt",
                         use_container_width=True,
-                        disabled=not st.session_state.gemini_api_key.strip(),
+                        disabled=not (st.session_state.groq_api_key.strip() or st.session_state.gemini_api_key.strip()),
                     ):
                         temp_path = None
                         try:
@@ -971,10 +1129,10 @@ def show_inventory():
                             if result.extraction is not None:
                                 st.session_state.review_items = build_receipt_review_items(result.extraction)
 
-                                if result.source == "gemini":
-                                    st.success("Receipt extracted with Gemini. Review every item before adding it to your pantry.")
-                                elif result.source == "groq_fallback":
-                                    st.warning("Gemini failed, so ChefNova used Groq fallback. Review the extracted items carefully.")
+                                if result.source == "groq":
+                                    st.success("Receipt extracted with Groq. Review every item before adding it to your pantry.")
+                                elif result.source == "gemini_fallback":
+                                    st.warning("Groq was unavailable, so ChefNova used Gemini fallback. Review the extracted items carefully.")
 
                                 flagged = sum(
                                     1 for item in st.session_state.review_items
@@ -984,6 +1142,10 @@ def show_inventory():
                                     st.warning(f"{flagged} extracted item(s) need review before being added to your pantry.")
                             else:
                                 st.warning("AI extraction was unavailable. Review the OCR text and enter the grocery items manually.")
+                                if result.errors:
+                                    with st.expander("View AI extraction errors"):
+                                        for provider_error in result.errors:
+                                            st.code(provider_error, language=None)
                                 if result.ocr_text:
                                     with st.expander("View OCR text"):
                                         st.text(result.ocr_text)
@@ -998,18 +1160,34 @@ def show_inventory():
                                     pass
 
             with type_tab:
+                st.markdown("### Tell ChefNova what groceries you have")
+                st.caption("Write naturally. ChefNova will convert your text into structured grocery items for review.")
                 manual_text = st.text_area(
-                    "Enter groceries naturally",
-                    placeholder="e.g. eggs, milk, 2 tomatoes, one bag of spinach, 3 bananas",
-                    height=110,
+                    "Grocery list",
+                    placeholder="e.g. I bought two pounds of chicken, one bag of spinach, 32 oz Greek yogurt, and six tomatoes.",
+                    height=150,
+                    key="typed_grocery_text",
                 )
-                if st.button("Parse typed groceries", key="parse_manual", use_container_width=True):
-                    parsed = parse_grocery_text(manual_text)
+                if st.button(
+                    "✨ Convert to grocery table",
+                    key="parse_manual",
+                    use_container_width=True,
+                    disabled=not manual_text.strip(),
+                ):
+                    with st.spinner("ChefNova is structuring your groceries..."):
+                        parsed, source = extract_groceries_from_text(
+                            manual_text,
+                            gemini_api_key=st.session_state.gemini_api_key.strip() or None,
+                            groq_api_key=st.session_state.groq_api_key.strip() or None,
+                        )
                     if parsed:
                         st.session_state.review_items = parsed
-                        st.success(f"Parsed {len(parsed)} item(s). Review them below before adding them.")
+                        if source == "groq":
+                            st.success(f"Groq converted {len(parsed)} grocery item(s). Review the table on the right.")
+                        elif source == "gemini_fallback":
+                            st.warning(f"Groq failed, so Gemini fallback converted {len(parsed)} item(s). Review carefully.")
                     else:
-                        st.warning("I couldn't find grocery items in that text. Try separating items with commas.")
+                        st.error(source)
 
             with voice_tab:
                 st.caption("Say something like: ‘I have rice, two cans of chickpeas, four tomatoes and a bag of spinach.’")
@@ -1017,16 +1195,35 @@ def show_inventory():
                 if inventory_audio is not None:
                     audio_hash = hash(inventory_audio.getvalue())
                     if audio_hash != st.session_state.last_inventory_audio_hash:
-                        transcript, error = speech_to_text(inventory_audio)
+                        transcript, error = speech_to_text(
+                            inventory_audio,
+                            groq_api_key=st.session_state.groq_api_key.strip() or None,
+                        )
                         st.session_state.last_inventory_audio_hash = audio_hash
                         if error:
                             st.warning(error)
                         elif transcript:
                             st.success(f"Heard: {transcript}")
-                            parsed = parse_grocery_text(transcript)
+                            with st.spinner("ChefNova is structuring your groceries..."):
+                                parsed, source = extract_groceries_from_text(
+                                    transcript,
+                                    gemini_api_key=st.session_state.gemini_api_key.strip() or None,
+                                    groq_api_key=st.session_state.groq_api_key.strip() or None,
+                                )
                             if parsed:
                                 st.session_state.review_items = parsed
-                                st.info("I converted the voice input into structured grocery items. Review them below.")
+                                if source == "groq":
+                                    st.success(
+                                        f"Groq identified {len(parsed)} grocery item(s). "
+                                        "Review the table on the right."
+                                    )
+                                elif source == "gemini_fallback":
+                                    st.warning(
+                                        f"Groq failed, so Gemini fallback identified {len(parsed)} "
+                                        "grocery item(s). Review them carefully."
+                                    )
+                            else:
+                                st.error(source)
 
         with right:
             st.markdown('<div class="section-title">2. Review before adding</div>', unsafe_allow_html=True)
@@ -1285,7 +1482,10 @@ def show_recommendations():
     if audio is not None:
         audio_hash = hash(audio.getvalue())
         if audio_hash != st.session_state.last_refine_audio_hash:
-            transcript, error = speech_to_text(audio)
+            transcript, error = speech_to_text(
+                audio,
+                groq_api_key=st.session_state.groq_api_key.strip() or None,
+            )
             st.session_state.last_refine_audio_hash = audio_hash
             if error:
                 st.warning(error)
