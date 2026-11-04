@@ -91,7 +91,18 @@ Proposed Roadmap:
 
 Upload receipt → Review extracted groceries → Save quantities → Request a recipe → Confirm/edit inventory → Recommend recipes.
 
-The prototype accepts PNG/JPG receipt images and stores groceries in local SQLite. Identical receipt bytes are deduplicated per user; rescanned receipts may still need manual correction. Matching names and units are added together; different units remain separate. Receipt images are sent to Gemini and are not persisted locally. User names identify local profiles, but are not authentication. Automatic consumption tracking is outside the initial scope.
+The prototype accepts PNG/JPG receipt images and stores reviewed groceries in a local SQLite database, so the pantry and preferences are still there in the next session. Receipts are not deduplicated, so scanning one twice adds its quantities twice. Matching names and units are added together; different units remain separate. Receipt images are sent to Gemini and are not persisted locally. User names identify local profiles, but are not authentication. Automatic consumption tracking is outside the initial scope.
+
+## Saved pantry and storage API
+
+Pantries, preferences, dietary restrictions, and cuisine choices are saved per profile. Confirmation is not saved, so each new session confirms the pantry again before ranking. Design, API routes, and known limits are in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
+
+```bash
+pip install -r app/requirements.txt
+streamlit run ChefNova_app_UI.py      # The app. The database is created on first run.
+uvicorn app.api:app --reload          # Optional REST API, with docs at http://127.0.0.1:8000/docs
+PYTHONPATH=. python3 -m pytest tests -q
+```
 
 ## Recipe recommendations
 

@@ -1,13 +1,14 @@
 import html
 import os
 import re
+import sqlite3
 import tempfile
 import time
 from pathlib import Path
-from copy import deepcopy
 
 import pandas as pd
 import streamlit as st
+from pydantic import ValidationError
 
 from app.recipe_recommendations import RECIPE_MODEL, Constraints, rank_recipes, recommend_recipes
 from app.receipt_extractor import (
@@ -16,6 +17,16 @@ from app.receipt_extractor import (
     groq_extract_items_with_empty_retry,
 )
 from app.schemas import ReceiptExtraction
+from app.storage import PantryStore, StorageError
+from app.storage_models import (
+    CUISINE_CHOICES,
+    DIET_CHOICES,
+    MAX_MINUTES_CHOICES,
+    PRIORITY_CHOICES,
+    PantryItemCreate,
+    PreferencesUpdate,
+    normalize_username,
+)
 
 try:
     from google import genai
@@ -388,7 +399,6 @@ RECIPE_DB = [
 def init_state():
     defaults = {
         "page": "Home",
-        "inventory": deepcopy(DEFAULT_INVENTORY),
         "confirmed": False,
         "request": "",
         "review_items": [],
@@ -399,17 +409,11 @@ def init_state():
         "conversation_keywords": [],
         "last_inventory_audio_hash": None,
         "last_refine_audio_hash": None,
-        "diet_pref": "Vegetarian",
-        "max_time_pref": "20 min",
-        "cuisine_pref": "Any",
-        "priority_pref": "Best pantry match",
-        "high_protein_pref": True,
         "feedback": {},
         "gemini_api_key": "",
         "groq_api_key": "",
         "receipt_extraction_source": None,
         "receipt_ocr_text": None,
-        "avoid_pref": "",
         "recommendation_candidates": None,
         "recommendation_error": None,
         "recommendation_notice": None,
@@ -443,22 +447,39 @@ def clean_number(value, fallback=1):
         return fallback
 
 
+def save_pantry(save, rows):
+    """Run one store write. On failure, show why and return False with nothing saved."""
+    try:
+        save(st.session_state.profile, [PantryItemCreate(**row) for row in rows])
+    except SAVE_ERRORS as exc:
+        st.error(f"Nothing was saved. {describe_save_error(exc)}")
+        return False
+    st.session_state.confirmed = False
+    return True
+
+
+def describe_save_error(exc):
+    if isinstance(exc, ValidationError):
+        first = exc.errors()[0]
+        field = ".".join(str(part) for part in first["loc"])
+        return f"{field}: {first['msg']}" if field else first["msg"]
+    return str(exc)
+
+
 def merge_inventory_items(items):
-    existing = {normalize_name(item["Ingredient"]): item for item in st.session_state.inventory}
+    rows = []
     for item in items:
         ingredient = str(item.get("Ingredient", "")).strip()
         if not ingredient:
             continue
-        key = normalize_name(ingredient)
-        qty = clean_number(item.get("Quantity", 1), 1)
-        unit = str(item.get("Unit", "count") or "count").strip()
-        if key in existing and normalize_name(existing[key].get("Unit", "")) == normalize_name(unit):
-            existing[key]["Quantity"] = clean_number(existing[key].get("Quantity", 0), 0) + qty
-        else:
-            new_item = {"Ingredient": ingredient.title(), "Quantity": qty, "Unit": unit}
-            st.session_state.inventory.append(new_item)
-            existing[key] = new_item
-    st.session_state.confirmed = False
+        rows.append(
+            {
+                "name": ingredient.title(),
+                "quantity": clean_number(item.get("Quantity", 1), 1),
+                "unit": str(item.get("Unit", "count") or "count").strip(),
+            }
+        )
+    return save_pantry(store.add_items, rows)
 
 
 def extract_groceries_from_text(text, gemini_api_key=None, groq_api_key=None):
@@ -772,21 +793,31 @@ def build_receipt_review_items(extraction):
     return items
 
 
+def minutes_from_label(label):
+    return None if label == NO_TIME_LIMIT else int(label.split()[0])
+
+
+def label_from_minutes(minutes):
+    return NO_TIME_LIMIT if minutes is None else f"{minutes} min"
+
+
+def parse_avoid_terms(text):
+    terms = []
+    for part in re.split(r"[,;\n]", text or ""):
+        term = part.strip()
+        if term and term not in terms:
+            terms.append(term)
+    return terms
+
+
 def effective_max_time():
     if st.session_state.conversation_max_time:
         return st.session_state.conversation_max_time
-    value = st.session_state.max_time_pref
-    if value == "No limit":
-        return None
-    return int(value.split()[0])
+    return minutes_from_label(st.session_state.max_time_pref)
 
 
 def current_constraints():
-    avoid = []
-    for part in re.split(r"[,;\n]", st.session_state.avoid_pref or ""):
-        term = part.strip()
-        if term and term not in avoid:
-            avoid.append(term)
+    avoid = parse_avoid_terms(st.session_state.avoid_pref)
     for item in st.session_state.temporary_exclusions:
         if item not in avoid:
             avoid.append(item)
@@ -881,6 +912,118 @@ def process_refinement(text):
     st.session_state.messages.append({"role": "assistant", "text": reply})
 
 
+# ---------- Saved pantry and preferences ----------
+DEFAULT_PROFILE = "default"
+NO_TIME_LIMIT = "No limit"
+MAX_TIME_CHOICES = [label_from_minutes(minutes) for minutes in MAX_MINUTES_CHOICES] + [NO_TIME_LIMIT]
+SAVE_ERRORS = (StorageError, ValidationError, sqlite3.Error)
+
+# Only the starter rows of a brand-new profile. An emptied pantry stays empty.
+STARTER_ITEMS = [
+    PantryItemCreate(name=row["Ingredient"], quantity=row["Quantity"], unit=row["Unit"])
+    for row in DEFAULT_INVENTORY
+]
+
+# Each widget key mapped to how it is read from saved preferences and written back.
+PREFERENCE_FIELDS = {
+    "diet_pref": (lambda saved: saved.diet, lambda value: {"diet": value}),
+    "max_time_pref": (
+        lambda saved: label_from_minutes(saved.max_minutes),
+        lambda value: {"max_minutes": minutes_from_label(value)},
+    ),
+    "cuisine_pref": (lambda saved: saved.cuisine, lambda value: {"cuisine": value}),
+    "priority_pref": (lambda saved: saved.priority, lambda value: {"priority": value}),
+    "high_protein_pref": (lambda saved: saved.high_protein, lambda value: {"high_protein": value}),
+    "avoid_pref": (
+        lambda saved: ", ".join(saved.dietary_restrictions),
+        lambda value: {"dietary_restrictions": parse_avoid_terms(value)},
+    ),
+}
+
+
+def profile_from_url():
+    """The name in the URL keeps a browser refresh on the same profile."""
+    try:
+        return normalize_username(st.query_params.get("profile", DEFAULT_PROFILE))
+    except ValueError:
+        return DEFAULT_PROFILE
+
+
+def load_saved_state():
+    """Sync this session with the database at the start of every run.
+
+    The pantry is read each time, because another tab or the API may have changed it.
+    Any real change clears the confirmation, since it no longer describes this pantry.
+
+    Confirmation is never loaded. A saved pantry records what was there last time, so
+    each new session must confirm it again before ranking.
+    """
+    profile = st.session_state.profile
+    store.ensure_user(profile, seed_items=STARTER_ITEMS)
+
+    rows = [
+        {"Ingredient": item.name, "Quantity": clean_number(item.quantity, 0), "Unit": item.unit}
+        for item in store.list_pantry(profile)
+    ]
+    if rows != st.session_state.get("inventory"):
+        st.session_state.inventory = rows
+        st.session_state.confirmed = False
+
+    # Streamlit forgets a widget's value once its page is off screen, which silently reset
+    # hard filters such as avoid-ingredients. Reassigning each key every run prevents that.
+    missing = []
+    for key in PREFERENCE_FIELDS:
+        if key in st.session_state:
+            st.session_state[key] = st.session_state[key]
+        else:
+            missing.append(key)
+    if missing:
+        saved = store.get_preferences(profile)
+        for key in missing:
+            st.session_state[key] = PREFERENCE_FIELDS[key][0](saved)
+
+
+def save_preference(key):
+    """Widget callback. Saves one field, so a temporary chat refinement of another is not stored."""
+    try:
+        changes = PreferencesUpdate(**PREFERENCE_FIELDS[key][1](st.session_state[key]))
+        store.update_preferences(st.session_state.profile, changes)
+    except SAVE_ERRORS as exc:
+        st.error(f"This preference applies for now but was not saved. {describe_save_error(exc)}")
+
+
+def switch_profile():
+    """Sidebar callback. Clears the session so nothing from one profile shows under another."""
+    try:
+        name = normalize_username(st.session_state.profile_input)
+    except ValueError as exc:
+        st.session_state.profile_input = st.session_state.profile
+        st.error(str(exc))
+        return
+    st.session_state.profile_input = name
+    if name == st.session_state.profile:
+        return
+    keep = {"profile_input", "gemini_api_key", "groq_api_key"}
+    for key in list(st.session_state.keys()):
+        if key not in keep:
+            del st.session_state[key]
+    st.session_state.profile = name
+    st.query_params["profile"] = name
+    init_state()
+
+
+if "profile" not in st.session_state:
+    st.session_state.profile = profile_from_url()
+    st.session_state.profile_input = st.session_state.profile
+
+try:
+    store = PantryStore()
+    load_saved_state()
+except (*SAVE_ERRORS, OSError) as exc:
+    st.error(f"ChefNova could not open its saved pantry, so it stopped before changing anything. {exc}")
+    st.stop()
+
+
 # ---------- Sidebar ----------
 with st.sidebar:
     st.markdown(
@@ -891,6 +1034,13 @@ with st.sidebar:
         </div>
         """,
         unsafe_allow_html=True,
+    )
+
+    st.text_input(
+        "Profile",
+        key="profile_input",
+        on_change=switch_profile,
+        help="Your pantry and preferences are saved under this name. It is not a login: anyone using this app can open the same profile.",
     )
 
     if st.button("⌂  Home", use_container_width=True):
@@ -1243,10 +1393,10 @@ def show_inventory():
                         for row in reviewed
                         if str(row.get("Ingredient", "")).strip()
                     ]
-                    merge_inventory_items(reviewed)
-                    st.session_state.review_items = []
-                    st.success("Reviewed items were added. Confirm the pantry after checking the final list.")
-                    st.rerun()
+                    if merge_inventory_items(reviewed):
+                        st.session_state.review_items = []
+                        st.success("Reviewed items were added. Confirm the pantry after checking the final list.")
+                        st.rerun()
             with c2:
                 if st.button("Clear review", use_container_width=True, disabled=edited_review_df.empty):
                     st.session_state.review_items = []
@@ -1281,15 +1431,14 @@ def show_inventory():
                     if str(row.get("Ingredient", "")).strip():
                         cleaned.append(
                             {
-                                "Ingredient": str(row["Ingredient"]).strip().title(),
-                                "Quantity": clean_number(row.get("Quantity", 1), 1),
-                                "Unit": str(row.get("Unit", "count") or "count").strip(),
+                                "name": str(row["Ingredient"]).strip().title(),
+                                "quantity": clean_number(row.get("Quantity", 1), 1),
+                                "unit": str(row.get("Unit", "count") or "count").strip(),
                             }
                         )
-                st.session_state.inventory = cleaned
-                st.session_state.confirmed = False
-                st.success("Pantry edits saved. Please confirm the inventory.")
-                st.rerun()
+                if save_pantry(store.replace_pantry, cleaned):
+                    st.success("Pantry edits saved. Please confirm the inventory.")
+                    st.rerun()
 
         with confirm_col:
             if st.button("✓ Confirm Inventory", use_container_width=True, disabled=len(st.session_state.inventory) == 0):
@@ -1326,28 +1475,43 @@ def show_get_recipe():
     st.markdown('<div class="section-title" style="font-size:15px;">Hard filters</div>', unsafe_allow_html=True)
     c1, c2 = st.columns(2)
     with c1:
-        st.selectbox("Diet", ["No preference", "Vegetarian", "Vegan"], key="diet_pref")
+        st.selectbox("Diet", DIET_CHOICES, key="diet_pref", on_change=save_preference, args=("diet_pref",))
     with c2:
-        st.selectbox("Maximum cooking time", ["15 min", "20 min", "30 min", "45 min", "No limit"], key="max_time_pref")
+        st.selectbox(
+            "Maximum cooking time",
+            MAX_TIME_CHOICES,
+            key="max_time_pref",
+            on_change=save_preference,
+            args=("max_time_pref",),
+        )
     st.text_input(
         "Avoid ingredients",
         key="avoid_pref",
         placeholder="peanuts, shellfish",
         help="Recipes that list these ingredients are dropped. This is a hard filter.",
+        on_change=save_preference,
+        args=("avoid_pref",),
     )
 
     st.markdown('<div class="section-title" style="font-size:15px;">Ranking preferences</div>', unsafe_allow_html=True)
     c3, c4, c5 = st.columns([1, 1.3, 1])
     with c3:
-        st.selectbox("Cuisine", ["Any", "Indian", "Mediterranean", "Asian"], key="cuisine_pref")
+        st.selectbox("Cuisine", CUISINE_CHOICES, key="cuisine_pref", on_change=save_preference, args=("cuisine_pref",))
     with c4:
         st.selectbox(
             "Prioritize",
-            ["Best pantry match", "Fastest", "Highest protein", "Fewest missing ingredients"],
+            PRIORITY_CHOICES,
             key="priority_pref",
+            on_change=save_preference,
+            args=("priority_pref",),
         )
     with c5:
-        st.checkbox("Prefer high protein", key="high_protein_pref")
+        st.checkbox(
+            "Prefer high protein",
+            key="high_protein_pref",
+            on_change=save_preference,
+            args=("high_protein_pref",),
+        )
 
     st.markdown("<br>", unsafe_allow_html=True)
     if st.button("Rank My Recipes  →", use_container_width=True):

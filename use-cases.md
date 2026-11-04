@@ -1,6 +1,6 @@
 # ChefNova use cases
 
-Walkthroughs for the app served by `ChefNova_app_UI.py` on `cp3/chefnova-implementation` (`a3ad32bc4372897d81fcaa9163211218170fa82f`). Labels below are the ones on those screens.
+Walkthroughs for the app served by `ChefNova_app_UI.py` on `cp3/chefnova-implementation`. Labels below are the ones on those screens.
 
 Run the checks from the repo root:
 
@@ -8,13 +8,13 @@ Run the checks from the repo root:
 PYTHONPATH=. python3 -m pytest tests -q
 ```
 
-The recommendation tests use fixture model responses. They do not call Gemini or Groq. There is no automated test for the receipt screen, the pantry editor, or voice input.
+The recommendation tests use fixture model responses. They do not call Gemini or Groq. The persistence tests run the app against a temporary SQLite file. There is no automated test for the receipt screen or voice input. Streamlit's test runner cannot type into the pantry table, so those tests simulate what the table returns.
 
-A fresh session starts with six pantry rows and status **Needs review**. Those rows are starter data, not a receipt scan: Rice 2 cups, Chickpeas 2 cans, Spinach 1 bag, Tomatoes 4 count, Greek Yogurt 1 container, Garlic 1 bulb. Ranking does not read the demo recipe list in the source file. Gemini proposes recipes, then the app filters that response.
+A new profile starts with six pantry rows. Those rows are starter data, not a receipt scan: Rice 2 cups, Chickpeas 2 cans, Spinach 1 bag, Tomatoes 4 count, Greek Yogurt 1 container, Garlic 1 bulb. They are saved once, when the profile is created. The pantry is listed alphabetically. Every session starts at status **Needs review**, including a return visit. Ranking does not read the demo recipe list in the source file. Gemini proposes recipes, then the app filters that response.
 
-The sidebar is **Home**, **My Inventory**, **Get Recipe**, and **Evaluation Plan**. Evaluation Plan lists suggested receipt sources and target metrics. It does not change the pantry and it does not call a model.
+The sidebar has a **Profile** field, then **Home**, **My Inventory**, **Get Recipe**, and **Evaluation Plan**. Evaluation Plan lists suggested receipt sources and target metrics. It does not change the pantry and it does not call a model.
 
-API keys typed on My Inventory stay in the browser session. The app does not write them into the repo.
+API keys typed on My Inventory stay in the browser session. The app does not write them into the repo or the database.
 
 ## 1. Open the app
 
@@ -35,7 +35,7 @@ API keys typed on My Inventory stay in the browser session. The app does not wri
 
 **Matching test**
 
-None.
+`test_first_visit_shows_the_documented_starter_state` in `tests/test_ui_persistence.py`
 
 ## 2. Enter a Gemini key
 
@@ -126,10 +126,13 @@ None.
 - **Add reviewed items** copies only ingredient, quantity, and unit. Package size, brand, and confidence are not stored in the pantry.
 - A blank ingredient is skipped. A kept name is stored in title case. The same ingredient name and the same unit add their quantities together. A different unit is a separate row.
 - After the refresh, the review table is empty, the new rows are on Current pantry, and the status is **Needs review** even if it was confirmed before. Confirm the pantry again before ranking.
+- If any row cannot be saved, the page says “Nothing was saved.” and why. The pantry does not change and the review table keeps its rows.
 
 **Matching test**
 
-None.
+- `test_reviewed_items_are_there_in_the_next_session`
+- `test_adding_to_a_saved_item_adds_the_quantities`
+- `test_invalid_row_shows_an_error_and_saves_nothing`
 
 ## 6. Confirm the pantry
 
@@ -146,12 +149,15 @@ None.
 - A toast says “Inventory confirmed. ChefNova will now use it for recipe feasibility.”
 - The status line says **Confirmed** and the item count.
 - The sidebar says **✓ Confirmed**.
-- **Save pantry edits** stores the editor contents, title-cases names, and sets the status back to **Needs review**. Confirm again after a save.
+- **Save pantry edits** saves the editor contents to the database, title-cases names, and sets the status back to **Needs review**. Rows in the table with the same name and unit are added together. Confirm again after a save.
 - Adding reviewed items also returns the status to **Needs review**.
+- A change to the pantry from another tab or the API also returns the status to **Needs review** on the next interaction.
 
 **Matching test**
 
-None.
+- `test_confirmation_lasts_within_a_session_while_the_pantry_is_unchanged`
+- `test_saving_edits_clears_the_confirmation`
+- `test_change_from_another_tab_clears_the_confirmation_and_shows_up`
 
 ## 7. Enter ingredients manually
 
@@ -193,7 +199,7 @@ None.
 
 **Expected result**
 
-- Defaults on a fresh session are Diet **Vegetarian**, Maximum cooking time **20 min**, Cuisine **Any**, Prioritize **Best pantry match**, and **Prefer high protein** checked.
+- Defaults for a new profile are Diet **Vegetarian**, Maximum cooking time **20 min**, Cuisine **Any**, Prioritize **Best pantry match**, and **Prefer high protein** checked. Changing one of these saves it for later sessions.
 - If the pantry is not confirmed, the button stays on Get Recipe and warns: “Confirm your inventory first so ChefNova knows what you actually have.” Nothing is sent.
 - A confirmed pantry with a Gemini key calls `gemini-3.5-flash-lite` once. The caption on Get Recipe says diet, time, and avoid are hard filters, and that an empty pantry or a missing key is not sent.
 - Recommendations shows the active filters as pills. Each card shows a pantry-match percent, **Cook now**, **Almost ready**, or **Needs shopping**, time, protein, and diet. Missing time is “time not listed”. Missing protein is “protein not listed”. At most three cards are shown. The model is asked for at most four recipes.
@@ -231,10 +237,12 @@ None.
 - **✓ Confirm Inventory** is disabled, so this screen cannot mark an empty pantry confirmed.
 - **Rank My Recipes** stays on Get Recipe and warns: “Confirm your inventory first so ChefNova knows what you actually have.” No model request is made.
 - The ranking function behind that button, if it is run with no named pantry items, does not call the model. Recommendations would show: “Add at least one confirmed pantry item before ranking. No recipes were invented.” The Confirm button does not create that state while the table has zero rows. Saving edits also clears a previous confirmation.
+- The pantry is still empty in the next session. The starter rows do not come back.
 
 **Matching test**
 
-`test_empty_pantry_does_not_call_the_model`
+- `test_empty_pantry_does_not_call_the_model`
+- `test_emptied_pantry_stays_empty_and_is_not_seeded_again`
 
 ## 10. Invalid or inconsistent model output
 
@@ -258,3 +266,63 @@ None.
 - `test_invalid_json_returns_no_recipes`
 - `test_inconsistent_ingredients_return_no_recipes`
 - `test_partial_recipe_is_shown_with_missing_fields_marked` covers the valid partial recipe, which is shown rather than dropped
+
+## 11. Come back later
+
+**Steps**
+
+1. In the sidebar, type a name in **Profile** and press Enter.
+2. Add groceries, then set **Diet**, **Maximum cooking time**, **Avoid ingredients**, and **Cuisine** on **Get Recipe**.
+3. Open another page, then come back to **Get Recipe**.
+4. Refresh the browser, or stop the app and start it again and open the same address.
+
+**Expected result**
+
+- The new profile starts from the same starter rows and defaults as a first visit. The address gains `?profile=` and the name in lowercase, so a refresh stays on that profile.
+- The filters are unchanged after visiting another page. They do not reset to the defaults.
+- After the refresh or restart, the pantry and preferences are the ones saved. Opening the address without `?profile=` shows the `default` profile.
+- The status is **Needs review** after the refresh or restart, even if the pantry was confirmed before. Confirm it again before ranking.
+- A chat refinement such as “make it faster” is not saved. Neither are the Gemini and Groq keys.
+- Switching **Profile** returns to Home and clears the review table, recommendations, and chat from the previous profile. API keys stay for the browser session.
+- A name with characters other than letters, numbers, spaces, `.`, `_`, or `-` shows an error, and the current profile stays open. The field is not a login, so anyone using the same deployment can open any profile.
+- If the database cannot be opened, the page says “ChefNova could not open its saved pantry” and stops.
+
+**Matching test**
+
+- `test_preferences_are_there_in_the_next_session`
+- `test_hard_filters_survive_leaving_the_page`
+- `test_hard_filters_still_apply_after_ranking_and_more_clicks`
+- `test_pantry_table_edits_are_there_in_the_next_session`
+- `test_confirmation_does_not_carry_over_to_a_new_session`
+- `test_chat_refinements_stay_temporary`
+- `test_api_keys_are_never_written_to_the_database`
+- `test_url_keeps_a_refresh_on_the_same_profile`
+- `test_switching_profile_leaves_nothing_from_the_old_one`
+- `test_invalid_profile_name_is_refused_and_keeps_the_current_one`
+- `test_unusable_database_shows_an_error_instead_of_crashing`
+- `test_data_survives_a_separate_process` in `tests/test_storage.py`
+
+## 12. Use the storage API
+
+**Steps**
+
+1. Run `uvicorn app.api:app --reload` from the repo root.
+2. Open <http://127.0.0.1:8000/docs>.
+3. Create a profile with `PUT /api/v1/users/{username}`.
+4. Add, read, edit, and delete pantry items, then change preferences.
+5. Open the app with `?profile=` and the same name.
+
+**Expected result**
+
+- The app shows what the API saved, and the API returns what the app saved. They use the same database.
+- Adding an item with a name and unit already in the pantry adds the quantities and returns 200. A new row returns 201.
+- An edit that would duplicate another row returns 409 and changes nothing.
+- A missing profile or item returns 404, including an item that belongs to another profile.
+- Invalid input returns 422 and saves nothing.
+
+Routes and rules are listed in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
+
+**Matching test**
+
+- `test_full_pantry_lifecycle` and the rest of `tests/test_api.py`
+- `test_ui_and_api_see_each_others_writes` in `tests/test_ui_persistence.py`
