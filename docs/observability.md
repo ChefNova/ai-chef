@@ -10,6 +10,11 @@ ChefNova logs latency, token cost, and errors for every LLM call and OCR operati
 
 ### LLM calls (`recipe_recommendations.py`)
 
+Each recipe recommendation cycle makes up to three LLM calls, each logged separately:
+
+1. **Generation** — Groq (primary) or Gemini (fallback) produces the recipe list.
+2. **Ranking** — Gemini Flash-Lite ranks the generated recipes by protein, time, and pantry coverage.
+
 Each call to Groq or Gemini emits a log entry containing:
 
 | Field | Description |

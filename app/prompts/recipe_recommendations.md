@@ -10,6 +10,7 @@ Given a pantry inventory and optional dietary constraints, suggest recipes the u
 | Parameter | Value |
 |-----------|-------|
 | Provider | Groq (primary) / Gemini (fallback) |
+| Ranking provider | Gemini Flash-Lite (separate call after generation) |
 | Temperature | 0.4 |
 | Max tokens | 2048 |
 | Output format | JSON (see schema below) |

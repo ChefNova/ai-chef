@@ -36,7 +36,7 @@
 2. User clicks **Find Recipes**.
 3. `recipe_recommendations.py` builds the prompt from pantry state and constraints.
 4. App calls Groq API (primary); on failure, falls back to Gemini API.
-5. JSON response is parsed and ranked by protein, time, and pantry coverage.
+5. A second call to Gemini Flash-Lite ranks the returned recipes by protein content, cook time, and pantry coverage.
 6. Up to 5 recipe cards are displayed with ingredients, instructions, and substitution suggestions.
 
 **Expected outcome:** Ranked recipe cards; each card shows title, estimated time, protein content, and step-by-step instructions.
