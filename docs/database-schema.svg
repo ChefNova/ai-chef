@@ -1,0 +1,78 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1160 620" width="1160" height="620" role="img" aria-labelledby="title desc" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">
+  <title id="title">ChefNova database schema</title>
+  <desc id="desc">One user has many pantry items, one row of preferences, and many dietary restrictions. Deleting a user deletes all of them.</desc>
+  <style>
+    .table { fill: #ffffff; stroke: #c9794b; stroke-width: 1.5; }
+    .head { fill: #c9794b; }
+    .head-text { font-size: 15px; font-weight: 600; fill: #ffffff; font-family: ui-monospace, Menlo, Consolas, monospace; }
+    .col { font-size: 13px; fill: #1f1b16; font-family: ui-monospace, Menlo, Consolas, monospace; }
+    .type { font-size: 12px; fill: #7a6f62; font-family: ui-monospace, Menlo, Consolas, monospace; }
+    .note { font-size: 12px; fill: #5c5349; }
+    .rule { font-size: 12px; fill: #8a4f2b; font-family: ui-monospace, Menlo, Consolas, monospace; }
+    .divider { stroke: #eadfd3; stroke-width: 1; }
+    .line { stroke: #5c5349; stroke-width: 1.5; fill: none; }
+    .card { font-size: 13px; font-weight: 600; fill: #5c5349; }
+  </style>
+
+  <rect width="1160" height="620" fill="#fbf9f5"/>
+
+  <!-- users -->
+  <rect class="table" x="50" y="220" width="270" height="118" rx="8"/>
+  <path class="head" d="M 50 254 V 228 a 8 8 0 0 1 8 -8 H 312 a 8 8 0 0 1 8 8 V 254 z"/>
+  <text class="head-text" x="64" y="242">users</text>
+  <text class="col" x="64" y="276">id</text><text class="type" x="162" y="276">INTEGER</text><text class="note" x="234" y="276">Primary key</text>
+  <text class="col" x="64" y="300">username</text><text class="type" x="162" y="300">TEXT</text><text class="note" x="234" y="300">Unique</text>
+  <text class="col" x="64" y="324">created_at</text><text class="type" x="162" y="324">TEXT</text><text class="note" x="234" y="324">UTC</text>
+
+  <!-- pantry_items -->
+  <rect class="table" x="470" y="24" width="640" height="288" rx="8"/>
+  <path class="head" d="M 470 58 V 32 a 8 8 0 0 1 8 -8 H 1102 a 8 8 0 0 1 8 8 V 58 z"/>
+  <text class="head-text" x="484" y="46">pantry_items</text>
+  <text class="col" x="484" y="80">id</text><text class="type" x="640" y="80">INTEGER</text><text class="note" x="720" y="80">Primary key. Autoincrement, so deleted ids are never reused</text>
+  <text class="col" x="484" y="104">user_id</text><text class="type" x="640" y="104">INTEGER</text><text class="note" x="720" y="104">Foreign key to users. Deleted with its user</text>
+  <text class="col" x="484" y="128">name</text><text class="type" x="640" y="128">TEXT</text><text class="note" x="720" y="128">As entered, for display</text>
+  <text class="col" x="484" y="152">normalized_name</text><text class="type" x="640" y="152">TEXT</text><text class="note" x="720" y="152">Lowercase, single spaces, for matching</text>
+  <text class="col" x="484" y="176">quantity</text><text class="type" x="640" y="176">REAL</text><text class="note" x="720" y="176">Must be 0 or more</text>
+  <text class="col" x="484" y="200">unit</text><text class="type" x="640" y="200">TEXT</text><text class="note" x="720" y="200">As entered, for display</text>
+  <text class="col" x="484" y="224">normalized_unit</text><text class="type" x="640" y="224">TEXT</text><text class="note" x="720" y="224">Lowercase, single spaces, for matching</text>
+  <text class="col" x="484" y="248">created_at</text><text class="type" x="640" y="248">TEXT</text><text class="note" x="720" y="248">UTC</text>
+  <text class="col" x="484" y="272">updated_at</text><text class="type" x="640" y="272">TEXT</text><text class="note" x="720" y="272">UTC</text>
+  <line class="divider" x1="484" y1="282" x2="1096" y2="282"/>
+  <text class="rule" x="484" y="301">UNIQUE (user_id, normalized_name, normalized_unit)</text>
+
+  <!-- user_preferences -->
+  <rect class="table" x="470" y="350" width="330" height="208" rx="8"/>
+  <path class="head" d="M 470 384 V 358 a 8 8 0 0 1 8 -8 H 792 a 8 8 0 0 1 8 8 V 384 z"/>
+  <text class="head-text" x="484" y="372">user_preferences</text>
+  <text class="col" x="484" y="406">user_id</text><text class="type" x="600" y="406">INTEGER</text><text class="note" x="672" y="406">Primary key, FK</text>
+  <text class="col" x="484" y="430">diet</text><text class="type" x="600" y="430">TEXT</text><text class="note" x="672" y="430">Hard filter</text>
+  <text class="col" x="484" y="454">cuisine</text><text class="type" x="600" y="454">TEXT</text><text class="note" x="672" y="454">Ranking only</text>
+  <text class="col" x="484" y="478">max_minutes</text><text class="type" x="600" y="478">INTEGER</text><text class="note" x="672" y="478">Null means no limit</text>
+  <text class="col" x="484" y="502">priority</text><text class="type" x="600" y="502">TEXT</text><text class="note" x="672" y="502">Ranking only</text>
+  <text class="col" x="484" y="526">high_protein</text><text class="type" x="600" y="526">INTEGER</text><text class="note" x="672" y="526">0 or 1</text>
+  <text class="col" x="484" y="550">updated_at</text><text class="type" x="600" y="550">TEXT</text><text class="note" x="672" y="550">UTC</text>
+
+  <!-- dietary_restrictions -->
+  <rect class="table" x="820" y="350" width="290" height="160" rx="8"/>
+  <path class="head" d="M 820 384 V 358 a 8 8 0 0 1 8 -8 H 1102 a 8 8 0 0 1 8 8 V 384 z"/>
+  <text class="head-text" x="834" y="372">dietary_restrictions</text>
+  <text class="col" x="834" y="406">id</text><text class="type" x="968" y="406">INTEGER</text><text class="note" x="1036" y="406">Primary key</text>
+  <text class="col" x="834" y="430">user_id</text><text class="type" x="968" y="430">INTEGER</text><text class="note" x="1036" y="430">FK</text>
+  <text class="col" x="834" y="454">term</text><text class="type" x="968" y="454">TEXT</text><text class="note" x="1036" y="454">Hard filter</text>
+  <text class="col" x="834" y="478">normalized_term</text><text class="type" x="968" y="478">TEXT</text>
+  <line class="divider" x1="834" y1="486" x2="1096" y2="486"/>
+  <text class="rule" x="834" y="503" style="font-size:11px">UNIQUE (user_id, normalized_term)</text>
+
+  <!-- Relationships -->
+  <path class="line" d="M 320 260 L 395 260 L 395 168 L 470 168"/>
+  <text class="card" x="328" y="252">1</text>
+  <text class="card" x="432" y="160">many</text>
+
+  <path class="line" d="M 320 300 L 395 300 L 395 454 L 470 454"/>
+  <text class="card" x="328" y="292">1</text>
+  <text class="card" x="456" y="446">1</text>
+
+  <path class="line" d="M 185 338 L 185 590 L 965 590 L 965 510"/>
+  <text class="card" x="195" y="358">1</text>
+  <text class="card" x="975" y="530">many</text>
+</svg>

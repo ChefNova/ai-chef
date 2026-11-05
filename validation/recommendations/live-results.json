@@ -1,0 +1,1642 @@
+{
+  "generated_at_utc": "2026-11-05T04:44:13.852541+00:00",
+  "python": "3.14.7",
+  "platform": "Windows-11-10.0.26200-SP0",
+  "offline": {
+    "kind": "synthetic application checks; not model accuracy",
+    "cases": 19,
+    "passed": 14,
+    "latency_scope": "warm JSON parsing, filtering, ranking and assertion; no network, UI or OCR",
+    "timed_executions": 1900,
+    "latency": {
+      "p50_ms": 0.0151,
+      "p95_ms": 0.0272
+    },
+    "results": [
+      {
+        "name": "vegan rejects meat and dairy despite labels",
+        "known_gap": false,
+        "passed": true,
+        "expected": {
+          "titles": [
+            "Rice"
+          ],
+          "parse_ok": true
+        },
+        "actual": {
+          "titles": [
+            "Rice"
+          ],
+          "parse_ok": true
+        }
+      },
+      {
+        "name": "vegetarian permits dairy but rejects fish",
+        "known_gap": false,
+        "passed": true,
+        "expected": {
+          "titles": [
+            "Yogurt"
+          ],
+          "parse_ok": true
+        },
+        "actual": {
+          "titles": [
+            "Yogurt"
+          ],
+          "parse_ok": true
+        }
+      },
+      {
+        "name": "time boundary and unknown time",
+        "known_gap": false,
+        "passed": true,
+        "expected": {
+          "titles": [
+            "Boundary"
+          ],
+          "parse_ok": true
+        },
+        "actual": {
+          "titles": [
+            "Boundary"
+          ],
+          "parse_ok": true
+        }
+      },
+      {
+        "name": "avoid ingredient case insensitive",
+        "known_gap": false,
+        "passed": true,
+        "expected": {
+          "titles": [
+            "Rice"
+          ],
+          "parse_ok": true
+        },
+        "actual": {
+          "titles": [
+            "Rice"
+          ],
+          "parse_ok": true
+        }
+      },
+      {
+        "name": "pantry overlap beats response order",
+        "known_gap": false,
+        "passed": true,
+        "expected": {
+          "titles": [
+            "Cook",
+            "Almost",
+            "Shop"
+          ],
+          "parse_ok": true,
+          "statuses": [
+            "Cook now",
+            "Almost ready",
+            "Needs shopping"
+          ],
+          "scores": [
+            100,
+            50,
+            25
+          ]
+        },
+        "actual": {
+          "titles": [
+            "Cook",
+            "Almost",
+            "Shop"
+          ],
+          "parse_ok": true,
+          "statuses": [
+            "Cook now",
+            "Almost ready",
+            "Needs shopping"
+          ],
+          "scores": [
+            100,
+            50,
+            25
+          ]
+        }
+      },
+      {
+        "name": "normalizes pantry case and whitespace",
+        "known_gap": false,
+        "passed": true,
+        "expected": {
+          "titles": [
+            "Rice"
+          ],
+          "parse_ok": true,
+          "scores": [
+            100
+          ]
+        },
+        "actual": {
+          "titles": [
+            "Rice"
+          ],
+          "parse_ok": true,
+          "scores": [
+            100
+          ]
+        }
+      },
+      {
+        "name": "fastest priority",
+        "known_gap": false,
+        "passed": true,
+        "expected": {
+          "titles": [
+            "Fast",
+            "Slow"
+          ],
+          "parse_ok": true
+        },
+        "actual": {
+          "titles": [
+            "Fast",
+            "Slow"
+          ],
+          "parse_ok": true
+        }
+      },
+      {
+        "name": "protein priority",
+        "known_gap": false,
+        "passed": true,
+        "expected": {
+          "titles": [
+            "High",
+            "Low"
+          ],
+          "parse_ok": true
+        },
+        "actual": {
+          "titles": [
+            "High",
+            "Low"
+          ],
+          "parse_ok": true
+        }
+      },
+      {
+        "name": "fewest missing priority",
+        "known_gap": false,
+        "passed": true,
+        "expected": {
+          "titles": [
+            "Present",
+            "Missing"
+          ],
+          "parse_ok": true
+        },
+        "actual": {
+          "titles": [
+            "Present",
+            "Missing"
+          ],
+          "parse_ok": true
+        }
+      },
+      {
+        "name": "high protein breaks overlap ties",
+        "known_gap": false,
+        "passed": true,
+        "expected": {
+          "titles": [
+            "High",
+            "Low"
+          ],
+          "parse_ok": true
+        },
+        "actual": {
+          "titles": [
+            "High",
+            "Low"
+          ],
+          "parse_ok": true
+        }
+      },
+      {
+        "name": "eggplant is not egg",
+        "known_gap": false,
+        "passed": true,
+        "expected": {
+          "titles": [
+            "Eggplant"
+          ],
+          "parse_ok": true
+        },
+        "actual": {
+          "titles": [
+            "Eggplant"
+          ],
+          "parse_ok": true
+        }
+      },
+      {
+        "name": "empty ingredient list needs shopping",
+        "known_gap": false,
+        "passed": true,
+        "expected": {
+          "titles": [
+            "Unknown"
+          ],
+          "parse_ok": true,
+          "statuses": [
+            "Needs shopping"
+          ],
+          "scores": [
+            0
+          ]
+        },
+        "actual": {
+          "titles": [
+            "Unknown"
+          ],
+          "parse_ok": true,
+          "statuses": [
+            "Needs shopping"
+          ],
+          "scores": [
+            0
+          ]
+        }
+      },
+      {
+        "name": "duplicate ingredients rejected",
+        "known_gap": false,
+        "passed": true,
+        "expected": {
+          "titles": [],
+          "parse_ok": false
+        },
+        "actual": {
+          "titles": [],
+          "parse_ok": false
+        }
+      },
+      {
+        "name": "valid empty response",
+        "known_gap": false,
+        "passed": true,
+        "expected": {
+          "titles": [],
+          "parse_ok": true
+        },
+        "actual": {
+          "titles": [],
+          "parse_ok": true
+        }
+      },
+      {
+        "name": "zero stock must not count as available",
+        "known_gap": true,
+        "passed": false,
+        "expected": {
+          "titles": [
+            "Rice"
+          ],
+          "parse_ok": true,
+          "statuses": [
+            "Almost ready"
+          ],
+          "scores": [
+            0
+          ]
+        },
+        "actual": {
+          "titles": [
+            "Rice"
+          ],
+          "parse_ok": true,
+          "statuses": [
+            "Cook now"
+          ],
+          "scores": [
+            100
+          ]
+        }
+      },
+      {
+        "name": "singular plural pantry alias",
+        "known_gap": true,
+        "passed": false,
+        "expected": {
+          "titles": [
+            "Chickpeas"
+          ],
+          "parse_ok": true,
+          "scores": [
+            100
+          ]
+        },
+        "actual": {
+          "titles": [
+            "Chickpeas"
+          ],
+          "parse_ok": true,
+          "scores": [
+            0
+          ]
+        }
+      },
+      {
+        "name": "unlisted meat term duck",
+        "known_gap": true,
+        "passed": false,
+        "expected": {
+          "titles": [],
+          "parse_ok": true
+        },
+        "actual": {
+          "titles": [
+            "Duck"
+          ],
+          "parse_ok": true
+        }
+      },
+      {
+        "name": "unlisted dairy term feta",
+        "known_gap": true,
+        "passed": false,
+        "expected": {
+          "titles": [],
+          "parse_ok": true
+        },
+        "actual": {
+          "titles": [
+            "Feta"
+          ],
+          "parse_ok": true
+        }
+      },
+      {
+        "name": "avoid synonym groundnut",
+        "known_gap": true,
+        "passed": false,
+        "expected": {
+          "titles": [],
+          "parse_ok": true
+        },
+        "actual": {
+          "titles": [
+            "Groundnut"
+          ],
+          "parse_ok": true
+        }
+      }
+    ]
+  },
+  "live": [
+    {
+      "provider": "Groq",
+      "model": "openai/gpt-oss-120b",
+      "status": "measured",
+      "requests": 18,
+      "successful": 4,
+      "latency_all_attempts": {
+        "p50_ms": 102.74,
+        "p95_ms": 4999.39
+      },
+      "latency_successful": {
+        "p50_ms": 4078.46,
+        "p95_ms": 4999.39
+      },
+      "samples": [
+        {
+          "case": "vegan pantry dinner",
+          "repetition": 1,
+          "request_ms": 4105.79,
+          "status": "ok",
+          "returned": 3,
+          "retained": 3,
+          "shown": 3,
+          "recipes": [
+            {
+              "id": "chickpea-spinach-fried-rice-1",
+              "title": "Chickpea Spinach Fried Rice",
+              "time": 15,
+              "protein": null,
+              "diet": "Vegan",
+              "cuisine": "Asian",
+              "emoji": "🍽️",
+              "tags": [
+                "quick",
+                "vegan",
+                "rice",
+                "one-pot"
+              ],
+              "ingredients": [
+                "rice",
+                "chickpeas",
+                "spinach",
+                "garlic",
+                "soy sauce",
+                "sesame oil",
+                "green onions"
+              ],
+              "instructions": [
+                "Cook rice according to package instructions.",
+                "Heat sesame oil in a pan and sauté minced garlic until fragrant.",
+                "Add drained chickpeas and stir‑fry for 2 minutes.",
+                "Add chopped spinach and cook until wilted.",
+                "Stir in cooked rice and soy sauce, mixing well.",
+                "Garnish with sliced green onions and serve hot."
+              ],
+              "substitutions": {
+                "soy sauce": "tamari"
+              },
+              "missing_fields": [
+                "protein_g"
+              ],
+              "source": "AI suggestion"
+            },
+            {
+              "id": "garlic-chickpea-spinach-pilaf-2",
+              "title": "Garlic Chickpea Spinach Pilaf",
+              "time": 20,
+              "protein": null,
+              "diet": "Vegan",
+              "cuisine": "Mediterranean",
+              "emoji": "🍽️",
+              "tags": [
+                "vegan",
+                "pilaf",
+                "quick"
+              ],
+              "ingredients": [
+                "rice",
+                "chickpeas",
+                "spinach",
+                "garlic",
+                "vegetable broth",
+                "olive oil",
+                "lemon juice"
+              ],
+              "instructions": [
+                "Rinse rice and set aside.",
+                "Heat olive oil in a pot and sauté minced garlic until golden.",
+                "Add chickpeas and spinach, cooking until spinach wilts.",
+                "Pour in vegetable broth, add rice, and bring to a boil.",
+                "Reduce heat, cover, and simmer for 15 minutes until rice is tender.",
+                "Stir in lemon juice, adjust seasoning, and serve."
+              ],
+              "substitutions": {
+                "vegetable broth": "water with bouillon"
+              },
+              "missing_fields": [
+                "protein_g"
+              ],
+              "source": "AI suggestion"
+            },
+            {
+              "id": "spinach-chickpea-rice-bowl-3",
+              "title": "Spinach Chickpea Rice Bowl",
+              "time": 15,
+              "protein": null,
+              "diet": "Vegan",
+              "cuisine": null,
+              "emoji": "🍽️",
+              "tags": [
+                "bowl",
+                "vegan",
+                "quick"
+              ],
+              "ingredients": [
+                "rice",
+                "chickpeas",
+                "spinach",
+                "garlic",
+                "tahini",
+                "soy sauce",
+                "lime"
+              ],
+              "instructions": [
+                "Cook rice and set aside.",
+                "In a skillet, sauté minced garlic in a little oil until aromatic.",
+                "Add chickpeas and spinach, cooking until spinach is wilted.",
+                "Mix cooked rice with the chickpea‑spinach mixture.",
+                "Stir in tahini, soy sauce, and a squeeze of lime juice.",
+                "Serve the bowl warm or at room temperature."
+              ],
+              "substitutions": {},
+              "missing_fields": [
+                "protein_g"
+              ],
+              "source": "AI suggestion"
+            }
+          ],
+          "human_review": "pending",
+          "usage": {
+            "input_tokens": 893,
+            "output_tokens": 1716
+          },
+          "estimated_list_cost_usd": 0.00116355
+        },
+        {
+          "case": "vegan pantry dinner",
+          "repetition": 2,
+          "request_ms": 4999.39,
+          "status": "ok",
+          "returned": 4,
+          "retained": 0,
+          "shown": 0,
+          "recipes": [
+            {
+              "id": "vegan-chickpea-spinach-fried-rice-1",
+              "title": "Vegan Chickpea Spinach Fried Rice",
+              "time": null,
+              "protein": null,
+              "diet": "Vegan",
+              "cuisine": null,
+              "emoji": "🍽️",
+              "tags": [
+                "quick",
+                "vegan",
+                "rice",
+                "one-pot"
+              ],
+              "ingredients": [
+                "rice",
+                "chickpeas",
+                "spinach",
+                "garlic",
+                "soy sauce",
+                "vegetable oil",
+                "green onions"
+              ],
+              "instructions": [
+                "Cook rice according to package instructions and set aside.",
+                "In a pan, heat vegetable oil over medium heat.",
+                "Add minced garlic and sauté for 30 seconds.",
+                "Add drained chickpeas and cook for 2 minutes.",
+                "Stir in chopped spinach and cook until wilted.",
+                "Add cooked rice and soy sauce, stir-fry for 3-4 minutes.",
+                "Garnish with sliced green onions and serve."
+              ],
+              "substitutions": {},
+              "missing_fields": [
+                "minutes",
+                "protein_g"
+              ],
+              "source": "AI suggestion"
+            },
+            {
+              "id": "garlic-chickpea-spinach-rice-bowl-2",
+              "title": "Garlic Chickpea Spinach Rice Bowl",
+              "time": null,
+              "protein": null,
+              "diet": "Vegan",
+              "cuisine": null,
+              "emoji": "🍽️",
+              "tags": [
+                "vegan",
+                "quick",
+                "bowl"
+              ],
+              "ingredients": [
+                "rice",
+                "chickpeas",
+                "spinach",
+                "garlic",
+                "lemon juice",
+                "olive oil",
+                "salt",
+                "pepper"
+              ],
+              "instructions": [
+                "Cook rice and keep warm.",
+                "In a skillet, heat olive oil over medium heat.",
+                "Add minced garlic and sauté until fragrant.",
+                "Add chickpeas and cook for 2 minutes.",
+                "Add spinach and cook until wilted.",
+                "Season with salt, pepper, and lemon juice.",
+                "Serve the mixture over the rice."
+              ],
+              "substitutions": {},
+              "missing_fields": [
+                "minutes",
+                "protein_g"
+              ],
+              "source": "AI suggestion"
+            },
+            {
+              "id": "simple-chickpea-spinach-soup-3",
+              "title": "Simple Chickpea Spinach Soup",
+              "time": null,
+              "protein": null,
+              "diet": "Vegan",
+              "cuisine": null,
+              "emoji": "🍽️",
+              "tags": [
+                "vegan",
+                "soup",
+                "quick"
+              ],
+              "ingredients": [
+                "chickpeas",
+                "spinach",
+                "garlic",
+                "vegetable broth",
+                "olive oil",
+                "salt",
+                "pepper"
+              ],
+              "instructions": [
+                "Heat olive oil in a pot over medium heat.",
+                "Add minced garlic and sauté for 1 minute.",
+                "Add chickpeas and vegetable broth, bring to a boil.",
+                "Reduce heat and simmer for 5 minutes.",
+                "Stir in spinach and cook until wilted.",
+                "Season with salt and pepper, then serve."
+              ],
+              "substitutions": {},
+              "missing_fields": [
+                "minutes",
+                "protein_g"
+              ],
+              "source": "AI suggestion"
+            },
+            {
+              "id": "spinach-and-chickpea-rice-pilaf-4",
+              "title": "Spinach and Chickpea Rice Pilaf",
+              "time": null,
+              "protein": null,
+              "diet": "Vegan",
+              "cuisine": null,
+              "emoji": "🍽️",
+              "tags": [
+                "vegan",
+                "pilaf",
+                "quick"
+              ],
+              "ingredients": [
+                "rice",
+                "chickpeas",
+                "spinach",
+                "garlic",
+                "vegetable broth",
+                "olive oil",
+                "onion"
+              ],
+              "instructions": [
+                "Rinse rice and set aside.",
+                "In a saucepan, heat olive oil over medium heat.",
+                "Add diced onion and minced garlic, sauté until translucent.",
+                "Add rice and toast for 2 minutes.",
+                "Add vegetable broth, chickpeas, and bring to a boil.",
+                "Reduce heat, cover, and simmer until rice is cooked.",
+                "Stir in spinach until wilted, then serve."
+              ],
+              "substitutions": {},
+              "missing_fields": [
+                "minutes",
+                "protein_g"
+              ],
+              "source": "AI suggestion"
+            }
+          ],
+          "human_review": "pending",
+          "usage": {
+            "input_tokens": 893,
+            "output_tokens": 2193
+          },
+          "estimated_list_cost_usd": 0.00144975
+        },
+        {
+          "case": "vegan pantry dinner",
+          "repetition": 3,
+          "request_ms": 4051.13,
+          "status": "ok",
+          "returned": 3,
+          "retained": 3,
+          "shown": 3,
+          "recipes": [
+            {
+              "id": "chickpea-spinach-rice-skillet-1",
+              "title": "Chickpea Spinach Rice Skillet",
+              "time": 20,
+              "protein": null,
+              "diet": "Vegan",
+              "cuisine": null,
+              "emoji": "🍽️",
+              "tags": [
+                "vegan",
+                "quick",
+                "one-pot"
+              ],
+              "ingredients": [
+                "rice",
+                "chickpeas",
+                "spinach",
+                "garlic",
+                "olive oil",
+                "soy sauce",
+                "lemon juice",
+                "salt",
+                "pepper"
+              ],
+              "instructions": [
+                "Heat olive oil in a skillet over medium heat.",
+                "Add minced garlic and sauté for 1 minute.",
+                "Stir in cooked rice, chickpeas, and spinach.",
+                "Season with soy sauce, lemon juice, salt, and pepper.",
+                "Cook until spinach wilts and everything is heated through, about 5 minutes."
+              ],
+              "substitutions": {},
+              "missing_fields": [
+                "protein_g"
+              ],
+              "source": "AI suggestion"
+            },
+            {
+              "id": "garlic-spinach-rice-pilaf-2",
+              "title": "Garlic Spinach Rice Pilaf",
+              "time": 15,
+              "protein": null,
+              "diet": "Vegan",
+              "cuisine": null,
+              "emoji": "🍽️",
+              "tags": [
+                "vegan",
+                "quick",
+                "side"
+              ],
+              "ingredients": [
+                "rice",
+                "spinach",
+                "garlic",
+                "vegetable broth",
+                "olive oil",
+                "onion",
+                "salt",
+                "pepper"
+              ],
+              "instructions": [
+                "Heat olive oil in a pot and sauté chopped onion and minced garlic until translucent.",
+                "Add rice and stir to coat.",
+                "Pour in vegetable broth and bring to a boil.",
+                "Reduce heat, cover, and simmer until rice is cooked, about 12 minutes.",
+                "Stir in spinach and cook until wilted, about 2 minutes.",
+                "Season with salt and pepper to taste."
+              ],
+              "substitutions": {},
+              "missing_fields": [
+                "protein_g"
+              ],
+              "source": "AI suggestion"
+            },
+            {
+              "id": "simple-chickpea-rice-bowl-3",
+              "title": "Simple Chickpea Rice Bowl",
+              "time": 10,
+              "protein": null,
+              "diet": "Vegan",
+              "cuisine": null,
+              "emoji": "🍽️",
+              "tags": [
+                "vegan",
+                "quick",
+                "bowl"
+              ],
+              "ingredients": [
+                "rice",
+                "chickpeas",
+                "garlic",
+                "soy sauce",
+                "sesame oil",
+                "cucumber",
+                "carrot",
+                "salt"
+              ],
+              "instructions": [
+                "Cook rice according to package instructions (use quick-cook rice).",
+                "While rice cooks, toss chickpeas with minced garlic, soy sauce, sesame oil, and a pinch of salt.",
+                "Slice cucumber and carrot into thin strips.",
+                "Assemble bowl with rice, chickpea mixture, and fresh vegetables."
+              ],
+              "substitutions": {},
+              "missing_fields": [
+                "protein_g"
+              ],
+              "source": "AI suggestion"
+            }
+          ],
+          "human_review": "pending",
+          "usage": {
+            "input_tokens": 893,
+            "output_tokens": 1837
+          },
+          "estimated_list_cost_usd": 0.00123615
+        },
+        {
+          "case": "vegetarian quick meal",
+          "repetition": 1,
+          "status": "error",
+          "error_type": "RateLimitError",
+          "request_ms": 107.08,
+          "usage": null,
+          "estimated_list_cost_usd": null
+        },
+        {
+          "case": "vegetarian quick meal",
+          "repetition": 2,
+          "request_ms": 2146.58,
+          "status": "ok",
+          "returned": 1,
+          "retained": 1,
+          "shown": 1,
+          "recipes": [
+            {
+              "id": "quick-cheesy-tomato-pasta-1",
+              "title": "Quick Cheesy Tomato Pasta",
+              "time": 15,
+              "protein": null,
+              "diet": "Vegetarian",
+              "cuisine": "Italian",
+              "emoji": "🍝",
+              "tags": [
+                "quick",
+                "vegetarian",
+                "pasta"
+              ],
+              "ingredients": [
+                "pasta",
+                "tomatoes",
+                "cheese",
+                "olive oil",
+                "garlic",
+                "basil"
+              ],
+              "instructions": [
+                "Boil water in a pot and cook pasta according to package instructions, about 8 minutes.",
+                "While pasta cooks, heat olive oil in a pan over medium heat.",
+                "Add minced garlic and sauté for 1 minute.",
+                "Add chopped tomatoes and cook until softened, about 5 minutes.",
+                "Stir in grated cheese until melted and combined with the tomato sauce.",
+                "Drain pasta and toss with the sauce.",
+                "Garnish with fresh basil and serve."
+              ],
+              "substitutions": {},
+              "missing_fields": [
+                "protein_g"
+              ],
+              "source": "AI suggestion"
+            }
+          ],
+          "human_review": "pending",
+          "usage": {
+            "input_tokens": 884,
+            "output_tokens": 839
+          },
+          "estimated_list_cost_usd": 0.000636
+        },
+        {
+          "case": "vegetarian quick meal",
+          "repetition": 3,
+          "status": "error",
+          "error_type": "RateLimitError",
+          "request_ms": 91.9,
+          "usage": null,
+          "estimated_list_cost_usd": null
+        },
+        {
+          "case": "avoid peanuts",
+          "repetition": 1,
+          "status": "error",
+          "error_type": "RateLimitError",
+          "request_ms": 88.33,
+          "usage": null,
+          "estimated_list_cost_usd": null
+        },
+        {
+          "case": "avoid peanuts",
+          "repetition": 2,
+          "status": "error",
+          "error_type": "RateLimitError",
+          "request_ms": 98.4,
+          "usage": null,
+          "estimated_list_cost_usd": null
+        },
+        {
+          "case": "avoid peanuts",
+          "repetition": 3,
+          "status": "error",
+          "error_type": "RateLimitError",
+          "request_ms": 108.58,
+          "usage": null,
+          "estimated_list_cost_usd": null
+        },
+        {
+          "case": "sparse pantry",
+          "repetition": 1,
+          "status": "error",
+          "error_type": "RateLimitError",
+          "request_ms": 109.22,
+          "usage": null,
+          "estimated_list_cost_usd": null
+        },
+        {
+          "case": "sparse pantry",
+          "repetition": 2,
+          "status": "error",
+          "error_type": "RateLimitError",
+          "request_ms": 97.39,
+          "usage": null,
+          "estimated_list_cost_usd": null
+        },
+        {
+          "case": "sparse pantry",
+          "repetition": 3,
+          "status": "error",
+          "error_type": "RateLimitError",
+          "request_ms": 82.64,
+          "usage": null,
+          "estimated_list_cost_usd": null
+        },
+        {
+          "case": "protein preference",
+          "repetition": 1,
+          "status": "error",
+          "error_type": "RateLimitError",
+          "request_ms": 109.68,
+          "usage": null,
+          "estimated_list_cost_usd": null
+        },
+        {
+          "case": "protein preference",
+          "repetition": 2,
+          "status": "error",
+          "error_type": "RateLimitError",
+          "request_ms": 107.51,
+          "usage": null,
+          "estimated_list_cost_usd": null
+        },
+        {
+          "case": "protein preference",
+          "repetition": 3,
+          "status": "error",
+          "error_type": "RateLimitError",
+          "request_ms": 84.63,
+          "usage": null,
+          "estimated_list_cost_usd": null
+        },
+        {
+          "case": "conflicting request",
+          "repetition": 1,
+          "status": "error",
+          "error_type": "RateLimitError",
+          "request_ms": 85.04,
+          "usage": null,
+          "estimated_list_cost_usd": null
+        },
+        {
+          "case": "conflicting request",
+          "repetition": 2,
+          "status": "error",
+          "error_type": "RateLimitError",
+          "request_ms": 83.39,
+          "usage": null,
+          "estimated_list_cost_usd": null
+        },
+        {
+          "case": "conflicting request",
+          "repetition": 3,
+          "status": "error",
+          "error_type": "RateLimitError",
+          "request_ms": 96.4,
+          "usage": null,
+          "estimated_list_cost_usd": null
+        }
+      ]
+    },
+    {
+      "provider": "Gemini",
+      "model": "gemini-3.5-flash-lite",
+      "status": "measured",
+      "requests": 18,
+      "successful": 12,
+      "latency_all_attempts": {
+        "p50_ms": 3355.475,
+        "p95_ms": 6393.15
+      },
+      "latency_successful": {
+        "p50_ms": 4686.435,
+        "p95_ms": 6393.15
+      },
+      "samples": [
+        {
+          "case": "vegan pantry dinner",
+          "repetition": 1,
+          "request_ms": 3015.73,
+          "status": "ok",
+          "returned": 1,
+          "retained": 1,
+          "shown": 1,
+          "recipes": [
+            {
+              "id": "garlic-chickpea-rice-1",
+              "title": "Garlic Chickpea Rice",
+              "time": 15,
+              "protein": 12,
+              "diet": "Vegan",
+              "cuisine": null,
+              "emoji": "🧄",
+              "tags": [
+                "quick",
+                "pantry"
+              ],
+              "ingredients": [
+                "rice",
+                "chickpeas",
+                "spinach",
+                "garlic",
+                "olive oil"
+              ],
+              "instructions": [
+                "Cook the rice according to package directions.",
+                "Mince the garlic and sauté in a pan with olive oil.",
+                "Add the chickpeas and spinach until warmed through.",
+                "Mix everything together and serve."
+              ],
+              "substitutions": {
+                "olive oil": "vegetable oil"
+              },
+              "missing_fields": [],
+              "source": "AI suggestion"
+            }
+          ],
+          "human_review": "pending",
+          "usage": {
+            "input_tokens": 345,
+            "output_tokens": 244
+          },
+          "estimated_list_cost_usd": 0.0007135
+        },
+        {
+          "case": "vegan pantry dinner",
+          "repetition": 2,
+          "request_ms": 6393.15,
+          "status": "ok",
+          "returned": 1,
+          "retained": 1,
+          "shown": 1,
+          "recipes": [
+            {
+              "id": "garlic-chickpea-rice-1",
+              "title": "Garlic Chickpea Rice",
+              "time": 15,
+              "protein": 12,
+              "diet": "Vegan",
+              "cuisine": null,
+              "emoji": "🧄",
+              "tags": [
+                "quick",
+                "vegan"
+              ],
+              "ingredients": [
+                "rice",
+                "chickpeas",
+                "spinach",
+                "garlic",
+                "olive oil"
+              ],
+              "instructions": [
+                "Cook the rice according to package directions.",
+                "Mince the garlic and sauté in olive oil.",
+                "Add chickpeas and spinach until heated through.",
+                "Mix with cooked rice and serve."
+              ],
+              "substitutions": {
+                "olive oil": "vegetable oil"
+              },
+              "missing_fields": [],
+              "source": "AI suggestion"
+            }
+          ],
+          "human_review": "pending",
+          "usage": {
+            "input_tokens": 345,
+            "output_tokens": 240
+          },
+          "estimated_list_cost_usd": 0.0007035
+        },
+        {
+          "case": "vegan pantry dinner",
+          "repetition": 3,
+          "status": "error",
+          "error_type": "ServerError",
+          "request_ms": 5215.27,
+          "usage": null,
+          "estimated_list_cost_usd": null
+        },
+        {
+          "case": "vegetarian quick meal",
+          "repetition": 1,
+          "request_ms": 1131.45,
+          "status": "ok",
+          "returned": 1,
+          "retained": 1,
+          "shown": 1,
+          "recipes": [
+            {
+              "id": "simple-cheese-pasta-1",
+              "title": "Simple Cheese Pasta",
+              "time": 15,
+              "protein": null,
+              "diet": "Vegetarian",
+              "cuisine": "Italian",
+              "emoji": "🧀",
+              "tags": [
+                "quick",
+                "pasta"
+              ],
+              "ingredients": [
+                "pasta",
+                "cheese",
+                "tomatoes"
+              ],
+              "instructions": [
+                "Boil the pasta until cooked.",
+                "Drain the pasta.",
+                "Mix in the tomatoes and cheese."
+              ],
+              "substitutions": {
+                "cheese": "vegan cheese"
+              },
+              "missing_fields": [
+                "protein_g"
+              ],
+              "source": "AI suggestion"
+            }
+          ],
+          "human_review": "pending",
+          "usage": {
+            "input_tokens": 337,
+            "output_tokens": 120
+          },
+          "estimated_list_cost_usd": 0.0004011
+        },
+        {
+          "case": "vegetarian quick meal",
+          "repetition": 2,
+          "request_ms": 2156.68,
+          "status": "ok",
+          "returned": 1,
+          "retained": 1,
+          "shown": 1,
+          "recipes": [
+            {
+              "id": "simple-cheese-and-tomato-pasta-1",
+              "title": "Simple Cheese and Tomato Pasta",
+              "time": 15,
+              "protein": null,
+              "diet": "Vegetarian",
+              "cuisine": "Italian",
+              "emoji": "🍝",
+              "tags": [
+                "pasta",
+                "quick",
+                "vegetarian"
+              ],
+              "ingredients": [
+                "pasta",
+                "tomatoes",
+                "cheese"
+              ],
+              "instructions": [
+                "Boil the pasta until cooked.",
+                "Chop the tomatoes and mix them into the hot pasta.",
+                "Top with cheese and serve."
+              ],
+              "substitutions": {},
+              "missing_fields": [
+                "protein_g"
+              ],
+              "source": "AI suggestion"
+            }
+          ],
+          "human_review": "pending",
+          "usage": {
+            "input_tokens": 337,
+            "output_tokens": 191
+          },
+          "estimated_list_cost_usd": 0.0005786
+        },
+        {
+          "case": "vegetarian quick meal",
+          "repetition": 3,
+          "request_ms": 4684.06,
+          "status": "ok",
+          "returned": 1,
+          "retained": 1,
+          "shown": 1,
+          "recipes": [
+            {
+              "id": "quick-cheese-pasta-1",
+              "title": "Quick Cheese Pasta",
+              "time": 10,
+              "protein": 12,
+              "diet": "Vegetarian",
+              "cuisine": "Italian",
+              "emoji": "ἵD",
+              "tags": [
+                "quick",
+                "pasta"
+              ],
+              "ingredients": [
+                "pasta",
+                "cheese"
+              ],
+              "instructions": [
+                "Boil pasta until cooked.",
+                "Drain and stir in cheese until melted."
+              ],
+              "substitutions": {},
+              "missing_fields": [],
+              "source": "AI suggestion"
+            }
+          ],
+          "human_review": "pending",
+          "usage": {
+            "input_tokens": 337,
+            "output_tokens": 102
+          },
+          "estimated_list_cost_usd": 0.0003561
+        },
+        {
+          "case": "avoid peanuts",
+          "repetition": 1,
+          "request_ms": 5859.96,
+          "status": "ok",
+          "returned": 1,
+          "retained": 1,
+          "shown": 1,
+          "recipes": [
+            {
+              "id": "simple-tofu-and-broccoli-rice-bowl-1",
+              "title": "Simple Tofu and Broccoli Rice Bowl",
+              "time": 20,
+              "protein": 18,
+              "diet": "Vegan",
+              "cuisine": "Asian",
+              "emoji": "🍚",
+              "tags": [
+                "quick",
+                "easy",
+                "vegan"
+              ],
+              "ingredients": [
+                "rice",
+                "tofu",
+                "broccoli",
+                "soy sauce",
+                "sesame oil"
+              ],
+              "instructions": [
+                "Cook the rice according to package directions.",
+                "Steam the broccoli until tender.",
+                "Pan-sear the tofu until golden brown.",
+                "Combine everything in a bowl and drizzle with soy sauce and sesame oil."
+              ],
+              "substitutions": {
+                "soy sauce": "tamari"
+              },
+              "missing_fields": [],
+              "source": "AI suggestion"
+            }
+          ],
+          "human_review": "pending",
+          "usage": {
+            "input_tokens": 341,
+            "output_tokens": 239
+          },
+          "estimated_list_cost_usd": 0.0006998
+        },
+        {
+          "case": "avoid peanuts",
+          "repetition": 2,
+          "request_ms": 4688.81,
+          "status": "ok",
+          "returned": 1,
+          "retained": 1,
+          "shown": 1,
+          "recipes": [
+            {
+              "id": "quick-tofu-broccoli-rice-1",
+              "title": "Quick Tofu Broccoli Rice",
+              "time": 20,
+              "protein": 18,
+              "diet": "Vegan",
+              "cuisine": "Asian",
+              "emoji": "ἵA",
+              "tags": [
+                "quick",
+                "easy",
+                "vegan"
+              ],
+              "ingredients": [
+                "rice",
+                "tofu",
+                "broccoli",
+                "soy sauce",
+                "sesame oil"
+              ],
+              "instructions": [
+                "Cook the rice.",
+                "Steam the broccoli.",
+                "Sauté the tofu and mix with rice and broccoli.",
+                "Season with soy sauce and sesame oil."
+              ],
+              "substitutions": {
+                "soy sauce": "tamari"
+              },
+              "missing_fields": [],
+              "source": "AI suggestion"
+            }
+          ],
+          "human_review": "pending",
+          "usage": {
+            "input_tokens": 341,
+            "output_tokens": 147
+          },
+          "estimated_list_cost_usd": 0.0004698
+        },
+        {
+          "case": "avoid peanuts",
+          "repetition": 3,
+          "request_ms": 1054.81,
+          "status": "ok",
+          "returned": 1,
+          "retained": 1,
+          "shown": 1,
+          "recipes": [
+            {
+              "id": "quick-tofu-broccoli-rice-1",
+              "title": "Quick Tofu Broccoli Rice",
+              "time": 20,
+              "protein": 15,
+              "diet": "Vegan",
+              "cuisine": "Asian",
+              "emoji": "b'\\U0001f35a'",
+              "tags": [
+                "quick",
+                "easy",
+                "vegan"
+              ],
+              "ingredients": [
+                "rice",
+                "tofu",
+                "broccoli",
+                "soy sauce"
+              ],
+              "instructions": [
+                "Cook the rice according to package instructions.",
+                "Steam the broccoli until tender.",
+                "Pan-fry the tofu until golden brown.",
+                "Combine everything in a bowl and mix with soy sauce."
+              ],
+              "substitutions": {
+                "soy sauce": "tamari"
+              },
+              "missing_fields": [],
+              "source": "AI suggestion"
+            }
+          ],
+          "human_review": "pending",
+          "usage": {
+            "input_tokens": 341,
+            "output_tokens": 155
+          },
+          "estimated_list_cost_usd": 0.0004898
+        },
+        {
+          "case": "sparse pantry",
+          "repetition": 1,
+          "request_ms": 5187.71,
+          "status": "ok",
+          "returned": 1,
+          "retained": 1,
+          "shown": 1,
+          "recipes": [
+            {
+              "id": "simple-rice-bowl-1",
+              "title": "Simple Rice Bowl",
+              "time": 15,
+              "protein": 3,
+              "diet": "Vegan",
+              "cuisine": "Asian",
+              "emoji": "🍚",
+              "tags": [
+                "quick",
+                "pantry"
+              ],
+              "ingredients": [
+                "rice",
+                "soy sauce"
+              ],
+              "instructions": [
+                "Cook the rice.",
+                "Mix in soy sauce."
+              ],
+              "substitutions": {
+                "soy sauce": "salt"
+              },
+              "missing_fields": [],
+              "source": "AI suggestion"
+            }
+          ],
+          "human_review": "pending",
+          "usage": {
+            "input_tokens": 324,
+            "output_tokens": 104
+          },
+          "estimated_list_cost_usd": 0.0003572
+        },
+        {
+          "case": "sparse pantry",
+          "repetition": 2,
+          "status": "error",
+          "error_type": "ServerError",
+          "request_ms": 3695.22,
+          "usage": null,
+          "estimated_list_cost_usd": null
+        },
+        {
+          "case": "sparse pantry",
+          "repetition": 3,
+          "request_ms": 1136.76,
+          "status": "ok",
+          "returned": 1,
+          "retained": 1,
+          "shown": 1,
+          "recipes": [
+            {
+              "id": "simple-steamed-rice-1",
+              "title": "Simple Steamed Rice",
+              "time": 15,
+              "protein": 3,
+              "diet": "Vegan",
+              "cuisine": null,
+              "emoji": "🍚",
+              "tags": [
+                "quick",
+                "pantry"
+              ],
+              "ingredients": [
+                "rice",
+                "water"
+              ],
+              "instructions": [
+                "Rinse the rice thoroughly.",
+                "Combine rice and water in a pot.",
+                "Simmer for 15 minutes until tender."
+              ],
+              "substitutions": {},
+              "missing_fields": [],
+              "source": "AI suggestion"
+            }
+          ],
+          "human_review": "pending",
+          "usage": {
+            "input_tokens": 324,
+            "output_tokens": 176
+          },
+          "estimated_list_cost_usd": 0.0005372
+        },
+        {
+          "case": "protein preference",
+          "repetition": 1,
+          "status": "error",
+          "error_type": "ServerError",
+          "request_ms": 2965.57,
+          "usage": null,
+          "estimated_list_cost_usd": null
+        },
+        {
+          "case": "protein preference",
+          "repetition": 2,
+          "request_ms": 5127.11,
+          "status": "ok",
+          "returned": 1,
+          "retained": 1,
+          "shown": 1,
+          "recipes": [
+            {
+              "id": "lentil-spinach-scramble-1",
+              "title": "Lentil Spinach Scramble",
+              "time": 15,
+              "protein": 20,
+              "diet": "Vegetarian",
+              "cuisine": null,
+              "emoji": "ἷ3",
+              "tags": [
+                "high protein",
+                "quick"
+              ],
+              "ingredients": [
+                "lentils",
+                "eggs",
+                "spinach"
+              ],
+              "instructions": [
+                "Cook lentils",
+                "Sauté spinach",
+                "Scramble eggs with lentils and spinach"
+              ],
+              "substitutions": {},
+              "missing_fields": [],
+              "source": "AI suggestion"
+            }
+          ],
+          "human_review": "pending",
+          "usage": {
+            "input_tokens": 336,
+            "output_tokens": 114
+          },
+          "estimated_list_cost_usd": 0.0003858
+        },
+        {
+          "case": "protein preference",
+          "repetition": 3,
+          "request_ms": 4980.98,
+          "status": "ok",
+          "returned": 1,
+          "retained": 1,
+          "shown": 1,
+          "recipes": [
+            {
+              "id": "spinach-and-lentil-frittata-1",
+              "title": "Spinach and Lentil Frittata",
+              "time": 25,
+              "protein": 18,
+              "diet": "Vegetarian",
+              "cuisine": null,
+              "emoji": "ἷ3",
+              "tags": [
+                "high protein",
+                "quick"
+              ],
+              "ingredients": [
+                "eggs",
+                "lentils",
+                "spinach",
+                "milk",
+                "salt",
+                "black pepper"
+              ],
+              "instructions": [
+                "Whisk the eggs in a bowl.",
+                "Sauté the spinach and cooked lentils in a pan.",
+                "Pour the eggs over the mixture and cook until set."
+              ],
+              "substitutions": {
+                "milk": "water"
+              },
+              "missing_fields": [],
+              "source": "AI suggestion"
+            }
+          ],
+          "human_review": "pending",
+          "usage": {
+            "input_tokens": 336,
+            "output_tokens": 158
+          },
+          "estimated_list_cost_usd": 0.0004958
+        },
+        {
+          "case": "conflicting request",
+          "repetition": 1,
+          "status": "error",
+          "error_type": "ClientError",
+          "request_ms": 166.54,
+          "usage": null,
+          "estimated_list_cost_usd": null
+        },
+        {
+          "case": "conflicting request",
+          "repetition": 2,
+          "status": "error",
+          "error_type": "ClientError",
+          "request_ms": 167.0,
+          "usage": null,
+          "estimated_list_cost_usd": null
+        },
+        {
+          "case": "conflicting request",
+          "repetition": 3,
+          "status": "error",
+          "error_type": "ClientError",
+          "request_ms": 310.15,
+          "usage": null,
+          "estimated_list_cost_usd": null
+        }
+      ]
+    }
+  ]
+}

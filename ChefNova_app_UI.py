@@ -1,21 +1,46 @@
 import html
-import io
 import os
 import re
+import sqlite3
 import tempfile
+import time
 from pathlib import Path
-from copy import deepcopy
 
 import pandas as pd
 import streamlit as st
+from pydantic import ValidationError
 
-from app.receipt_extractor import extract_receipt
-from app.recipe_recommendations import RECIPE_MODEL, Constraints, rank_recipes, recommend_recipes
+from app.recipe_recommendations import GROQ_RECIPE_MODEL, RECIPE_MODEL, Constraints, rank_recipes, recommend_recipes
+from app.receipt_extractor import (
+    extract_receipt,
+    groq_chat_completion_with_schema_fallback,
+    groq_extract_items_with_empty_retry,
+)
+from app.schemas import ReceiptExtraction
+from app.storage import PantryStore, StorageError
+from app.storage_models import (
+    CUISINE_CHOICES,
+    DIET_CHOICES,
+    MAX_MINUTES_CHOICES,
+    PRIORITY_CHOICES,
+    PantryItemCreate,
+    PreferencesUpdate,
+    normalize_username,
+)
 
 try:
-    import speech_recognition as sr
+    from google import genai
+    from google.genai import types
 except ImportError:
-    sr = None
+    genai = None
+    types = None
+
+try:
+    from groq import Groq
+except ImportError:
+    Groq = None
+
+
 
 
 st.set_page_config(page_title="ChefNova", page_icon="🍳", layout="wide")
@@ -213,7 +238,7 @@ DEFAULT_INVENTORY = [
     {"Ingredient": "Garlic", "Quantity": 1, "Unit": "bulb"},
 ]
 
-# Original demo recipes. Ranking does not read this list; Gemini proposes the recipes.
+# Original demo recipes. Ranking does not read this list; the configured AI provider proposes recipes.
 RECIPE_DB = [
     {
         "id": "spinach_chickpea_bowl",
@@ -374,7 +399,6 @@ RECIPE_DB = [
 def init_state():
     defaults = {
         "page": "Home",
-        "inventory": deepcopy(DEFAULT_INVENTORY),
         "confirmed": False,
         "request": "",
         "review_items": [],
@@ -385,17 +409,11 @@ def init_state():
         "conversation_keywords": [],
         "last_inventory_audio_hash": None,
         "last_refine_audio_hash": None,
-        "diet_pref": "Vegetarian",
-        "max_time_pref": "20 min",
-        "cuisine_pref": "Any",
-        "priority_pref": "Best pantry match",
-        "high_protein_pref": True,
         "feedback": {},
         "gemini_api_key": "",
         "groq_api_key": "",
         "receipt_extraction_source": None,
         "receipt_ocr_text": None,
-        "avoid_pref": "",
         "recommendation_candidates": None,
         "recommendation_error": None,
         "recommendation_notice": None,
@@ -429,78 +447,222 @@ def clean_number(value, fallback=1):
         return fallback
 
 
+def save_pantry(save, rows):
+    """Run one store write. On failure, show why and return False with nothing saved."""
+    try:
+        save(st.session_state.profile, [PantryItemCreate(**row) for row in rows])
+    except SAVE_ERRORS as exc:
+        st.error(f"Nothing was saved. {describe_save_error(exc)}")
+        return False
+    st.session_state.confirmed = False
+    return True
+
+
+def describe_save_error(exc):
+    if isinstance(exc, ValidationError):
+        first = exc.errors()[0]
+        field = ".".join(str(part) for part in first["loc"])
+        return f"{field}: {first['msg']}" if field else first["msg"]
+    return str(exc)
+
+
 def merge_inventory_items(items):
-    existing = {normalize_name(item["Ingredient"]): item for item in st.session_state.inventory}
+    rows = []
     for item in items:
         ingredient = str(item.get("Ingredient", "")).strip()
         if not ingredient:
             continue
-        key = normalize_name(ingredient)
-        qty = clean_number(item.get("Quantity", 1), 1)
-        unit = str(item.get("Unit", "count") or "count").strip()
-        if key in existing and normalize_name(existing[key].get("Unit", "")) == normalize_name(unit):
-            existing[key]["Quantity"] = clean_number(existing[key].get("Quantity", 0), 0) + qty
-        else:
-            new_item = {"Ingredient": ingredient.title(), "Quantity": qty, "Unit": unit}
-            st.session_state.inventory.append(new_item)
-            existing[key] = new_item
-    st.session_state.confirmed = False
+        rows.append(
+            {
+                "name": ingredient.title(),
+                "quantity": clean_number(item.get("Quantity", 1), 1),
+                "unit": str(item.get("Unit", "count") or "count").strip(),
+            }
+        )
+    return save_pantry(store.add_items, rows)
 
+
+def extract_groceries_from_text(text, gemini_api_key=None, groq_api_key=None):
+    """Groq-first grocery structuring with Gemini as fallback."""
+    text = (text or "").strip()
+    if not text:
+        return None, "No grocery text was provided."
+
+    prompt = f"""You are ChefNova's grocery input parser.
+Convert the user's natural-language grocery list into structured grocery items.
+
+Rules:
+- Extract every grocery/food item explicitly mentioned.
+- Never invent a quantity, unit, package size, or brand.
+- If a field is unclear, return null.
+- Preserve quantities and package descriptions exactly when stated.
+- Ignore cooking instructions and unrelated commentary.
+- Return only the requested JSON structure.
+
+User input:
+{text}
+"""
+
+    errors = []
+    # PRIMARY: Groq. Grocery structuring does not require a reasoning-heavy call.
+    if groq_api_key and Groq is not None:
+        try:
+            started = time.perf_counter()
+            client = Groq(api_key=groq_api_key, timeout=20.0)
+            typed_messages = [
+                {
+                    "role": "system",
+                    "content": (
+                        "Extract grocery items from the user's text. "
+                        "Never invent missing fields. Return every explicitly "
+                        "mentioned grocery item, even when quantity is unknown. "
+                        "Return valid JSON only."
+                    ),
+                },
+                {"role": "user", "content": prompt},
+            ]
+            typed_retry_messages = [
+                {
+                    "role": "system",
+                    "content": (
+                        "Parse a user's grocery list into JSON. If any grocery items are mentioned, "
+                        "the items array must contain each of them. Use null for unknown quantity, "
+                        "unit, package size, or brand. Do not return an empty items array unless the "
+                        "input contains no groceries. Return only a JSON object with an items array."
+                    ),
+                },
+                {
+                    "role": "user",
+                    "content": "The prior attempt returned no items. Extract this list now:\n" + text,
+                },
+            ]
+            extraction, response_mode = groq_extract_items_with_empty_retry(
+                client,
+                model="qwen/qwen3.8-27b",
+                messages=typed_messages,
+                retry_messages=typed_retry_messages,
+                schema=ReceiptExtraction.model_json_schema(),
+                task_label="typed/voice grocery structuring",
+                temperature=0,
+                reasoning_effort="none",
+            )
+            print(f"[Groq typed-input] Response format used: {response_mode}")
+
+            elapsed = time.perf_counter() - started
+            st.session_state.last_grocery_extraction_time = elapsed
+
+            items = []
+            for item in extraction.items:
+                items.append({
+                    "Ingredient": item.name,
+                    "Quantity": item.quantity,
+                    "Unit": item.unit,
+                    "Package Size": item.package_size,
+                    "Brand": item.brand,
+                    "Confidence": item.confidence,
+                    "Needs Review": item.confidence < 0.80,
+                    "Review Reason": "Low extraction confidence" if item.confidence < 0.80 else "",
+                })
+            return items, "groq"
+        except Exception as exc:
+            errors.append(f"Groq: {exc}")
+
+    # FALLBACK: Gemini only if Groq failed or was unavailable.
+    if gemini_api_key and genai is not None:
+        try:
+            started = time.perf_counter()
+            client = genai.Client(
+                api_key=gemini_api_key,
+                http_options=types.HttpOptions(timeout=20000),
+            )
+            try:
+                response = None
+                for attempt in range(2):  # One retry only for transient deadline errors.
+                    try:
+                        response = client.models.generate_content(
+                            model="gemini-3.8-flash",
+                            contents=prompt,
+                            config=types.GenerateContentConfig(
+                                temperature=0,
+                                response_mime_type="application/json",
+                                response_schema=ReceiptExtraction,
+                            ),
+                        )
+                        break
+                    except Exception as exc:
+                        message = str(exc).upper()
+                        transient_deadline = (
+                            "504" in message
+                            or "DEADLINE_EXCEEDED" in message
+                            or "DEADLINE EXPIRED" in message
+                        )
+                        if attempt == 0 and transient_deadline:
+                            continue
+                        raise
+            finally:
+                try:
+                    client.close()
+                except Exception:
+                    pass
+
+            extraction = (
+                ReceiptExtraction.model_validate(response.parsed)
+                if getattr(response, "parsed", None) is not None
+                else ReceiptExtraction.model_validate_json(response.text)
+            )
+            if not extraction.items:
+                raise RuntimeError("Gemini returned zero grocery items.")
+
+            elapsed = time.perf_counter() - started
+            st.session_state.last_grocery_extraction_time = elapsed
+
+            items = []
+            for item in extraction.items:
+                items.append({
+                    "Ingredient": item.name,
+                    "Quantity": item.quantity,
+                    "Unit": item.unit,
+                    "Package Size": item.package_size,
+                    "Brand": item.brand,
+                    "Confidence": item.confidence,
+                    "Needs Review": item.confidence < 0.80,
+                    "Review Reason": "Low extraction confidence" if item.confidence < 0.80 else "",
+                })
+            return items, "gemini_fallback"
+        except Exception as exc:
+            errors.append(f"Gemini fallback: {exc}")
+
+    if not gemini_api_key and not groq_api_key:
+        return None, "Enter a Gemini or Groq API key first."
+    return None, "AI grocery extraction failed. " + " | ".join(errors)
 
 def parse_grocery_text(text):
-    """Simple deterministic parser for prototype manual/voice grocery entry."""
+    """Legacy deterministic parser retained as a fallback if AI extraction is unavailable."""
     if not text or not text.strip():
         return []
 
     number_words = {
-        "a": 1,
-        "an": 1,
-        "one": 1,
-        "two": 2,
-        "three": 3,
-        "four": 4,
-        "five": 5,
-        "six": 6,
-        "seven": 7,
-        "eight": 8,
-        "nine": 9,
-        "ten": 10,
+        "a": 1, "an": 1, "one": 1, "two": 2, "three": 3, "four": 4,
+        "five": 5, "six": 6, "seven": 7, "eight": 8, "nine": 9, "ten": 10,
         "twelve": 12,
     }
     unit_map = {
-        "can": "cans",
-        "cans": "cans",
-        "bag": "bag",
-        "bags": "bags",
-        "cup": "cups",
-        "cups": "cups",
-        "container": "container",
-        "containers": "containers",
-        "bulb": "bulb",
-        "bulbs": "bulbs",
-        "lb": "lb",
-        "lbs": "lb",
-        "pound": "lb",
-        "pounds": "lb",
-        "gallon": "gallon",
-        "gallons": "gallons",
-        "oz": "oz",
-        "ounce": "oz",
-        "ounces": "oz",
-        "dozen": "dozen",
-        "count": "count",
+        "can": "cans", "cans": "cans", "bag": "bag", "bags": "bags",
+        "cup": "cups", "cups": "cups", "container": "container",
+        "containers": "containers", "bulb": "bulb", "bulbs": "bulbs",
+        "lb": "lb", "lbs": "lb", "pound": "lb", "pounds": "lb",
+        "gallon": "gallon", "gallons": "gallons", "oz": "oz",
+        "ounce": "oz", "ounces": "oz", "dozen": "dozen", "count": "count",
     }
 
     text = re.sub(r"\b(i have|i bought|i got|add|we have|we bought)\b", "", text, flags=re.I)
     parts = [p.strip(" .") for p in re.split(r",|\band\b", text, flags=re.I) if p.strip(" .")]
     results = []
-
     for part in parts:
         part = re.sub(r"^(some|about)\s+", "", part.strip(), flags=re.I)
         tokens = part.split()
         qty = 1
         unit = "count"
-
         if tokens:
             first = tokens[0].lower()
             if re.fullmatch(r"\d+(?:\.\d+)?", first):
@@ -509,39 +671,57 @@ def parse_grocery_text(text):
             elif first in number_words:
                 qty = number_words[first]
                 tokens = tokens[1:]
-
         if tokens and tokens[0].lower() in unit_map:
             unit = unit_map[tokens[0].lower()]
             tokens = tokens[1:]
             if tokens and tokens[0].lower() == "of":
                 tokens = tokens[1:]
-
         ingredient = " ".join(tokens).strip()
         if not ingredient:
             continue
-
-        # Sensible default for uncounted food phrases.
         if qty == 1 and unit == "count" and ingredient.lower() in {"rice", "milk", "yogurt"}:
             unit = "item"
-
         results.append({"Ingredient": ingredient.title(), "Quantity": qty, "Unit": unit})
-
     return results
 
 
-def speech_to_text(audio_file):
+def speech_to_text(audio_file, groq_api_key=None):
+    """Transcribe Streamlit microphone audio using Groq Whisper."""
     if audio_file is None:
         return None, None
-    if sr is None:
-        return None, "Speech-to-text requires the SpeechRecognition package."
+
+    if not groq_api_key:
+        return None, "Enter a Groq API key to use voice input."
+
+    if Groq is None:
+        return None, "Voice transcription requires the Groq Python package."
+
     try:
-        recognizer = sr.Recognizer()
-        with sr.AudioFile(io.BytesIO(audio_file.getvalue())) as source:
-            audio_data = recognizer.record(source)
-        transcript = recognizer.recognize_google(audio_data)
+        audio_bytes = audio_file.getvalue()
+        if not audio_bytes:
+            return None, "No audio was captured. Please record your grocery list again."
+
+        client = Groq(api_key=groq_api_key)
+        transcription = client.audio.transcriptions.create(
+            file=("chefnova_voice.webm", audio_bytes),
+            model="whisper-large-v3-turbo",
+            language="en",
+            response_format="json",
+            temperature=0,
+            prompt=(
+                "Grocery inventory dictation. Preserve food names, quantities, "
+                "units, package sizes, and brands exactly when spoken."
+            ),
+        )
+
+        transcript = (getattr(transcription, "text", None) or "").strip()
+        if not transcript:
+            return None, "Voice was captured, but Whisper returned an empty transcript."
+
         return transcript, None
+
     except Exception as exc:
-        return None, f"Voice was captured, but transcription failed: {exc}"
+        return None, f"Voice was captured, but Groq Whisper transcription failed: {exc}"
 
 
 def prototype_receipt_extraction(filename):
@@ -613,21 +793,31 @@ def build_receipt_review_items(extraction):
     return items
 
 
+def minutes_from_label(label):
+    return None if label == NO_TIME_LIMIT else int(label.split()[0])
+
+
+def label_from_minutes(minutes):
+    return NO_TIME_LIMIT if minutes is None else f"{minutes} min"
+
+
+def parse_avoid_terms(text):
+    terms = []
+    for part in re.split(r"[,;\n]", text or ""):
+        term = part.strip()
+        if term and term not in terms:
+            terms.append(term)
+    return terms
+
+
 def effective_max_time():
     if st.session_state.conversation_max_time:
         return st.session_state.conversation_max_time
-    value = st.session_state.max_time_pref
-    if value == "No limit":
-        return None
-    return int(value.split()[0])
+    return minutes_from_label(st.session_state.max_time_pref)
 
 
 def current_constraints():
-    avoid = []
-    for part in re.split(r"[,;\n]", st.session_state.avoid_pref or ""):
-        term = part.strip()
-        if term and term not in avoid:
-            avoid.append(term)
+    avoid = parse_avoid_terms(st.session_state.avoid_pref)
     for item in st.session_state.temporary_exclusions:
         if item not in avoid:
             avoid.append(item)
@@ -647,11 +837,12 @@ def current_constraints():
 
 
 def refresh_recommendations():
-    """Ask Gemini once. An empty pantry or a missing key never leaves this process."""
+    """Request recipes using Groq first, with Gemini as fallback."""
     result = recommend_recipes(
         st.session_state.inventory,
         current_constraints(),
         api_key=(st.session_state.gemini_api_key or "").strip() or None,
+        groq_api_key=(st.session_state.groq_api_key or "").strip() or None,
     )
     st.session_state.recommendation_candidates = result.candidates
     st.session_state.recommendation_error = result.error
@@ -686,7 +877,7 @@ def process_refinement(text):
     st.session_state.messages.append({"role": "user", "text": text})
     lower = text.lower()
     reply = (
-        "I re-filtered the recipes Gemini already returned. "
+        "I re-filtered the recipes already returned. "
         "Nothing new was invented, and your confirmed pantry was not changed."
     )
 
@@ -697,7 +888,7 @@ def process_refinement(text):
             st.session_state.temporary_exclusions.append(ingredient)
         reply = (
             f"I hid recipes that use {ingredient}. "
-            "This only filters the current Gemini list. Your confirmed pantry was not changed."
+            "This only filters the current recipe list. Your confirmed pantry was not changed."
         )
     else:
         minute_match = re.search(r"(\d{1,2})\s*(?:min|minute)", lower)
@@ -710,16 +901,128 @@ def process_refinement(text):
         elif "spicy" in lower:
             if "spicy" not in st.session_state.conversation_keywords:
                 st.session_state.conversation_keywords.append("spicy")
-            reply = "I noted spicy for the next Gemini request. The cards on screen are still the recipes already returned."
+            reply = "I noted spicy for the next recipe request. The cards on screen are still the recipes already returned."
         elif "quick" in lower or "faster" in lower:
             st.session_state.priority_pref = "Fastest"
-            reply = "I reordered the current Gemini recipes with the fastest listed time first."
+            reply = "I reordered the current recipes with the fastest listed time first."
         elif "protein" in lower:
             st.session_state.high_protein_pref = True
             st.session_state.priority_pref = "Highest protein"
-            reply = "I reordered the current Gemini recipes with the highest listed protein first."
+            reply = "I reordered the current recipes with the highest listed protein first."
 
     st.session_state.messages.append({"role": "assistant", "text": reply})
+
+
+# ---------- Saved pantry and preferences ----------
+DEFAULT_PROFILE = "default"
+NO_TIME_LIMIT = "No limit"
+MAX_TIME_CHOICES = [label_from_minutes(minutes) for minutes in MAX_MINUTES_CHOICES] + [NO_TIME_LIMIT]
+SAVE_ERRORS = (StorageError, ValidationError, sqlite3.Error)
+
+# Only the starter rows of a brand-new profile. An emptied pantry stays empty.
+STARTER_ITEMS = [
+    PantryItemCreate(name=row["Ingredient"], quantity=row["Quantity"], unit=row["Unit"])
+    for row in DEFAULT_INVENTORY
+]
+
+# Each widget key mapped to how it is read from saved preferences and written back.
+PREFERENCE_FIELDS = {
+    "diet_pref": (lambda saved: saved.diet, lambda value: {"diet": value}),
+    "max_time_pref": (
+        lambda saved: label_from_minutes(saved.max_minutes),
+        lambda value: {"max_minutes": minutes_from_label(value)},
+    ),
+    "cuisine_pref": (lambda saved: saved.cuisine, lambda value: {"cuisine": value}),
+    "priority_pref": (lambda saved: saved.priority, lambda value: {"priority": value}),
+    "high_protein_pref": (lambda saved: saved.high_protein, lambda value: {"high_protein": value}),
+    "avoid_pref": (
+        lambda saved: ", ".join(saved.dietary_restrictions),
+        lambda value: {"dietary_restrictions": parse_avoid_terms(value)},
+    ),
+}
+
+
+def profile_from_url():
+    """The name in the URL keeps a browser refresh on the same profile."""
+    try:
+        return normalize_username(st.query_params.get("profile", DEFAULT_PROFILE))
+    except ValueError:
+        return DEFAULT_PROFILE
+
+
+def load_saved_state():
+    """Sync this session with the database at the start of every run.
+
+    The pantry is read each time, because another tab or the API may have changed it.
+    Any real change clears the confirmation, since it no longer describes this pantry.
+
+    Confirmation is never loaded. A saved pantry records what was there last time, so
+    each new session must confirm it again before ranking.
+    """
+    profile = st.session_state.profile
+    store.ensure_user(profile, seed_items=STARTER_ITEMS)
+
+    rows = [
+        {"Ingredient": item.name, "Quantity": clean_number(item.quantity, 0), "Unit": item.unit}
+        for item in store.list_pantry(profile)
+    ]
+    if rows != st.session_state.get("inventory"):
+        st.session_state.inventory = rows
+        st.session_state.confirmed = False
+
+    # Streamlit forgets a widget's value once its page is off screen, which silently reset
+    # hard filters such as avoid-ingredients. Reassigning each key every run prevents that.
+    missing = []
+    for key in PREFERENCE_FIELDS:
+        if key in st.session_state:
+            st.session_state[key] = st.session_state[key]
+        else:
+            missing.append(key)
+    if missing:
+        saved = store.get_preferences(profile)
+        for key in missing:
+            st.session_state[key] = PREFERENCE_FIELDS[key][0](saved)
+
+
+def save_preference(key):
+    """Widget callback. Saves one field, so a temporary chat refinement of another is not stored."""
+    try:
+        changes = PreferencesUpdate(**PREFERENCE_FIELDS[key][1](st.session_state[key]))
+        store.update_preferences(st.session_state.profile, changes)
+    except SAVE_ERRORS as exc:
+        st.error(f"This preference applies for now but was not saved. {describe_save_error(exc)}")
+
+
+def switch_profile():
+    """Sidebar callback. Clears the session so nothing from one profile shows under another."""
+    try:
+        name = normalize_username(st.session_state.profile_input)
+    except ValueError as exc:
+        st.session_state.profile_input = st.session_state.profile
+        st.error(str(exc))
+        return
+    st.session_state.profile_input = name
+    if name == st.session_state.profile:
+        return
+    keep = {"profile_input", "gemini_api_key", "groq_api_key"}
+    for key in list(st.session_state.keys()):
+        if key not in keep:
+            del st.session_state[key]
+    st.session_state.profile = name
+    st.query_params["profile"] = name
+    init_state()
+
+
+if "profile" not in st.session_state:
+    st.session_state.profile = profile_from_url()
+    st.session_state.profile_input = st.session_state.profile
+
+try:
+    store = PantryStore()
+    load_saved_state()
+except (*SAVE_ERRORS, OSError) as exc:
+    st.error(f"ChefNova could not open its saved pantry, so it stopped before changing anything. {exc}")
+    st.stop()
 
 
 # ---------- Sidebar ----------
@@ -732,6 +1035,13 @@ with st.sidebar:
         </div>
         """,
         unsafe_allow_html=True,
+    )
+
+    st.text_input(
+        "Profile",
+        key="profile_input",
+        on_change=switch_profile,
+        help="Your pantry and preferences are saved under this name. It is not a login: anyone using this app can open the same profile.",
     )
 
     if st.button("⌂  Home", use_container_width=True):
@@ -849,7 +1159,7 @@ def show_home():
                 <div style="min-height:115px;">
                     <div style="font-size:25px;">🎯</div>
                     <div style="font-size:18px;font-weight:650;margin-top:7px;">Explainable ranking</div>
-                    <div class="small-note" style="margin-top:6px;">Gemini proposes recipes. Cook now, Almost ready, and Needs shopping come from how many ingredients you already have.</div>
+                    <div class="small-note" style="margin-top:6px;">Groq proposes recipes, with Gemini as fallback. Cook now, Almost ready, and Needs shopping come from how many ingredients you already have.</div>
                 </div>
                 """,
                 unsafe_allow_html=True,
@@ -874,34 +1184,34 @@ def show_inventory():
 
         with left:
             st.markdown('<div class="section-title">1. Choose an input method</div>', unsafe_allow_html=True)
+            st.markdown("### 🔑 AI API Keys")
+            st.caption("Keys are used only for this session and are not written to the repository, database, or logs.")
+            st.caption("Recipes use Groq first, with Gemini as fallback. Either key works on its own.")
+            key_col1, key_col2 = st.columns(2)
+            with key_col1:
+                st.session_state.gemini_api_key = st.text_input(
+                    "Gemini API key",
+                    value=st.session_state.gemini_api_key,
+                    type="password",
+                    placeholder="Enter Gemini API key",
+                    key="gemini_api_key_input",
+                )
+            with key_col2:
+                st.session_state.groq_api_key = st.text_input(
+                    "Groq API key",
+                    value=st.session_state.groq_api_key,
+                    type="password",
+                    placeholder="Enter Groq API key",
+                    key="groq_api_key_input",
+                )
+
             receipt_tab, type_tab, voice_tab = st.tabs(["🧾 Receipt", "⌨️ Type", "🎙 Voice"])
 
             with receipt_tab:
-                st.markdown("### 🔑 AI API Keys")
-                st.caption("Keys are used only for this session and are not written to the repository, database, or logs.")
-
-                key_col1, key_col2 = st.columns(2)
-                with key_col1:
-                    st.session_state.gemini_api_key = st.text_input(
-                        "Gemini API key",
-                        value=st.session_state.gemini_api_key,
-                        type="password",
-                        placeholder="Enter Gemini API key",
-                        key="gemini_api_key_input",
-                    )
-                with key_col2:
-                    st.session_state.groq_api_key = st.text_input(
-                        "Groq API key",
-                        value=st.session_state.groq_api_key,
-                        type="password",
-                        placeholder="Enter Groq API key",
-                        key="groq_api_key_input",
-                    )
-
                 receipt = st.file_uploader(
                     "Upload a receipt or grocery-order screenshot",
                     type=["png", "jpg", "jpeg", "webp"],
-                    help="ChefNova runs local Tesseract OCR, then Gemini, with Groq as the fallback model.",
+                    help="ChefNova runs local Tesseract OCR, then Groq, with Gemini as the fallback model.",
                 )
 
                 if receipt is not None:
@@ -911,7 +1221,7 @@ def show_inventory():
                         "Extract grocery items",
                         key="extract_receipt",
                         use_container_width=True,
-                        disabled=not st.session_state.gemini_api_key.strip(),
+                        disabled=not (st.session_state.groq_api_key.strip() or st.session_state.gemini_api_key.strip()),
                     ):
                         temp_path = None
                         try:
@@ -934,10 +1244,10 @@ def show_inventory():
                             if result.extraction is not None:
                                 st.session_state.review_items = build_receipt_review_items(result.extraction)
 
-                                if result.source == "gemini":
-                                    st.success("Receipt extracted with Gemini. Review every item before adding it to your pantry.")
-                                elif result.source == "groq_fallback":
-                                    st.warning("Gemini failed, so ChefNova used Groq fallback. Review the extracted items carefully.")
+                                if result.source == "groq":
+                                    st.success("Receipt extracted with Groq. Review every item before adding it to your pantry.")
+                                elif result.source == "gemini_fallback":
+                                    st.warning("Groq was unavailable, so ChefNova used Gemini fallback. Review the extracted items carefully.")
 
                                 flagged = sum(
                                     1 for item in st.session_state.review_items
@@ -947,6 +1257,10 @@ def show_inventory():
                                     st.warning(f"{flagged} extracted item(s) need review before being added to your pantry.")
                             else:
                                 st.warning("AI extraction was unavailable. Review the OCR text and enter the grocery items manually.")
+                                if result.errors:
+                                    with st.expander("View AI extraction errors"):
+                                        for provider_error in result.errors:
+                                            st.code(provider_error, language=None)
                                 if result.ocr_text:
                                     with st.expander("View OCR text"):
                                         st.text(result.ocr_text)
@@ -961,18 +1275,34 @@ def show_inventory():
                                     pass
 
             with type_tab:
+                st.markdown("### Tell ChefNova what groceries you have")
+                st.caption("Write naturally. ChefNova will convert your text into structured grocery items for review.")
                 manual_text = st.text_area(
-                    "Enter groceries naturally",
-                    placeholder="e.g. eggs, milk, 2 tomatoes, one bag of spinach, 3 bananas",
-                    height=110,
+                    "Grocery list",
+                    placeholder="e.g. I bought two pounds of chicken, one bag of spinach, 32 oz Greek yogurt, and six tomatoes.",
+                    height=150,
+                    key="typed_grocery_text",
                 )
-                if st.button("Parse typed groceries", key="parse_manual", use_container_width=True):
-                    parsed = parse_grocery_text(manual_text)
+                if st.button(
+                    "✨ Convert to grocery table",
+                    key="parse_manual",
+                    use_container_width=True,
+                    disabled=not manual_text.strip(),
+                ):
+                    with st.spinner("ChefNova is structuring your groceries..."):
+                        parsed, source = extract_groceries_from_text(
+                            manual_text,
+                            gemini_api_key=st.session_state.gemini_api_key.strip() or None,
+                            groq_api_key=st.session_state.groq_api_key.strip() or None,
+                        )
                     if parsed:
                         st.session_state.review_items = parsed
-                        st.success(f"Parsed {len(parsed)} item(s). Review them below before adding them.")
+                        if source == "groq":
+                            st.success(f"Groq converted {len(parsed)} grocery item(s). Review the table on the right.")
+                        elif source == "gemini_fallback":
+                            st.warning(f"Groq failed, so Gemini fallback converted {len(parsed)} item(s). Review carefully.")
                     else:
-                        st.warning("I couldn't find grocery items in that text. Try separating items with commas.")
+                        st.error(source)
 
             with voice_tab:
                 st.caption("Say something like: ‘I have rice, two cans of chickpeas, four tomatoes and a bag of spinach.’")
@@ -980,16 +1310,35 @@ def show_inventory():
                 if inventory_audio is not None:
                     audio_hash = hash(inventory_audio.getvalue())
                     if audio_hash != st.session_state.last_inventory_audio_hash:
-                        transcript, error = speech_to_text(inventory_audio)
+                        transcript, error = speech_to_text(
+                            inventory_audio,
+                            groq_api_key=st.session_state.groq_api_key.strip() or None,
+                        )
                         st.session_state.last_inventory_audio_hash = audio_hash
                         if error:
                             st.warning(error)
                         elif transcript:
                             st.success(f"Heard: {transcript}")
-                            parsed = parse_grocery_text(transcript)
+                            with st.spinner("ChefNova is structuring your groceries..."):
+                                parsed, source = extract_groceries_from_text(
+                                    transcript,
+                                    gemini_api_key=st.session_state.gemini_api_key.strip() or None,
+                                    groq_api_key=st.session_state.groq_api_key.strip() or None,
+                                )
                             if parsed:
                                 st.session_state.review_items = parsed
-                                st.info("I converted the voice input into structured grocery items. Review them below.")
+                                if source == "groq":
+                                    st.success(
+                                        f"Groq identified {len(parsed)} grocery item(s). "
+                                        "Review the table on the right."
+                                    )
+                                elif source == "gemini_fallback":
+                                    st.warning(
+                                        f"Groq failed, so Gemini fallback identified {len(parsed)} "
+                                        "grocery item(s). Review them carefully."
+                                    )
+                            else:
+                                st.error(source)
 
         with right:
             st.markdown('<div class="section-title">2. Review before adding</div>', unsafe_allow_html=True)
@@ -1046,10 +1395,10 @@ def show_inventory():
                         for row in reviewed
                         if str(row.get("Ingredient", "")).strip()
                     ]
-                    merge_inventory_items(reviewed)
-                    st.session_state.review_items = []
-                    st.success("Reviewed items were added. Confirm the pantry after checking the final list.")
-                    st.rerun()
+                    if merge_inventory_items(reviewed):
+                        st.session_state.review_items = []
+                        st.success("Reviewed items were added. Confirm the pantry after checking the final list.")
+                        st.rerun()
             with c2:
                 if st.button("Clear review", use_container_width=True, disabled=edited_review_df.empty):
                     st.session_state.review_items = []
@@ -1057,6 +1406,20 @@ def show_inventory():
 
     with pantry_tab:
         st.markdown('<div class="section-title">Current pantry — source of truth</div>', unsafe_allow_html=True)
+        if st.button(
+            "Clear pantry",
+            disabled=not st.session_state.inventory,
+            help="Remove every saved pantry item for this profile. Your preferences are kept.",
+        ):
+            if save_pantry(store.replace_pantry, []):
+                st.session_state.recommendation_candidates = None
+                st.session_state.recommendation_error = None
+                st.session_state.recommendation_notice = None
+                st.session_state.selected_recipe = None
+                st.session_state.selected_recipe_id = None
+                st.session_state.pop("inventory_editor", None)
+                st.toast("Pantry cleared. Add groceries to start again.")
+                st.rerun()
         st.markdown(
             '<div class="small-note">Edit names, quantities, or units directly. You can also add/delete rows. Saving changes marks the pantry as needing confirmation.</div>',
             unsafe_allow_html=True,
@@ -1084,15 +1447,14 @@ def show_inventory():
                     if str(row.get("Ingredient", "")).strip():
                         cleaned.append(
                             {
-                                "Ingredient": str(row["Ingredient"]).strip().title(),
-                                "Quantity": clean_number(row.get("Quantity", 1), 1),
-                                "Unit": str(row.get("Unit", "count") or "count").strip(),
+                                "name": str(row["Ingredient"]).strip().title(),
+                                "quantity": clean_number(row.get("Quantity", 1), 1),
+                                "unit": str(row.get("Unit", "count") or "count").strip(),
                             }
                         )
-                st.session_state.inventory = cleaned
-                st.session_state.confirmed = False
-                st.success("Pantry edits saved. Please confirm the inventory.")
-                st.rerun()
+                if save_pantry(store.replace_pantry, cleaned):
+                    st.success("Pantry edits saved. Please confirm the inventory.")
+                    st.rerun()
 
         with confirm_col:
             if st.button("✓ Confirm Inventory", use_container_width=True, disabled=len(st.session_state.inventory) == 0):
@@ -1129,28 +1491,43 @@ def show_get_recipe():
     st.markdown('<div class="section-title" style="font-size:15px;">Hard filters</div>', unsafe_allow_html=True)
     c1, c2 = st.columns(2)
     with c1:
-        st.selectbox("Diet", ["No preference", "Vegetarian", "Vegan"], key="diet_pref")
+        st.selectbox("Diet", DIET_CHOICES, key="diet_pref", on_change=save_preference, args=("diet_pref",))
     with c2:
-        st.selectbox("Maximum cooking time", ["15 min", "20 min", "30 min", "45 min", "No limit"], key="max_time_pref")
+        st.selectbox(
+            "Maximum cooking time",
+            MAX_TIME_CHOICES,
+            key="max_time_pref",
+            on_change=save_preference,
+            args=("max_time_pref",),
+        )
     st.text_input(
         "Avoid ingredients",
         key="avoid_pref",
         placeholder="peanuts, shellfish",
         help="Recipes that list these ingredients are dropped. This is a hard filter.",
+        on_change=save_preference,
+        args=("avoid_pref",),
     )
 
     st.markdown('<div class="section-title" style="font-size:15px;">Ranking preferences</div>', unsafe_allow_html=True)
     c3, c4, c5 = st.columns([1, 1.3, 1])
     with c3:
-        st.selectbox("Cuisine", ["Any", "Indian", "Mediterranean", "Asian"], key="cuisine_pref")
+        st.selectbox("Cuisine", CUISINE_CHOICES, key="cuisine_pref", on_change=save_preference, args=("cuisine_pref",))
     with c4:
         st.selectbox(
             "Prioritize",
-            ["Best pantry match", "Fastest", "Highest protein", "Fewest missing ingredients"],
+            PRIORITY_CHOICES,
             key="priority_pref",
+            on_change=save_preference,
+            args=("priority_pref",),
         )
     with c5:
-        st.checkbox("Prefer high protein", key="high_protein_pref")
+        st.checkbox(
+            "Prefer high protein",
+            key="high_protein_pref",
+            on_change=save_preference,
+            args=("high_protein_pref",),
+        )
 
     st.markdown("<br>", unsafe_allow_html=True)
     if st.button("Rank My Recipes  →", use_container_width=True):
@@ -1168,7 +1545,7 @@ def show_get_recipe():
     st.markdown("</div>", unsafe_allow_html=True)
 
     st.caption(
-        f"Ranking asks {RECIPE_MODEL} using the Gemini key from the receipt tab, or GEMINI_API_KEY. "
+        "Ranking uses Groq first, with Gemini as fallback. Enter either key on the groceries tab, or set GROQ_API_KEY / GEMINI_API_KEY. "
         "Diet, time, and avoid are hard filters. An empty pantry or a missing key is not sent."
     )
 
@@ -1225,7 +1602,7 @@ def recipe_card(result, key):
 def show_recommendations():
     st.markdown('<div class="page-title">Recommendations</div>', unsafe_allow_html=True)
     st.markdown(
-        '<div class="page-subtitle">Gemini proposes recipes from your confirmed pantry. Diet, time, and avoid ingredients then drop anything that breaks a hard filter. The percent on each card is pantry overlap.</div>',
+        '<div class="page-subtitle">Groq proposes recipes from your confirmed pantry, with Gemini as fallback. Diet, time, and avoid ingredients then drop anything that breaks a hard filter. The percent on each card is pantry overlap.</div>',
         unsafe_allow_html=True,
     )
 
@@ -1246,14 +1623,14 @@ def show_recommendations():
         st.info(st.session_state.recommendation_notice)
 
     if st.session_state.recommendation_candidates is None and not st.session_state.recommendation_error:
-        st.info("Rank recipes from Get Recipe. Nothing is invented before Gemini answers.")
+        st.info("Rank recipes from Get Recipe. Recipes appear after an AI provider responds.")
         recipes = []
     else:
         recipes = visible_recommendations()
         if st.session_state.recommendation_error:
             pass
         elif not st.session_state.recommendation_candidates:
-            st.warning("Gemini returned no recipes. No meals were invented to fill the gap.")
+            st.warning("The AI provider returned no recipes. No meals were invented to fill the gap.")
         elif not recipes:
             st.warning("No returned recipes satisfy the current hard filters. Try a longer time, a different diet, or a shorter avoid list.")
 
@@ -1268,7 +1645,8 @@ def show_recommendations():
         with st.expander("How is the match calculated?"):
             st.markdown(
                 f"""
-                Gemini `{RECIPE_MODEL}` proposes up to four recipes from the confirmed pantry.
+                Groq `{GROQ_RECIPE_MODEL}` proposes up to four recipes from the confirmed pantry,
+                with Gemini `{RECIPE_MODEL}` as fallback when a Gemini key is available.
                 The app then checks that JSON locally.
 
                 - **Cook now** means every listed ingredient is already in the pantry.
@@ -1276,7 +1654,7 @@ def show_recommendations():
                 - **Needs shopping** means three or more ingredients are missing, or the ingredient list was blank.
                 - The percent is that pantry overlap. Diet, maximum time, and avoid ingredients are hard filters.
                 - A missing time or protein stays visible and is marked. It is not filled in.
-                - Chat refinements reorder or hide this list. Ask Gemini again when you want a new set.
+                - Chat refinements reorder or hide this list. Refresh recipes when you want a new set.
                 """
             )
 
@@ -1296,7 +1674,10 @@ def show_recommendations():
     if audio is not None:
         audio_hash = hash(audio.getvalue())
         if audio_hash != st.session_state.last_refine_audio_hash:
-            transcript, error = speech_to_text(audio)
+            transcript, error = speech_to_text(
+                audio,
+                groq_api_key=st.session_state.groq_api_key.strip() or None,
+            )
             st.session_state.last_refine_audio_hash = audio_hash
             if error:
                 st.warning(error)
@@ -1310,7 +1691,7 @@ def show_recommendations():
 
     action_left, action_right = st.columns(2)
     with action_left:
-        if st.button("Ask Gemini again", use_container_width=True):
+        if st.button("Refresh recipes", use_container_width=True):
             if not st.session_state.confirmed:
                 st.warning("Confirm your inventory before asking again.")
             else:
@@ -1480,9 +1861,9 @@ def show_evaluation_plan():
         st.markdown('<div class="section-title">Recipe source</div>', unsafe_allow_html=True)
         st.markdown(
             """
-            **Current ranking:** Gemini proposes recipes from the confirmed pantry. The app then applies diet, time, and avoid filters and labels Cook now, Almost ready, and Needs shopping from ingredient overlap. Invalid model output shows an error and no recipes.
+            **Current ranking:** Groq proposes recipes from the confirmed pantry, with Gemini as fallback. The app then applies diet, time, and avoid filters and labels Cook now, Almost ready, and Needs shopping from ingredient overlap. Invalid model output shows an error and no recipes.
 
-            A licensed recipe catalog, such as Spoonacular or TheMealDB, can still replace free generation later. Until then, every shown recipe comes from a Gemini response that passed the JSON checks.
+            A licensed recipe catalog can still replace free generation later. Until then, every shown recipe comes from an AI response that passed the JSON checks.
             """
         )
         st.markdown("</div>", unsafe_allow_html=True)

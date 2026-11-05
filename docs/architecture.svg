@@ -1,0 +1,112 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1160 700" width="1160" height="700" role="img" aria-labelledby="title desc" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">
+  <title id="title">ChefNova storage architecture</title>
+  <desc id="desc">The Streamlit UI and the FastAPI backend both call PantryStore, which is the only code that talks to the SQLite file. The UI separately sends the confirmed pantry to the AI modules, which call Groq and Gemini. Confirmation, API keys, and chat refinements stay in the browser session.</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#5c5349"/>
+    </marker>
+    <style>
+      .title { font-size: 16px; font-weight: 600; fill: #1f1b16; }
+      .file { font-size: 12.5px; fill: #5c5349; font-family: ui-monospace, Menlo, Consolas, monospace; }
+      .body { font-size: 13px; fill: #4a433b; }
+      .label { font-size: 12.5px; fill: #5c5349; }
+      .box { fill: #ffffff; stroke: #cfc7ba; stroke-width: 1.5; }
+      .new { fill: #fbeee5; stroke: #c9794b; stroke-width: 2; }
+      .external { fill: #f1eee8; stroke: #a89f92; stroke-width: 1.5; stroke-dasharray: 6 4; }
+      .chip { fill: #ffffff; stroke: #c9794b; stroke-width: 1; }
+      .chip-text { font-size: 12.5px; fill: #1f1b16; font-family: ui-monospace, Menlo, Consolas, monospace; }
+      .line { stroke: #5c5349; stroke-width: 1.5; fill: none; }
+      .dashed { stroke-dasharray: 5 4; }
+    </style>
+  </defs>
+
+  <rect width="1160" height="700" fill="#fbf9f5"/>
+
+  <!-- Row 1: who starts a request -->
+  <rect class="box" x="50" y="36" width="280" height="62" rx="10"/>
+  <text class="title" x="190" y="62" text-anchor="middle">API client</text>
+  <text class="body" x="190" y="83" text-anchor="middle">curl, the /docs page, tests</text>
+
+  <rect class="box" x="400" y="36" width="280" height="62" rx="10"/>
+  <text class="title" x="540" y="62" text-anchor="middle">Person in a browser</text>
+  <text class="body" x="540" y="83" text-anchor="middle">Picks a profile, edits, confirms</text>
+
+  <rect class="external" x="830" y="36" width="280" height="62" rx="10"/>
+  <text class="title" x="970" y="62" text-anchor="middle">Groq and Gemini</text>
+  <text class="body" x="970" y="83" text-anchor="middle">External AI services</text>
+
+  <!-- Row 2: entry points -->
+  <rect class="new" x="50" y="170" width="280" height="104" rx="10"/>
+  <text class="title" x="190" y="200" text-anchor="middle">FastAPI backend</text>
+  <text class="file" x="190" y="222" text-anchor="middle">app/api.py</text>
+  <text class="body" x="190" y="248" text-anchor="middle">REST routes and status codes</text>
+
+  <rect class="box" x="400" y="170" width="280" height="104" rx="10"/>
+  <text class="title" x="540" y="200" text-anchor="middle">Streamlit UI</text>
+  <text class="file" x="540" y="222" text-anchor="middle">ChefNova_app_UI.py</text>
+  <text class="body" x="540" y="248" text-anchor="middle">Pantry table, filters, profile field</text>
+
+  <rect class="box" x="830" y="170" width="280" height="104" rx="10"/>
+  <text class="title" x="970" y="200" text-anchor="middle">AI modules</text>
+  <text class="file" x="970" y="226" text-anchor="middle">app/receipt_extractor.py</text>
+  <text class="file" x="970" y="248" text-anchor="middle">app/recipe_recommendations.py</text>
+
+  <!-- Row 3: the only code that touches the database -->
+  <rect class="new" x="50" y="360" width="630" height="104" rx="10"/>
+  <text class="title" x="365" y="390" text-anchor="middle">PantryStore: the only code that runs SQL</text>
+  <text class="file" x="365" y="412" text-anchor="middle">app/storage.py, validated by app/storage_models.py</text>
+  <text class="body" x="365" y="438" text-anchor="middle">Merge rules, transactions, profile separation, schema migrations</text>
+
+  <rect class="external" x="830" y="360" width="280" height="104" rx="10"/>
+  <text class="title" x="970" y="386" text-anchor="middle">Browser session only</text>
+  <text class="body" x="970" y="408" text-anchor="middle">Inventory confirmation</text>
+  <text class="body" x="970" y="428" text-anchor="middle">API keys</text>
+  <text class="body" x="970" y="448" text-anchor="middle">Chat refinements</text>
+
+  <!-- Row 4: storage -->
+  <rect class="new" x="50" y="540" width="630" height="124" rx="10"/>
+  <text class="title" x="365" y="570" text-anchor="middle">SQLite database</text>
+  <text class="file" x="365" y="592" text-anchor="middle">data/chefnova.db, or CHEFNOVA_DB_PATH</text>
+  <rect class="chip" x="61" y="612" width="146" height="34" rx="6"/>
+  <text class="chip-text" x="134" y="634" text-anchor="middle">users</text>
+  <rect class="chip" x="215" y="612" width="146" height="34" rx="6"/>
+  <text class="chip-text" x="288" y="634" text-anchor="middle">pantry_items</text>
+  <rect class="chip" x="369" y="612" width="146" height="34" rx="6"/>
+  <text class="chip-text" x="442" y="634" text-anchor="middle">user_preferences</text>
+  <rect class="chip" x="523" y="612" width="146" height="34" rx="6"/>
+  <text class="chip-text" x="596" y="634" text-anchor="middle" font-size="11" style="font-size:11px">dietary_restrictions</text>
+
+  <!-- Legend -->
+  <rect class="new" x="830" y="556" width="22" height="16" rx="3"/>
+  <text class="label" x="862" y="569">Storage layer</text>
+  <rect class="box" x="830" y="586" width="22" height="16" rx="3"/>
+  <text class="label" x="862" y="599">Existing app code</text>
+  <rect class="external" x="830" y="616" width="22" height="16" rx="3"/>
+  <text class="label" x="862" y="629">Outside the database</text>
+
+  <!-- Arrows -->
+  <line class="line" x1="190" y1="98" x2="190" y2="168" marker-end="url(#arrow)"/>
+  <text class="label" x="202" y="138">HTTP and JSON</text>
+
+  <line class="line" x1="540" y1="98" x2="540" y2="168" marker-end="url(#arrow)"/>
+  <text class="label" x="552" y="138">Web page</text>
+
+  <line class="line" x1="190" y1="274" x2="190" y2="358" marker-end="url(#arrow)"/>
+  <text class="label" x="202" y="321">Python calls</text>
+
+  <line class="line" x1="540" y1="274" x2="540" y2="358" marker-end="url(#arrow)"/>
+  <text class="label" x="552" y="321">Python calls</text>
+
+  <line class="line" x1="365" y1="464" x2="365" y2="538" marker-end="url(#arrow)"/>
+  <text class="label" x="377" y="506">One transaction per call</text>
+
+  <line class="line" x1="680" y1="210" x2="828" y2="210" marker-end="url(#arrow)"/>
+  <text class="label" x="755" y="184" text-anchor="middle">Confirmed pantry,</text>
+  <text class="label" x="755" y="201" text-anchor="middle">filters</text>
+
+  <line class="line" x1="970" y1="170" x2="970" y2="100" marker-end="url(#arrow)"/>
+  <text class="label" x="982" y="138">Text and prompts</text>
+
+  <path class="line dashed" d="M 680 250 L 755 250 L 755 412 L 828 412" marker-end="url(#arrow)"/>
+  <text class="label" x="767" y="330">Holds</text>
+</svg>

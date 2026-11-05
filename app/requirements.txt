@@ -6,4 +6,7 @@ pillow
 pytesseract
 streamlit
 pandas
+fastapi
+uvicorn
 pytest
+httpx

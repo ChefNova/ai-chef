@@ -18,6 +18,10 @@ data/recipenlg/
 # User photos used for testing never go in the repo
 data/photos/
 
+# Saved pantries and dietary restrictions are personal data, including SQLite's -wal and -shm files
+data/*.db
+data/*.db-*
+
 # OS / editor
 .DS_Store
 .vscode/

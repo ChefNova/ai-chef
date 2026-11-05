@@ -99,6 +99,7 @@ def test_empty_pantry_does_not_call_the_model():
 
 def test_missing_key_does_not_call_the_model(monkeypatch):
     monkeypatch.delenv("GEMINI_API_KEY", raising=False)
+    monkeypatch.delenv("GROQ_API_KEY", raising=False)
     calls = []
 
     def complete(prompt):
@@ -233,3 +234,103 @@ def test_gemini_complete_uses_the_receipt_client_and_flash_lite():
     assert calls["config"]["response_mime_type"] == "application/json"
     assert calls["closed"] is True
     assert "session-key" not in json.dumps(calls["config"])
+
+
+def test_provider_order_and_fallback(monkeypatch):
+    import app.recipe_recommendations as module
+
+    calls = []
+    def groq(key, prompt):
+        calls.append("groq")
+        raise RuntimeError("Service unavailable")
+    def gemini(key, prompt):
+        calls.append("gemini")
+        return _payload([_recipe("Rice", ["Rice"])])
+    monkeypatch.setattr(module, "groq_complete", groq)
+    monkeypatch.setattr(module, "gemini_complete", gemini)
+    result = recommend_recipes([{"Ingredient": "Rice"}], Constraints(), api_key="gemini-key", groq_api_key="groq-key")
+    assert result.ok and calls == ["groq", "gemini"]
+    assert result.notice and "Gemini" in result.notice
+    assert result.candidates[0]["source"] == f"Gemini {RECIPE_MODEL}"
+
+
+def test_groq_only_and_success_skips_gemini(monkeypatch):
+    import app.recipe_recommendations as module
+
+    monkeypatch.delenv("GEMINI_API_KEY", raising=False)
+    monkeypatch.setenv("GROQ_API_KEY", "groq-key")
+    monkeypatch.setattr(module, "groq_complete", lambda key, prompt: _payload([_recipe("Rice", ["Rice"])]))
+    def unexpected(*args):
+        raise AssertionError("Gemini should not be called")
+    monkeypatch.setattr(module, "gemini_complete", unexpected)
+    for key in (None, "gemini-key"):
+        result = recommend_recipes([{"Ingredient": "Rice"}], Constraints(), api_key=key)
+        assert result.ok and result.notice is None
+        assert result.candidates[0]["source"].startswith("Groq ")
+
+
+def test_invalid_groq_output_falls_back_but_valid_empty_list_does_not(monkeypatch):
+    import app.recipe_recommendations as module
+
+    calls = []
+    monkeypatch.setattr(module, "gemini_complete", lambda *args: calls.append("gemini") or '{"recipes": []}')
+    for raw, expected_calls in (("not json", ["gemini"]), ('{"recipes": []}', [])):
+        calls.clear()
+        monkeypatch.setattr(module, "groq_complete", lambda *args: raw)
+        result = recommend_recipes([{"Ingredient": "Rice"}], Constraints(), api_key="gemini-key", groq_api_key="groq-key")
+        assert result.ok and result.candidates == []
+        assert calls == expected_calls
+
+
+def test_all_providers_fail_without_exposing_keys(monkeypatch):
+    import app.recipe_recommendations as module
+
+    def fail(key, prompt):
+        raise RuntimeError(f"Unauthorized key: {key}")
+    monkeypatch.setattr(module, "groq_complete", fail)
+    monkeypatch.setattr(module, "gemini_complete", fail)
+    result = recommend_recipes([{"Ingredient": "Rice"}], Constraints(), api_key="gemini-secret", groq_api_key="groq-secret")
+    assert not result.ok and not result.candidates
+    assert "Groq" in result.error and "Gemini" in result.error
+    assert "secret" not in result.error
+
+
+def test_groq_complete_sends_schema_and_closes_client():
+    from types import SimpleNamespace
+    from app.recipe_recommendations import GROQ_RECIPE_MODEL, groq_complete
+
+    calls = {}
+    observed_usage = []
+    def create(**kwargs):
+        calls.update(kwargs)
+        return SimpleNamespace(
+            choices=[SimpleNamespace(message=SimpleNamespace(content='{"recipes": []}'))],
+            usage=SimpleNamespace(prompt_tokens=800, completion_tokens=900),
+        )
+    class Client:
+        chat = SimpleNamespace(completions=SimpleNamespace(create=create))
+        def close(self):
+            calls["closed"] = True
+    def factory(**kwargs):
+        calls["settings"] = kwargs
+        return Client()
+    assert groq_complete("session-key", "pantry prompt", client_factory=factory, usage_callback=observed_usage.append) == '{"recipes": []}'
+    assert observed_usage == [{"input_tokens": 800, "output_tokens": 900}]
+    assert calls["model"] == GROQ_RECIPE_MODEL
+    assert calls["response_format"] == {"type": "json_object"}
+    assert "recipes" in calls["messages"][0]["content"]
+    assert calls["messages"][1]["content"] == "pantry prompt"
+    assert calls["settings"]["timeout"] == 20.0 and calls["settings"]["max_retries"] == 0
+    assert calls["closed"]
+
+
+def test_gemini_usage_includes_thinking_tokens():
+    from types import SimpleNamespace
+
+    response = SimpleNamespace(parsed=None, text='{"recipes": []}', usage_metadata=SimpleNamespace(
+        prompt_token_count=800, candidates_token_count=700, thoughts_token_count=200))
+    usage = []
+    client = SimpleNamespace(models=SimpleNamespace(generate_content=lambda **kwargs: response), close=lambda: None)
+    gemini_complete("key", "prompt", client_factory=lambda key: client,
+                    config_builder=lambda: {}, usage_callback=usage.append)
+    assert usage == [{"input_tokens": 800, "output_tokens": 900}]

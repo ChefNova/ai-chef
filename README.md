@@ -91,8 +91,23 @@ Proposed Roadmap:
 
 Upload receipt → Review extracted groceries → Save quantities → Request a recipe → Confirm/edit inventory → Recommend recipes.
 
-The prototype accepts PNG/JPG receipt images and stores groceries in local SQLite. Identical receipt bytes are deduplicated per user; rescanned receipts may still need manual correction. Matching names and units are added together; different units remain separate. Receipt images are sent to Gemini and are not persisted locally. User names identify local profiles, but are not authentication. Automatic consumption tracking is outside the initial scope.
+The prototype accepts PNG/JPG receipt images and stores reviewed groceries in a local SQLite database, so the pantry and preferences are still there in the next session. Receipts are not deduplicated, so scanning one twice adds its quantities twice. Matching names and units are added together; different units remain separate. Receipt images are sent to Gemini and are not persisted locally. User names identify local profiles, but are not authentication. Automatic consumption tracking is outside the initial scope.
+
+## Saved pantry and storage API
+
+Pantries, preferences, dietary restrictions, and cuisine choices are saved per profile. Confirmation is not saved, so each new session confirms the pantry again before ranking. Design, API routes, and known limits are in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
+
+```bash
+pip install -r app/requirements.txt
+streamlit run ChefNova_app_UI.py      # The app. The database is created on first run.
+uvicorn app.api:app --reload          # Optional REST API, with docs at http://127.0.0.1:8000/docs
+PYTHONPATH=. python3 -m pytest tests -q
+```
+
+Receipt uploads also need the native Tesseract OCR engine; `pytesseract` is only its Python wrapper. On Windows install it with `winget install --id UB-Mannheim.TesseractOCR --exact --source winget`. ChefNova detects standard Windows installation folders even if PATH has not refreshed. For a custom location, set `TESSERACT_CMD` in `app/.env` to the executable's full path. See the [Tesseract installation guide](https://tesseract-ocr.github.io/tessdoc/Installation.html) for other operating systems.
 
 ## Recipe recommendations
 
-Confirmed pantry items and dietary preferences are sent to Gemini Flash-Lite. Diet, time, and avoid constraints are hard filters, and Cook now, Almost ready, and Needs shopping come from ingredient overlap. Model choice, latency, and cost are in [app/RECIPE_RECOMMENDATIONS.md](app/RECIPE_RECOMMENDATIONS.md). Ranking uses the Gemini key from the receipt tab, or `GEMINI_API_KEY`. No key is stored in this repository.
+The [recommendation evaluation report](validation/recommendations/REPORT.md) includes reproducible accuracy checks, known failures, model selection, local latency measurements, and sourced cost estimates. Run `python -m validation.recommendations.evaluate --live` to record results; live providers are skipped unless their API keys are available in the environment or `app/.env`.
+
+Confirmed pantry items and dietary preferences are sent to Groq first, with Gemini Flash-Lite as fallback if Groq fails or returns invalid output. Diet, time, and avoid constraints are hard filters, and Cook now, Almost ready, and Needs shopping come from ingredient overlap. Model choice, latency, and cost are in [app/RECIPE_RECOMMENDATIONS.md](app/RECIPE_RECOMMENDATIONS.md). Ranking uses Groq and Gemini keys from the groceries tab, or `GROQ_API_KEY` and `GEMINI_API_KEY`. Either provider works on its own. No key is stored in this repository.

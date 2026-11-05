@@ -1,0 +1,409 @@
+{
+  "generated_at_utc": "2026-11-05T04:36:18.098279+00:00",
+  "python": "3.14.7",
+  "platform": "Windows-11-10.0.26200-SP0",
+  "offline": {
+    "kind": "synthetic application checks; not model accuracy",
+    "cases": 19,
+    "passed": 14,
+    "latency_scope": "warm JSON parsing, filtering, ranking and assertion; no network, UI or OCR",
+    "timed_executions": 1900,
+    "latency": {
+      "p50_ms": 0.0147,
+      "p95_ms": 0.0281
+    },
+    "results": [
+      {
+        "name": "vegan rejects meat and dairy despite labels",
+        "known_gap": false,
+        "passed": true,
+        "expected": {
+          "titles": [
+            "Rice"
+          ],
+          "parse_ok": true
+        },
+        "actual": {
+          "titles": [
+            "Rice"
+          ],
+          "parse_ok": true
+        }
+      },
+      {
+        "name": "vegetarian permits dairy but rejects fish",
+        "known_gap": false,
+        "passed": true,
+        "expected": {
+          "titles": [
+            "Yogurt"
+          ],
+          "parse_ok": true
+        },
+        "actual": {
+          "titles": [
+            "Yogurt"
+          ],
+          "parse_ok": true
+        }
+      },
+      {
+        "name": "time boundary and unknown time",
+        "known_gap": false,
+        "passed": true,
+        "expected": {
+          "titles": [
+            "Boundary"
+          ],
+          "parse_ok": true
+        },
+        "actual": {
+          "titles": [
+            "Boundary"
+          ],
+          "parse_ok": true
+        }
+      },
+      {
+        "name": "avoid ingredient case insensitive",
+        "known_gap": false,
+        "passed": true,
+        "expected": {
+          "titles": [
+            "Rice"
+          ],
+          "parse_ok": true
+        },
+        "actual": {
+          "titles": [
+            "Rice"
+          ],
+          "parse_ok": true
+        }
+      },
+      {
+        "name": "pantry overlap beats response order",
+        "known_gap": false,
+        "passed": true,
+        "expected": {
+          "titles": [
+            "Cook",
+            "Almost",
+            "Shop"
+          ],
+          "parse_ok": true,
+          "statuses": [
+            "Cook now",
+            "Almost ready",
+            "Needs shopping"
+          ],
+          "scores": [
+            100,
+            50,
+            25
+          ]
+        },
+        "actual": {
+          "titles": [
+            "Cook",
+            "Almost",
+            "Shop"
+          ],
+          "parse_ok": true,
+          "statuses": [
+            "Cook now",
+            "Almost ready",
+            "Needs shopping"
+          ],
+          "scores": [
+            100,
+            50,
+            25
+          ]
+        }
+      },
+      {
+        "name": "normalizes pantry case and whitespace",
+        "known_gap": false,
+        "passed": true,
+        "expected": {
+          "titles": [
+            "Rice"
+          ],
+          "parse_ok": true,
+          "scores": [
+            100
+          ]
+        },
+        "actual": {
+          "titles": [
+            "Rice"
+          ],
+          "parse_ok": true,
+          "scores": [
+            100
+          ]
+        }
+      },
+      {
+        "name": "fastest priority",
+        "known_gap": false,
+        "passed": true,
+        "expected": {
+          "titles": [
+            "Fast",
+            "Slow"
+          ],
+          "parse_ok": true
+        },
+        "actual": {
+          "titles": [
+            "Fast",
+            "Slow"
+          ],
+          "parse_ok": true
+        }
+      },
+      {
+        "name": "protein priority",
+        "known_gap": false,
+        "passed": true,
+        "expected": {
+          "titles": [
+            "High",
+            "Low"
+          ],
+          "parse_ok": true
+        },
+        "actual": {
+          "titles": [
+            "High",
+            "Low"
+          ],
+          "parse_ok": true
+        }
+      },
+      {
+        "name": "fewest missing priority",
+        "known_gap": false,
+        "passed": true,
+        "expected": {
+          "titles": [
+            "Present",
+            "Missing"
+          ],
+          "parse_ok": true
+        },
+        "actual": {
+          "titles": [
+            "Present",
+            "Missing"
+          ],
+          "parse_ok": true
+        }
+      },
+      {
+        "name": "high protein breaks overlap ties",
+        "known_gap": false,
+        "passed": true,
+        "expected": {
+          "titles": [
+            "High",
+            "Low"
+          ],
+          "parse_ok": true
+        },
+        "actual": {
+          "titles": [
+            "High",
+            "Low"
+          ],
+          "parse_ok": true
+        }
+      },
+      {
+        "name": "eggplant is not egg",
+        "known_gap": false,
+        "passed": true,
+        "expected": {
+          "titles": [
+            "Eggplant"
+          ],
+          "parse_ok": true
+        },
+        "actual": {
+          "titles": [
+            "Eggplant"
+          ],
+          "parse_ok": true
+        }
+      },
+      {
+        "name": "empty ingredient list needs shopping",
+        "known_gap": false,
+        "passed": true,
+        "expected": {
+          "titles": [
+            "Unknown"
+          ],
+          "parse_ok": true,
+          "statuses": [
+            "Needs shopping"
+          ],
+          "scores": [
+            0
+          ]
+        },
+        "actual": {
+          "titles": [
+            "Unknown"
+          ],
+          "parse_ok": true,
+          "statuses": [
+            "Needs shopping"
+          ],
+          "scores": [
+            0
+          ]
+        }
+      },
+      {
+        "name": "duplicate ingredients rejected",
+        "known_gap": false,
+        "passed": true,
+        "expected": {
+          "titles": [],
+          "parse_ok": false
+        },
+        "actual": {
+          "titles": [],
+          "parse_ok": false
+        }
+      },
+      {
+        "name": "valid empty response",
+        "known_gap": false,
+        "passed": true,
+        "expected": {
+          "titles": [],
+          "parse_ok": true
+        },
+        "actual": {
+          "titles": [],
+          "parse_ok": true
+        }
+      },
+      {
+        "name": "zero stock must not count as available",
+        "known_gap": true,
+        "passed": false,
+        "expected": {
+          "titles": [
+            "Rice"
+          ],
+          "parse_ok": true,
+          "statuses": [
+            "Almost ready"
+          ],
+          "scores": [
+            0
+          ]
+        },
+        "actual": {
+          "titles": [
+            "Rice"
+          ],
+          "parse_ok": true,
+          "statuses": [
+            "Cook now"
+          ],
+          "scores": [
+            100
+          ]
+        }
+      },
+      {
+        "name": "singular plural pantry alias",
+        "known_gap": true,
+        "passed": false,
+        "expected": {
+          "titles": [
+            "Chickpeas"
+          ],
+          "parse_ok": true,
+          "scores": [
+            100
+          ]
+        },
+        "actual": {
+          "titles": [
+            "Chickpeas"
+          ],
+          "parse_ok": true,
+          "scores": [
+            0
+          ]
+        }
+      },
+      {
+        "name": "unlisted meat term duck",
+        "known_gap": true,
+        "passed": false,
+        "expected": {
+          "titles": [],
+          "parse_ok": true
+        },
+        "actual": {
+          "titles": [
+            "Duck"
+          ],
+          "parse_ok": true
+        }
+      },
+      {
+        "name": "unlisted dairy term feta",
+        "known_gap": true,
+        "passed": false,
+        "expected": {
+          "titles": [],
+          "parse_ok": true
+        },
+        "actual": {
+          "titles": [
+            "Feta"
+          ],
+          "parse_ok": true
+        }
+      },
+      {
+        "name": "avoid synonym groundnut",
+        "known_gap": true,
+        "passed": false,
+        "expected": {
+          "titles": [],
+          "parse_ok": true
+        },
+        "actual": {
+          "titles": [
+            "Groundnut"
+          ],
+          "parse_ok": true
+        }
+      }
+    ]
+  },
+  "live": [
+    {
+      "provider": "Groq",
+      "model": "openai/gpt-oss-120b",
+      "status": "skipped_missing_key",
+      "requests": 0
+    },
+    {
+      "provider": "Gemini",
+      "model": "gemini-3.5-flash-lite",
+      "status": "skipped_missing_key",
+      "requests": 0
+    }
+  ]
+}
