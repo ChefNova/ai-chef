@@ -10,7 +10,7 @@ import pandas as pd
 import streamlit as st
 from pydantic import ValidationError
 
-from app.recipe_recommendations import RECIPE_MODEL, Constraints, rank_recipes, recommend_recipes
+from app.recipe_recommendations import GROQ_RECIPE_MODEL, RECIPE_MODEL, Constraints, rank_recipes, recommend_recipes
 from app.receipt_extractor import (
     extract_receipt,
     groq_chat_completion_with_schema_fallback,
@@ -238,7 +238,7 @@ DEFAULT_INVENTORY = [
     {"Ingredient": "Garlic", "Quantity": 1, "Unit": "bulb"},
 ]
 
-# Original demo recipes. Ranking does not read this list; Gemini proposes the recipes.
+# Original demo recipes. Ranking does not read this list; the configured AI provider proposes recipes.
 RECIPE_DB = [
     {
         "id": "spinach_chickpea_bowl",
@@ -837,11 +837,12 @@ def current_constraints():
 
 
 def refresh_recommendations():
-    """Ask Gemini once. An empty pantry or a missing key never leaves this process."""
+    """Request recipes using Groq first, with Gemini as fallback."""
     result = recommend_recipes(
         st.session_state.inventory,
         current_constraints(),
         api_key=(st.session_state.gemini_api_key or "").strip() or None,
+        groq_api_key=(st.session_state.groq_api_key or "").strip() or None,
     )
     st.session_state.recommendation_candidates = result.candidates
     st.session_state.recommendation_error = result.error
@@ -876,7 +877,7 @@ def process_refinement(text):
     st.session_state.messages.append({"role": "user", "text": text})
     lower = text.lower()
     reply = (
-        "I re-filtered the recipes Gemini already returned. "
+        "I re-filtered the recipes already returned. "
         "Nothing new was invented, and your confirmed pantry was not changed."
     )
 
@@ -887,7 +888,7 @@ def process_refinement(text):
             st.session_state.temporary_exclusions.append(ingredient)
         reply = (
             f"I hid recipes that use {ingredient}. "
-            "This only filters the current Gemini list. Your confirmed pantry was not changed."
+            "This only filters the current recipe list. Your confirmed pantry was not changed."
         )
     else:
         minute_match = re.search(r"(\d{1,2})\s*(?:min|minute)", lower)
@@ -900,14 +901,14 @@ def process_refinement(text):
         elif "spicy" in lower:
             if "spicy" not in st.session_state.conversation_keywords:
                 st.session_state.conversation_keywords.append("spicy")
-            reply = "I noted spicy for the next Gemini request. The cards on screen are still the recipes already returned."
+            reply = "I noted spicy for the next recipe request. The cards on screen are still the recipes already returned."
         elif "quick" in lower or "faster" in lower:
             st.session_state.priority_pref = "Fastest"
-            reply = "I reordered the current Gemini recipes with the fastest listed time first."
+            reply = "I reordered the current recipes with the fastest listed time first."
         elif "protein" in lower:
             st.session_state.high_protein_pref = True
             st.session_state.priority_pref = "Highest protein"
-            reply = "I reordered the current Gemini recipes with the highest listed protein first."
+            reply = "I reordered the current recipes with the highest listed protein first."
 
     st.session_state.messages.append({"role": "assistant", "text": reply})
 
@@ -1158,7 +1159,7 @@ def show_home():
                 <div style="min-height:115px;">
                     <div style="font-size:25px;">🎯</div>
                     <div style="font-size:18px;font-weight:650;margin-top:7px;">Explainable ranking</div>
-                    <div class="small-note" style="margin-top:6px;">Gemini proposes recipes. Cook now, Almost ready, and Needs shopping come from how many ingredients you already have.</div>
+                    <div class="small-note" style="margin-top:6px;">Groq proposes recipes, with Gemini as fallback. Cook now, Almost ready, and Needs shopping come from how many ingredients you already have.</div>
                 </div>
                 """,
                 unsafe_allow_html=True,
@@ -1185,6 +1186,7 @@ def show_inventory():
             st.markdown('<div class="section-title">1. Choose an input method</div>', unsafe_allow_html=True)
             st.markdown("### 🔑 AI API Keys")
             st.caption("Keys are used only for this session and are not written to the repository, database, or logs.")
+            st.caption("Recipes use Groq first, with Gemini as fallback. Either key works on its own.")
             key_col1, key_col2 = st.columns(2)
             with key_col1:
                 st.session_state.gemini_api_key = st.text_input(
@@ -1404,6 +1406,20 @@ def show_inventory():
 
     with pantry_tab:
         st.markdown('<div class="section-title">Current pantry — source of truth</div>', unsafe_allow_html=True)
+        if st.button(
+            "Clear pantry",
+            disabled=not st.session_state.inventory,
+            help="Remove every saved pantry item for this profile. Your preferences are kept.",
+        ):
+            if save_pantry(store.replace_pantry, []):
+                st.session_state.recommendation_candidates = None
+                st.session_state.recommendation_error = None
+                st.session_state.recommendation_notice = None
+                st.session_state.selected_recipe = None
+                st.session_state.selected_recipe_id = None
+                st.session_state.pop("inventory_editor", None)
+                st.toast("Pantry cleared. Add groceries to start again.")
+                st.rerun()
         st.markdown(
             '<div class="small-note">Edit names, quantities, or units directly. You can also add/delete rows. Saving changes marks the pantry as needing confirmation.</div>',
             unsafe_allow_html=True,
@@ -1529,7 +1545,7 @@ def show_get_recipe():
     st.markdown("</div>", unsafe_allow_html=True)
 
     st.caption(
-        f"Ranking asks {RECIPE_MODEL} using the Gemini key from the receipt tab, or GEMINI_API_KEY. "
+        "Ranking uses Groq first, with Gemini as fallback. Enter either key on the groceries tab, or set GROQ_API_KEY / GEMINI_API_KEY. "
         "Diet, time, and avoid are hard filters. An empty pantry or a missing key is not sent."
     )
 
@@ -1586,7 +1602,7 @@ def recipe_card(result, key):
 def show_recommendations():
     st.markdown('<div class="page-title">Recommendations</div>', unsafe_allow_html=True)
     st.markdown(
-        '<div class="page-subtitle">Gemini proposes recipes from your confirmed pantry. Diet, time, and avoid ingredients then drop anything that breaks a hard filter. The percent on each card is pantry overlap.</div>',
+        '<div class="page-subtitle">Groq proposes recipes from your confirmed pantry, with Gemini as fallback. Diet, time, and avoid ingredients then drop anything that breaks a hard filter. The percent on each card is pantry overlap.</div>',
         unsafe_allow_html=True,
     )
 
@@ -1607,14 +1623,14 @@ def show_recommendations():
         st.info(st.session_state.recommendation_notice)
 
     if st.session_state.recommendation_candidates is None and not st.session_state.recommendation_error:
-        st.info("Rank recipes from Get Recipe. Nothing is invented before Gemini answers.")
+        st.info("Rank recipes from Get Recipe. Recipes appear after an AI provider responds.")
         recipes = []
     else:
         recipes = visible_recommendations()
         if st.session_state.recommendation_error:
             pass
         elif not st.session_state.recommendation_candidates:
-            st.warning("Gemini returned no recipes. No meals were invented to fill the gap.")
+            st.warning("The AI provider returned no recipes. No meals were invented to fill the gap.")
         elif not recipes:
             st.warning("No returned recipes satisfy the current hard filters. Try a longer time, a different diet, or a shorter avoid list.")
 
@@ -1629,7 +1645,8 @@ def show_recommendations():
         with st.expander("How is the match calculated?"):
             st.markdown(
                 f"""
-                Gemini `{RECIPE_MODEL}` proposes up to four recipes from the confirmed pantry.
+                Groq `{GROQ_RECIPE_MODEL}` proposes up to four recipes from the confirmed pantry,
+                with Gemini `{RECIPE_MODEL}` as fallback when a Gemini key is available.
                 The app then checks that JSON locally.
 
                 - **Cook now** means every listed ingredient is already in the pantry.
@@ -1637,7 +1654,7 @@ def show_recommendations():
                 - **Needs shopping** means three or more ingredients are missing, or the ingredient list was blank.
                 - The percent is that pantry overlap. Diet, maximum time, and avoid ingredients are hard filters.
                 - A missing time or protein stays visible and is marked. It is not filled in.
-                - Chat refinements reorder or hide this list. Ask Gemini again when you want a new set.
+                - Chat refinements reorder or hide this list. Refresh recipes when you want a new set.
                 """
             )
 
@@ -1674,7 +1691,7 @@ def show_recommendations():
 
     action_left, action_right = st.columns(2)
     with action_left:
-        if st.button("Ask Gemini again", use_container_width=True):
+        if st.button("Refresh recipes", use_container_width=True):
             if not st.session_state.confirmed:
                 st.warning("Confirm your inventory before asking again.")
             else:
@@ -1844,9 +1861,9 @@ def show_evaluation_plan():
         st.markdown('<div class="section-title">Recipe source</div>', unsafe_allow_html=True)
         st.markdown(
             """
-            **Current ranking:** Gemini proposes recipes from the confirmed pantry. The app then applies diet, time, and avoid filters and labels Cook now, Almost ready, and Needs shopping from ingredient overlap. Invalid model output shows an error and no recipes.
+            **Current ranking:** Groq proposes recipes from the confirmed pantry, with Gemini as fallback. The app then applies diet, time, and avoid filters and labels Cook now, Almost ready, and Needs shopping from ingredient overlap. Invalid model output shows an error and no recipes.
 
-            A licensed recipe catalog can still replace free generation later. Until then, every shown recipe comes from a Gemini response that passed the JSON checks.
+            A licensed recipe catalog can still replace free generation later. Until then, every shown recipe comes from an AI response that passed the JSON checks.
             """
         )
         st.markdown("</div>", unsafe_allow_html=True)

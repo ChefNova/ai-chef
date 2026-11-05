@@ -3,6 +3,7 @@ from __future__ import annotations
 import os
 import json
 import re
+import shutil
 import time
 from pathlib import Path
 from dataclasses import dataclass, field
@@ -157,6 +158,30 @@ as a shortcut or as a substitute for handling OCR uncertainty.
 # OCR
 # ============================================================
 
+def configure_tesseract() -> None:
+    """Find the native OCR engine, including Windows installs outside PATH."""
+    configured = os.getenv("TESSERACT_CMD", "").strip()
+    candidates = [configured] if configured else [
+        pytesseract.pytesseract.tesseract_cmd,
+        "tesseract",
+    ]
+    if not configured and os.name == "nt":
+        for root in (os.getenv("ProgramFiles"), os.getenv("ProgramFiles(x86)"),
+                     os.getenv("LOCALAPPDATA")):
+            if root:
+                candidates.append(str(Path(root) / "Tesseract-OCR" / "tesseract.exe"))
+                candidates.append(str(Path(root) / "Programs" / "Tesseract-OCR" / "tesseract.exe"))
+    for candidate in candidates:
+        executable = shutil.which(candidate)
+        if executable:
+            pytesseract.pytesseract.tesseract_cmd = executable
+            return
+    raise RuntimeError(
+        "Tesseract OCR is missing. Install the native Tesseract engine (pip only installs its Python wrapper). "
+        "On Windows run: winget install --id UB-Mannheim.TesseractOCR --exact. "
+        "For a custom installation, set TESSERACT_CMD in app/.env to the full path to tesseract.exe."
+    )
+
 def preprocess_receipt(image: Image.Image) -> Image.Image:
     """
     Basic preprocessing for receipt OCR.
@@ -199,6 +224,8 @@ def extract_text_with_ocr(image_path: str) -> str:
         raise ValueError(
             "Supported images: .jpg, .jpeg, .png, .webp"
         )
+
+    configure_tesseract()
 
     image = Image.open(path)
 

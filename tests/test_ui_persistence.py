@@ -156,6 +156,28 @@ def test_invalid_row_shows_an_error_and_saves_nothing():
     assert "Good" not in pantry_names(new_session())
 
 
+def test_clear_pantry_persists_and_only_clears_current_profile():
+    session = new_session()
+    other = PantryStore()
+    other.ensure_user("other", seed_items=[PantryItemCreate(name="Tofu", quantity=1, unit="block")])
+    click(session, "My Inventory")
+    click(session, "Confirm Inventory")
+    session.session_state["recommendation_candidates"] = [{"title": "Old recipe"}]
+    session.session_state["selected_recipe"] = {"title": "Old recipe"}
+    session.session_state["selected_recipe_id"] = "old-recipe"
+    click(session, "Clear pantry")
+
+    assert session.session_state["inventory"] == []
+    assert session.session_state["confirmed"] is False
+    assert session.session_state["recommendation_candidates"] is None
+    assert session.session_state["selected_recipe"] is None
+    assert session.session_state["selected_recipe_id"] is None
+    assert session.session_state["diet_pref"] == "Vegetarian"
+    assert next(button for button in session.button if button.label == "Clear pantry").disabled
+    assert new_session().session_state["inventory"] == []
+    assert pantry_names(new_session(profile="other")) == {"Tofu"}
+
+
 # ---------- Confirmation ----------
 def test_confirmation_does_not_carry_over_to_a_new_session():
     """A saved pantry records what was there last time. Each visit must confirm it again."""

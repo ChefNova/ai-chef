@@ -1,30 +1,20 @@
-# Recipe recommendation model
+# Recipe recommendations
 
-Ranking asks Gemini for recipes, then this app checks the JSON against the confirmed pantry. Diet, maximum time, and the avoid list are hard filters. Cook now, Almost ready, and Needs shopping come from how many listed ingredients are already in the pantry. The match percent on each card is that overlap, not a keyword score.
+Recipes use Groq first when a Groq key is available, with Gemini as fallback on API errors, timeouts, empty content, or invalid recipe output. Either provider works on its own. A valid empty recipe list is respected and does not trigger fallback.
 
-Receipt extraction on this branch is unchanged: Groq is tried first when a Groq key is present, then Gemini. Recipe ranking does not use that path. It calls `get_gemini_client` in `app/receipt_extractor.py` and does not call Grok (xAI).
+Keys come from the groceries tab, otherwise `GROQ_API_KEY` / `GEMINI_API_KEY`. Local development settings can go in `app/.env`; see `.env.example`.
 
-## Model
+| Provider | Recipe model | Response |
+| --- | --- | --- |
+| Groq (primary) | `openai/gpt-oss-120b`, configurable with `GROQ_RECIPE_MODEL` | JSON object mode with the `RecipeList` schema in the prompt |
+| Gemini (fallback) | `gemini-3.5-flash-lite` | JSON with `RecipeList` response schema |
 
-Recommendations call the same Gemini client with a different model: `gemini-3.5-flash-lite`.
+Groq recipes use a separate setting from the receipt extractor's `GROQ_MODEL`. Requests have a 20-second timeout and no automatic SDK retries. JSON object mode follows [Groq documentation](https://console.groq.com/docs/structured-outputs). Both providers pass through the same local recipe and ingredient consistency checks.
 
-| Setting | Value |
-|---|---|
-| Client | `app.receipt_extractor.get_gemini_client` |
-| Key | The Gemini key typed on the receipt tab, otherwise `GEMINI_API_KEY` |
-| Model | `gemini-3.5-flash-lite` |
-| Response | `application/json` with the `RecipeList` schema |
-| Sampling | Gemini 3 defaults. Temperature is not sent. Thinking level is `low` when the SDK exposes `ThinkingConfig`. |
-| Call | One `generate_content` request. No image. |
+The confirmed pantry and constraints go to each attempted provider. An empty pantry or missing keys prevents requests. If every configured provider fails, the page shows an error and no replacement recipes. Successful fallback shows a notice. Recipe details show the successful provider and model.
 
-An empty pantry or a missing key does not call the model. A bad JSON payload, or a recipe whose substitutions name an ingredient it does not list, shows an error and no recipes.
+Diet, maximum time, and avoid ingredients are local hard filters. Cook now, Almost ready, and Needs shopping reflect ingredient overlap, not verified quantity feasibility. Chat refinements filter or reorder existing suggestions; Refresh recipes requests a new set.
 
-## Why Gemini Flash-Lite, not Grok (xAI)
+Receipt extraction is unchanged and retains its existing Groq-first, Gemini-fallback path.
 
-Grok (xAI) would need its own API key. It does not read the receipt image, so it would not help that path.
-
-Recipe ranking stays on Gemini so the cook uses the key they already entered. Flash-Lite fits this call: a short pantry list in, a short JSON list out.
-
-`gemini-3.8-flash` stays the receipt model. It is the stronger default in the extractor, with heavier default thinking and a higher token price (about $0.75 / $3.75 per million input / output tokens through December 31, 2026, then about $1.50 / $7.50). It has also returned HTTP 503 when demand spikes. `gemini-3.5-flash-lite` is the high-throughput model at about $0.30 / $2.50 per million tokens. A ranking of roughly 800 input tokens and 900 output tokens is about a quarter of a cent at that list price. That is an estimate from published prices, not a measured bill.
-
-The wait is one text request. This path does not retry for 15 seconds and does not switch to Grok (xAI). If Gemini fails, the page says so and does not invent recipes.
+The [evaluation report](../validation/recommendations/REPORT.md) records measured application checks, known failures, latency scope, model-selection evidence, and estimated costs. Reproduce it with `python -m validation.recommendations.evaluate --live`; live calls require environment keys and use synthetic pantries only.

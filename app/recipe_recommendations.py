@@ -1,8 +1,4 @@
-"""Recipe ranking on top of the receipt extractor's Gemini client.
-
-Parsing and pantry checks do not call the network. The live call is
-`gemini_complete`, which uses `app.receipt_extractor.get_gemini_client`.
-"""
+"""Groq-first recipe suggestions with Gemini fallback and local pantry ranking."""
 
 from __future__ import annotations
 
@@ -10,11 +6,16 @@ import json
 import os
 import re
 from dataclasses import dataclass, field
+from pathlib import Path
 
+from dotenv import load_dotenv
 from pydantic import BaseModel, Field
+
+load_dotenv(Path(__file__).resolve().parent / ".env")
 
 # Fast Flash-Lite model. Receipt extraction keeps its own GEMINI_MODEL.
 RECIPE_MODEL = "gemini-3.5-flash-lite"
+GROQ_RECIPE_MODEL = os.getenv("GROQ_RECIPE_MODEL", "openai/gpt-oss-120b")
 THINKING_LEVEL = "low"
 
 RECIPE_PROMPT = """You propose recipes a home cook can make from a confirmed pantry.
@@ -139,8 +140,9 @@ def recommend_recipes(
     constraints: Constraints,
     api_key: str | None = None,
     complete=None,
+    groq_api_key: str | None = None,
 ) -> RecommendationResult:
-    """Call Gemini only when the pantry and a key are both present."""
+    """Try configured providers in order, including fallback on invalid output."""
     items = [row for row in pantry if str(row.get("Ingredient", "")).strip()]
     if not items:
         return RecommendationResult(
@@ -149,31 +151,71 @@ def recommend_recipes(
             [],
         )
     key = (api_key or os.getenv("GEMINI_API_KEY") or "").strip()
-    if not key:
+    groq_key = (groq_api_key or os.getenv("GROQ_API_KEY") or "").strip()
+    if not key and not groq_key:
         return RecommendationResult(
             False,
-            "Add a Gemini API key on the receipt tab, or set GEMINI_API_KEY. Nothing was sent.",
+            "Add a Groq or Gemini API key on the receipt tab, or set GROQ_API_KEY or GEMINI_API_KEY. Nothing was sent.",
             [],
         )
     prompt = build_prompt(items, constraints)
-    caller = complete or (lambda text: gemini_complete(key, text))
-    try:
-        raw = caller(prompt)
-    except Exception as exc:  # noqa: BLE001 — show the failure instead of inventing recipes
-        return RecommendationResult(
-            False,
-            f"Recipe ranking failed ({_public_error(exc)}). No recipes were shown.",
-            [],
-        )
-    parsed = parse_model_output(raw)
-    if not parsed.ok:
+    providers = []
+    if groq_key:
+        providers.append(("Groq", GROQ_RECIPE_MODEL, lambda text: groq_complete(groq_key, text)))
+    if key:
+        providers.append(("Gemini", RECIPE_MODEL, lambda text: gemini_complete(key, text)))
+    if complete is not None:
+        name, model, _ = providers[0]
+        providers = [(name, model, complete)]
+    errors = []
+    for name, model, caller in providers:
+        try:
+            parsed = parse_model_output(caller(prompt))
+            if not parsed.ok:
+                errors.append(f"{name}: {parsed.error}")
+                continue
+        except Exception as exc:  # noqa: BLE001
+            detail = _public_error(exc, secrets=(key, groq_key))
+            errors.append(f"{name}: {detail}")
+            continue
+        for recipe in parsed.candidates:
+            recipe["source"] = f"{name} {model}"
+        if errors:
+            parsed.notice = f"Groq was unavailable or returned invalid output. Used {name} instead."
         return parsed
-    for recipe in parsed.candidates:
-        recipe["source"] = f"Gemini {RECIPE_MODEL}"
-    return parsed
+    return _failure(f"Recipe ranking failed ({'; '.join(errors)}). No recipes were shown.")
 
 
-def gemini_complete(api_key: str, prompt: str, client_factory=None, config_builder=None) -> str:
+def groq_complete(api_key: str, prompt: str, client_factory=None, usage_callback=None) -> str:
+    """Request JSON, with the same recipe schema and checks as Gemini."""
+    if client_factory is None:
+        from groq import Groq
+
+        client_factory = Groq
+    client = client_factory(api_key=api_key, timeout=20.0, max_retries=0)
+    try:
+        response = client.chat.completions.create(
+            model=GROQ_RECIPE_MODEL,
+            messages=[
+                {"role": "system", "content": "Return only JSON matching this schema: " + json.dumps(RecipeList.model_json_schema())},
+                {"role": "user", "content": prompt},
+            ],
+            response_format={"type": "json_object"},
+            max_completion_tokens=3000,
+            temperature=0.2,
+        )
+        content = response.choices[0].message.content
+        usage = getattr(response, "usage", None)
+        if usage_callback and usage:
+            usage_callback({"input_tokens": usage.prompt_tokens, "output_tokens": usage.completion_tokens})
+        if not content:
+            raise RuntimeError("Groq returned an empty response.")
+        return content
+    finally:
+        client.close()
+
+
+def gemini_complete(api_key: str, prompt: str, client_factory=None, config_builder=None, usage_callback=None) -> str:
     """One generateContent call through the receipt extractor's Gemini client."""
     key = (api_key or os.getenv("GEMINI_API_KEY") or "").strip()
     if not key:
@@ -202,6 +244,12 @@ def gemini_complete(api_key: str, prompt: str, client_factory=None, config_build
             contents=prompt,
             config=config,
         )
+        usage = getattr(response, "usage_metadata", None)
+        if usage_callback and usage:
+            usage_callback({
+                "input_tokens": usage.prompt_token_count or 0,
+                "output_tokens": (usage.candidates_token_count or 0) + (usage.thoughts_token_count or 0),
+            })
     finally:
         close = getattr(client, "close", None)
         if close:
@@ -333,7 +381,7 @@ def _recipe_from_entry(entry: dict, index: int) -> dict | str:
         "instructions": [step.strip() for step in instructions],
         "substitutions": substitutions,
         "missing_fields": missing,
-        "source": f"Gemini {RECIPE_MODEL}",
+        "source": "AI suggestion",
     }
 
 
@@ -459,11 +507,15 @@ def _failure(message: str) -> RecommendationResult:
     return RecommendationResult(False, message, [])
 
 
-def _public_error(exc: Exception) -> str:
+def _public_error(exc: Exception, secrets=()) -> str:
     name = exc.__class__.__name__
     text = " ".join(str(exc).split())
+    for secret in secrets:
+        if secret:
+            text = text.replace(secret, "[redacted]")
     text = re.sub(r"(?i)([?&]key=)[^&\s\"']+", r"\1[redacted]", text)
     text = re.sub(r"AIza[0-9A-Za-z_\-]{10,}", "[redacted]", text)
+    text = re.sub(r"gsk_[0-9A-Za-z_\-]+", "[redacted]", text)
     if not text or text == name:
         return name
     if len(text) > 240:
