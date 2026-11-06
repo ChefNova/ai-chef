@@ -1,91 +1,20 @@
-# ChefNova Recipe Recommendation Prompt
+# ChefNova recipe generation and ranking
 
-## Role
+The runtime prompt and response models live in [recipe_recommendations.py](../recipe_recommendations.py). The application sends confirmed pantry quantities, selected constraints, and optional meal preferences as structured input.
 
-You are ChefNova's recipe recommendation engine.
-Given a pantry inventory and optional dietary constraints, suggest recipes the user can cook with what they have.
+| Step | Current implementation |
+| --- | --- |
+| Primary candidate generation | Groq, default `openai/gpt-oss-120b` with a `GROQ_RECIPE_MODEL` override. JSON object mode, temperature 0.2, and a 3,000 completion-token limit. |
+| Fallback candidate generation | Gemini `gemini-3.5-flash-lite` with the `RecipeList` response schema and low thinking. The runtime leaves temperature at the provider default. |
+| Filtering and ranking | Python `rank_recipes()` applies diet, maximum time, and avoid filters. It orders the survivors using pantry match, missing ingredients, cooking time, or protein according to the selected priority. This step makes zero provider calls. |
 
-## Model settings
+## Output contract
 
-| Parameter | Value |
-|-----------|-------|
-| Provider | Groq (primary) / Gemini (fallback) |
-| Ranking provider | Gemini Flash-Lite (separate call after generation) |
-| Temperature | 0.4 |
-| Max tokens | 2048 |
-| Output format | JSON (see schema below) |
+The model returns a JSON object with a `recipes` array and is asked for at most four candidates. Each candidate can include a title, estimated time, protein, diet, cuisine, tags, ingredients, ingredient amounts, instructions, substitutions, and missing fields.
 
-## Input variables
+- Ingredient names are separate from quantities. Each entry in `ingredient_amounts` identifies the ingredient, quantity, and unit. Unknown amounts can be omitted.
+- Substitutions use `ingredient` and `instead` fields. The original ingredient must appear in the recipe's ingredient list.
+- A recipe can require extra ingredients. Local validation uses the confirmed pantry to flag missing items, insufficient stock, and quantities that need review.
+- A valid `{"recipes":[]}` response ends generation. An invalid response can trigger the fallback provider.
 
-- `{pantry_items}` — JSON list of pantry items with name, quantity, unit
-- `{dietary_constraints}` — comma-separated list (e.g. "Vegan, Gluten-Free")
-- `{max_time_minutes}` — integer, maximum prep + cook time the user wants
-
-## System prompt
-
-```
-You are ChefNova, an expert AI chef. Your job is to recommend practical recipes using only the
-ingredients a user has in their pantry.
-
-Given:
-  Pantry: {pantry_items}
-  Dietary constraints: {dietary_constraints}
-  Max time: {max_time_minutes} minutes
-
-Return a JSON array of up to 5 recipe objects. Each recipe must follow the schema exactly.
-Do not invent ingredients not in the pantry. If a substitution is possible, list it in the
-"substitutions" field.
-```
-
-## Output schema
-
-```json
-[
-  {
-    "title": "string",
-    "minutes": "integer",
-    "protein_g": "number",
-    "diet": "string (Vegan|Vegetarian|Omnivore|...)",
-    "cuisine": "string",
-    "emoji": "string",
-    "tags": ["string"],
-    "ingredients": ["string"],
-    "instructions": ["string"],
-    "substitutions": ["string"],
-    "missing_fields": ["string"]
-  }
-]
-```
-
-## Few-shot examples
-
-### Example 1
-
-**Input pantry:** `[{"name":"eggs","quantity":6,"unit":"unit"},{"name":"spinach","quantity":200,"unit":"g"}]`
-**Constraints:** `Vegetarian`
-**Max time:** `20`
-
-**Output:**
-```json
-[
-  {
-    "title": "Spinach Scramble",
-    "minutes": 10,
-    "protein_g": 18,
-    "diet": "Vegetarian",
-    "cuisine": "American",
-    "emoji": "🍳",
-    "tags": ["Quick", "High Protein"],
-    "ingredients": ["6 eggs", "200g spinach"],
-    "instructions": ["Whisk eggs.", "Sauté spinach.", "Add eggs and scramble."],
-    "substitutions": [],
-    "missing_fields": []
-  }
-]
-```
-
-## Guardrails
-
-- Never suggest recipes requiring ingredients absent from the pantry without flagging in `substitutions`.
-- If no recipe can be formed, return `[]` with an empty array — do not hallucinate recipes.
-- Strip any PII references from the prompt before sending to the model (handled by `recipe_recommendations.py`).
+The initial results view shows up to three locally ranked recipes. See the [recipe pipeline guide](../RECIPE_RECOMMENDATIONS.md) and [safety and privacy guide](../../docs/safety_privacy.md).

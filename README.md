@@ -95,7 +95,7 @@ The prototype accepts PNG/JPG receipt images and stores reviewed groceries in a 
 
 ## Saved pantry and storage API
 
-Pantries, preferences, dietary restrictions, and cuisine choices are saved per profile. Confirmation is not saved, so each new session confirms the pantry again before ranking. Design, API routes, and known limits are in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
+Pantries, preferences, dietary restrictions, and cuisine choices are saved per profile. Confirmation is not saved, so each new session confirms the pantry again before ranking. Design, API routes, and known limits are in [architecture.md](architecture.md).
 
 ```bash
 pip install -r app/requirements.txt
@@ -110,4 +110,4 @@ Receipt uploads also need the native Tesseract OCR engine; `pytesseract` is only
 
 The [recommendation evaluation report](validation/recommendations/REPORT.md) includes reproducible accuracy checks, known failures, model selection, local latency measurements, and sourced cost estimates. Run `python -m validation.recommendations.evaluate --live` to record results; live providers are skipped unless their API keys are available in the environment or `app/.env`.
 
-Confirmed pantry items and dietary preferences are sent to Groq first, with Gemini Flash-Lite as fallback if Groq fails or returns invalid output. Diet, time, and avoid constraints are hard filters, and Cook now, Almost ready, and Needs shopping come from ingredient overlap. Model choice, latency, and cost are in [app/RECIPE_RECOMMENDATIONS.md](app/RECIPE_RECOMMENDATIONS.md). Ranking uses Groq and Gemini keys from the groceries tab, or `GROQ_API_KEY` and `GEMINI_API_KEY`. Either provider works on its own. No key is stored in this repository.
+Confirmed pantry items and dietary preferences are sent to Groq first, with Gemini Flash-Lite as fallback if Groq fails or returns invalid output. Diet, time, and avoid constraints are hard filters, and Cook now, Almost ready, and Needs shopping come from ingredient overlap. Model choice, latency, and cost are in [app/RECIPE_RECOMMENDATIONS.md](app/RECIPE_RECOMMENDATIONS.md). Candidate generation uses Groq and Gemini keys from My Inventory or `GROQ_API_KEY` and `GEMINI_API_KEY`. Python ranks the candidates locally. Either provider works on its own. No key is stored in this repository.
