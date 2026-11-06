@@ -8,7 +8,7 @@ ChefNova uses external model providers to structure grocery inputs and generate 
 - Tesseract runs locally. Before calling Groq or Gemini, ChefNova keeps likely grocery lines and filters recognizable sensitive data such as addresses, phone numbers, emails, payment lines, and loyalty identifiers. The receipt path sends the filtered text to the provider.
 - If filtering leaves no usable lines, the app offers manual entry without calling a provider. The filter is pattern-based. It can miss unfamiliar formats or drop valid content, such as a product name split from its price or weight by OCR.
 
-The live synthetic-receipt walkthrough retained all three grocery lines and removed the synthetic loyalty ID. Tesseract misread one price. The [receipt pipeline](../app/receipt_extractor.py), [guardrail tests](../tests/test_guardrails.py), and [live walkthrough results](use-cases.md#live-walkthrough-results-on-the-current-pipeline) show what was checked.
+The live synthetic-receipt walkthrough retained all three grocery lines and removed the synthetic loyalty ID. Tesseract misread one price. The [receipt pipeline](../app/receipt_extractor.py), [guardrail tests](../tests/test_guardrails.py), and [live walkthrough results](use-cases.md#live-walkthrough-results) show what was checked.
 
 ## 2. Prompt injection defenses
 
@@ -24,7 +24,7 @@ Targeted tests include a receipt that tries to add a fake grocery item and a rec
 - **Cook now** means the listed quantities fit positive pantry stock in matching units. **Check quantities** flags names that match when some amounts or units need verification. Missing items or a known shortfall reduce the pantry match.
 - Known gaps include unit conversion, dietary word variants, and ingredients mentioned only in the steps. For example, a recipe that listed rice but added absent sesame oil in a cooking step still earned **Cook now**. Allergy safety, actual cooking time, and nutrition remain unverified.
 
-See the [recipe validation code](../app/recipe_recommendations.py) and [offline cases](use-cases.md#current-branch-offline-checks).
+See the [recipe validation code](../app/recipe_recommendations.py) and [offline cases](use-cases.md#offline-checks).
 
 ## 4. Recipe rate limits and fallback
 
@@ -32,7 +32,7 @@ See the [recipe validation code](../app/recipe_recommendations.py) and [offline 
 - On HTTP 429, the recipe flow puts the affected provider on cooldown in the current Streamlit session. It uses a positive numeric `Retry-After` value when available and otherwise sets a 15-second cooldown. Groq recipe requests use zero SDK retries.
 - The UI guards against overlapping refreshes in the same session. If neither provider succeeds, the app preserves the confirmed pantry and displays a retry message.
 
-The live recipe run deliberately elicited a real Groq HTTP 401. ChefNova switched to Gemini and returned a recipe in 1.42 seconds total. The recipe HTTP 429 cooldown and shared budget were verified with simulated failures. See the [live walkthrough results](use-cases.md#live-walkthrough-results-on-the-current-pipeline) and [guardrail tests](../tests/test_guardrails.py).
+The live recipe run deliberately elicited a real Groq HTTP 401. ChefNova switched to Gemini and returned a recipe in 1.42 seconds total. The recipe HTTP 429 cooldown and shared budget were verified with simulated failures. See the [live walkthrough results](use-cases.md#live-walkthrough-results) and [guardrail tests](../tests/test_guardrails.py).
 
 ## Data and credentials
 
