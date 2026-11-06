@@ -60,7 +60,7 @@ python -m pytest tests/test_guardrails.py tests/test_recipe_recommendations.py t
 
 ## Observed results
 
-The team ran **36 real API requests on November 4, 2026 (Central time)** using six synthetic pantries and three attempts per provider per scenario. The benchmark called each provider independently and counted the recipes that passed local filtering. It ran before the guardrail update and did not exercise Streamlit or the automatic fallback chain. See the [raw results](../validation/recommendations/live-results.json) and [evaluation report](../validation/recommendations/REPORT.md).
+The team ran **36 real API requests on ChefNova** using six pantries and three attempts per provider per scenario. The benchmark called each provider independently and counted the recipes that passed local filtering. It ran before the guardrail update and did not exercise Streamlit or the automatic fallback chain. See the [raw results](../validation/recommendations/live-results.json) and [evaluation report](../validation/recommendations/REPORT.md).
 
 | Provider | Attempts with at least one displayable recipe | Observed API errors |
 | --- | ---: | --- |
@@ -73,7 +73,7 @@ The team ran **36 real API requests on November 4, 2026 (Central time)** using s
 | Rice, tofu, and broccoli. Vegan, at most 30 minutes, avoid peanut and groundnut. | Groq hit its rate limit on all three attempts. Gemini produced displayable recipes on all three, including **Simple Tofu and Broccoli Rice Bowl**. |
 | Rice and spinach. Vegan, with a request for chicken and butter. | No displayable recipe on any attempt. Groq returned three rate-limit errors and Gemini returned three client errors. |
 
-### Current-branch offline checks
+### offline checks
 
 **Result: 19/19 passed.** Each case passes a hand-written model response through the same JSON parser and local recipe ranker used by the app. The runner compares the observed recipe titles and, where specified, parse status, match score, and readiness label against the case's expected values. The default pantry has one cup of rice. Some cases substitute a different pantry or apply explicit constraints. The tests do not call an AI provider or run OCR, voice transcription, or the browser UI.
 
@@ -103,9 +103,8 @@ Run just this corpus with `python -m pytest tests/test_recommendation_accuracy.p
 
 These results apply to the cases above. For example, a 100% ingredient match can still show **Check quantities** when the recipe omits amounts.
 
-### Live walkthrough results on the current pipeline
-
-On November 5, 2026 (Central time), a local harness ran ChefNova's application functions with real provider calls and synthetic inputs. It saved reviewed grocery rows to a disposable SQLite database and read them back. The harness exercised the same extraction, transcription, recipe, and storage code used by Streamlit. Browser widgets and microphone capture were outside this run.
+### Live walkthrough results 
+ChefNova's application functions were ran with real provider calls and synthetic inputs. It saved reviewed grocery rows to a disposable SQLite database and read them back. The harness exercised the same extraction, transcription, recipe, and storage code used by Streamlit. Browser widgets and microphone capture were outside this run.
 
 | Walkthrough | Input and execution | Observed result |
 | --- | --- | --- |
@@ -114,4 +113,3 @@ On November 5, 2026 (Central time), a local harness ran ChefNova's application f
 | Typed grocery entry | Typed “I have two cups of rice and one can of chickpeas.” | Groq returned **2 cups rice** and **1 can chickpeas**. Both amounts and units matched the SQLite readback. The flow took 1.20 s. |
 | Voice grocery entry | Passed a synthesized recording of the same sentence to the app's voice transcription function. | Groq Whisper transcribed the sentence correctly. Grocery extraction returned **2 cups rice** and **1 can chickpeas**, both verified in SQLite. Transcription, extraction, and save took 1.13 s. |
 
-The first live pass exposed two issues. Gemini's SDK rejected the recipe quantity schema before sending a request, and Groq rejected typed and transcribed grocery requests with HTTP 429 because the expected output exceeded the account's token limit. The successful rerun used a Gemini-compatible quantity schema, kept the positive-quantity check in Python, and capped Groq grocery structuring at 700 completion tokens.
