@@ -427,3 +427,20 @@ def test_unusable_database_shows_an_error_instead_of_crashing(tmp_path, monkeypa
     session = AppTest.from_file(APP_FILE, default_timeout=30).run()
     assert not session.exception
     assert any("could not open its saved pantry" in error.value for error in session.error)
+
+
+def test_recipe_details_show_verified_amounts_and_unknown_quantities():
+    session = new_session()
+    session.session_state["page"] = "Recipe Details"
+    recipe = {"title": "Rice bowl", "ingredients": ["Rice"], "time": 15, "diet": "Vegan",
+              "ingredient_amounts": {"rice": (1, "cup")}}
+    session.session_state["selected_recipe"] = {"recipe": recipe}
+    session.run()
+    assert not session.exception
+    assert any("Rice (1 cup)" in item.value for item in session.markdown)
+    assert any("Cook now" in item.value for item in session.success)
+
+    session.session_state["selected_recipe"] = {"recipe": {**recipe, "ingredient_amounts": {}}}
+    session.run()
+    assert not session.exception
+    assert any("Check amounts: Rice" in item.value for item in session.warning)

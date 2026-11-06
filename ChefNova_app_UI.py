@@ -838,12 +838,19 @@ def current_constraints():
 
 def refresh_recommendations():
     """Request recipes using Groq first, with Gemini as fallback."""
-    result = recommend_recipes(
-        st.session_state.inventory,
-        current_constraints(),
-        api_key=(st.session_state.gemini_api_key or "").strip() or None,
-        groq_api_key=(st.session_state.groq_api_key or "").strip() or None,
-    )
+    if st.session_state.get("recipe_request_active"):
+        return
+    st.session_state.recipe_request_active = True
+    try:
+        result = recommend_recipes(
+            st.session_state.inventory,
+            current_constraints(),
+            api_key=(st.session_state.gemini_api_key or "").strip() or None,
+            groq_api_key=(st.session_state.groq_api_key or "").strip() or None,
+            provider_cooldowns=st.session_state.setdefault("recipe_provider_cooldowns", {}),
+        )
+    finally:
+        st.session_state.recipe_request_active = False
     st.session_state.recommendation_candidates = result.candidates
     st.session_state.recommendation_error = result.error
     st.session_state.recommendation_notice = result.notice
@@ -1159,7 +1166,7 @@ def show_home():
                 <div style="min-height:115px;">
                     <div style="font-size:25px;">🎯</div>
                     <div style="font-size:18px;font-weight:650;margin-top:7px;">Explainable ranking</div>
-                    <div class="small-note" style="margin-top:6px;">Groq proposes recipes, with Gemini as fallback. Cook now, Almost ready, and Needs shopping come from how many ingredients you already have.</div>
+                    <div class="small-note" style="margin-top:6px;">Groq proposes recipes, with Gemini as fallback. Recipe labels distinguish confirmed stock, missing ingredients, and amounts you need to check.</div>
                 </div>
                 """,
                 unsafe_allow_html=True,
@@ -1568,7 +1575,7 @@ def _protein_label(recipe):
 def recipe_card(result, key):
     recipe = result["recipe"]
     if not result["missing"]:
-        missing_note = "No required ingredients missing"
+        missing_note = "Check amounts: " + ", ".join(result["uncertain"]) if result["uncertain"] else "No required ingredients missing"
     else:
         missing_note = "Missing: " + ", ".join(str(item) for item in result["missing"])
     notes = " ".join(result.get("field_notes") or [])
@@ -1649,7 +1656,8 @@ def show_recommendations():
                 with Gemini `{RECIPE_MODEL}` as fallback when a Gemini key is available.
                 The app then checks that JSON locally.
 
-                - **Cook now** means every listed ingredient is already in the pantry.
+                - **Cook now** means all listed amounts fit the confirmed pantry.
+                - **Check quantities** means ingredient names match, but some amounts or units could not be verified.
                 - **Almost ready** means one or two ingredients are missing.
                 - **Needs shopping** means three or more ingredients are missing, or the ingredient list was blank.
                 - The percent is that pantry overlap. Diet, maximum time, and avoid ingredients are hard filters.
@@ -1691,7 +1699,7 @@ def show_recommendations():
 
     action_left, action_right = st.columns(2)
     with action_left:
-        if st.button("Refresh recipes", use_container_width=True):
+        if st.button("Refresh recipes", use_container_width=True, disabled=st.session_state.get("recipe_request_active", False)):
             if not st.session_state.confirmed:
                 st.warning("Confirm your inventory before asking again.")
             else:
@@ -1719,13 +1727,19 @@ def show_recipe_details():
 
     recipe = selected["recipe"]
     checked = rank_recipes([recipe], current_constraints(), st.session_state.inventory)
-    result = checked[0] if checked else None
-    available = inventory_names(include_temporary_exclusions=True)
+    if not checked:
+        st.warning("This recipe no longer matches the current hard filters.")
+        if st.button("Back to recipes"):
+            st.session_state.page = "Recommendations"
+            st.rerun()
+        return
+    result = checked[0]
     ingredients = recipe.get("ingredients") or []
-    missing = [item for item in ingredients if normalize_name(item) not in available]
-    present = [item for item in ingredients if normalize_name(item) in available]
+    missing = result["missing"]
+    uncertain = result["uncertain"]
+    present = [item for item in ingredients if item not in missing and item not in uncertain]
     diet = recipe.get("diet") or "diet not listed"
-    field_notes = selected.get("field_notes") or []
+    field_notes = result["field_notes"]
 
     st.markdown(f'<div class="page-title">{_esc(recipe.get("title"))}</div>', unsafe_allow_html=True)
     st.markdown(
@@ -1745,8 +1759,10 @@ def show_recipe_details():
         if not ingredients:
             st.markdown("- Ingredients were not returned.")
         for ingredient in ingredients:
-            symbol = "✓" if normalize_name(ingredient) in available else "!"
-            st.markdown(f"- {symbol} {_esc(ingredient)}")
+            symbol = "✓" if ingredient in present else "!"
+            amount = result["required_amounts"].get(ingredient)
+            label = f"{ingredient} ({amount[0]:g} {amount[1]})" if amount else ingredient
+            st.markdown(f"- {symbol} {_esc(label)}")
 
         st.markdown('<div class="section-title">Steps</div>', unsafe_allow_html=True)
         steps = recipe.get("instructions") or []
@@ -1757,12 +1773,8 @@ def show_recipe_details():
         st.markdown("</div>", unsafe_allow_html=True)
 
     with right:
-        if result:
-            score_text = f"{result['score']}% pantry match"
-            reason = result["reason"]
-        else:
-            score_text = "Filtered by current constraints"
-            reason = "This recipe no longer matches the current hard filters."
+        score_text = f"{result['score']}% pantry match"
+        reason = result["reason"]
         st.markdown(
             f"""
             <div class="card">
@@ -1797,8 +1809,10 @@ def show_recipe_details():
                 st.markdown("**Possible substitutions**")
                 for line in substitution_lines:
                     st.markdown(f"- {line}")
-        elif ingredients:
-            st.success("Cook now: every required ingredient is available in your confirmed pantry.")
+        if uncertain:
+            st.warning("Check amounts: " + ", ".join(uncertain))
+        if result["status"] == "Cook now":
+            st.success("Cook now: the listed amounts fit your confirmed pantry.")
         st.markdown("</div>", unsafe_allow_html=True)
 
         st.markdown("<br>", unsafe_allow_html=True)
@@ -1861,7 +1875,7 @@ def show_evaluation_plan():
         st.markdown('<div class="section-title">Recipe source</div>', unsafe_allow_html=True)
         st.markdown(
             """
-            **Current ranking:** Groq proposes recipes from the confirmed pantry, with Gemini as fallback. The app then applies diet, time, and avoid filters and labels Cook now, Almost ready, and Needs shopping from ingredient overlap. Invalid model output shows an error and no recipes.
+            **Current ranking:** Groq proposes recipes from the confirmed pantry, with Gemini as fallback. The app then applies diet, time, and avoid filters and checks ingredient overlap and verifies quantities when units match. Invalid model output shows an error and no recipes.
 
             A licensed recipe catalog can still replace free generation later. Until then, every shown recipe comes from an AI response that passed the JSON checks.
             """

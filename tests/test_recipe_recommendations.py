@@ -4,7 +4,6 @@ import json
 
 from app.recipe_recommendations import (
     RECIPE_MODEL,
-    RECIPE_PROMPT,
     Constraints,
     gemini_complete,
     parse_model_output,
@@ -66,7 +65,7 @@ def test_pantry_matching_assigns_cook_almost_and_shopping_buckets():
         {"Ingredient": "Spinach", "Quantity": 1, "Unit": "bag"},
     ]
     cards = rank_recipes(parsed.candidates, Constraints(), pantry)
-    assert [card["status"] for card in cards] == ["Cook now", "Almost ready", "Needs shopping"]
+    assert [card["status"] for card in cards] == ["Check quantities", "Almost ready", "Needs shopping"]
     assert cards[0]["missing"] == []
     assert cards[1]["missing"] == ["Lemon"]
     assert cards[2]["score"] < cards[1]["score"] < cards[0]["score"]
@@ -161,7 +160,7 @@ def test_partial_recipe_is_shown_with_missing_fields_marked():
         [{"Ingredient": "Rice", "Quantity": 1, "Unit": "cups"}],
     )
     assert parsed.ok
-    assert cards[0]["status"] == "Cook now"
+    assert cards[0]["status"] == "Check quantities"
     assert cards[0]["recipe"]["time"] is None
     assert "minutes" in cards[0]["recipe"]["missing_fields"]
     assert any("Cooking time" in note for note in cards[0]["field_notes"])
@@ -182,12 +181,10 @@ def test_prompt_includes_pantry_and_hard_filters():
     )
     assert result.ok
     prompt = seen[0]
-    assert "Spinach" in prompt
-    assert "Diet hard filter: Vegan" in prompt
-    assert "Maximum minutes: 20" in prompt
-    assert "peanut" in prompt
-    assert "a quick bowl" in prompt
-    assert RECIPE_PROMPT in prompt
+    data = json.loads(prompt)
+    assert data["pantry"] == [{"ingredient": "Spinach", "quantity": 1, "unit": "bag"}]
+    assert data["hard_constraints"] == {"diet": "Vegan", "max_minutes": 20, "avoid": ["peanut"]}
+    assert data["preferences"]["meal_request"] == "a quick bowl"
     assert "not-a-real-key" not in prompt
 
 
@@ -240,10 +237,10 @@ def test_provider_order_and_fallback(monkeypatch):
     import app.recipe_recommendations as module
 
     calls = []
-    def groq(key, prompt):
+    def groq(key, prompt, *, timeout):
         calls.append("groq")
         raise RuntimeError("Service unavailable")
-    def gemini(key, prompt):
+    def gemini(key, prompt, *, timeout):
         calls.append("gemini")
         return _payload([_recipe("Rice", ["Rice"])])
     monkeypatch.setattr(module, "groq_complete", groq)
@@ -259,7 +256,7 @@ def test_groq_only_and_success_skips_gemini(monkeypatch):
 
     monkeypatch.delenv("GEMINI_API_KEY", raising=False)
     monkeypatch.setenv("GROQ_API_KEY", "groq-key")
-    monkeypatch.setattr(module, "groq_complete", lambda key, prompt: _payload([_recipe("Rice", ["Rice"])]))
+    monkeypatch.setattr(module, "groq_complete", lambda key, prompt, **kwargs: _payload([_recipe("Rice", ["Rice"])]))
     def unexpected(*args):
         raise AssertionError("Gemini should not be called")
     monkeypatch.setattr(module, "gemini_complete", unexpected)
@@ -273,10 +270,10 @@ def test_invalid_groq_output_falls_back_but_valid_empty_list_does_not(monkeypatc
     import app.recipe_recommendations as module
 
     calls = []
-    monkeypatch.setattr(module, "gemini_complete", lambda *args: calls.append("gemini") or '{"recipes": []}')
+    monkeypatch.setattr(module, "gemini_complete", lambda *args, **kwargs: calls.append("gemini") or '{"recipes": []}')
     for raw, expected_calls in (("not json", ["gemini"]), ('{"recipes": []}', [])):
         calls.clear()
-        monkeypatch.setattr(module, "groq_complete", lambda *args: raw)
+        monkeypatch.setattr(module, "groq_complete", lambda *args, **kwargs: raw)
         result = recommend_recipes([{"Ingredient": "Rice"}], Constraints(), api_key="gemini-key", groq_api_key="groq-key")
         assert result.ok and result.candidates == []
         assert calls == expected_calls
@@ -285,7 +282,7 @@ def test_invalid_groq_output_falls_back_but_valid_empty_list_does_not(monkeypatc
 def test_all_providers_fail_without_exposing_keys(monkeypatch):
     import app.recipe_recommendations as module
 
-    def fail(key, prompt):
+    def fail(key, prompt, *, timeout):
         raise RuntimeError(f"Unauthorized key: {key}")
     monkeypatch.setattr(module, "groq_complete", fail)
     monkeypatch.setattr(module, "gemini_complete", fail)

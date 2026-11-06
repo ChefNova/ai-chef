@@ -5,7 +5,7 @@ Tests focus on the data-transformation logic that does NOT require
 a live Tesseract install or LLM API call. OCR and LLM calls are mocked.
 """
 
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 import pytest
 
@@ -71,28 +71,28 @@ def test_receipt_extraction_item_count():
 # Extractor integration test (mocked OCR + LLM)
 # ---------------------------------------------------------------------------
 
-@patch("app.receipt_extractor.run_ocr", return_value=SAMPLE_OCR_TEXT)
-@patch("app.receipt_extractor.call_extraction_llm", return_value=SAMPLE_EXTRACTION_JSON)
+@patch("app.receipt_extractor.extract_text_with_ocr", return_value=SAMPLE_OCR_TEXT)
+@patch("app.receipt_extractor.extract_with_groq", return_value=ReceiptExtraction(**SAMPLE_EXTRACTION_JSON))
 def test_extract_receipt_returns_validated_items(mock_llm, mock_ocr):
-    """Full extraction pipeline returns validated GroceryItem list."""
     from app.receipt_extractor import extract_receipt
 
-    image_bytes = b"fake-image-bytes"
-    result = extract_receipt(image_bytes, filename="test_receipt.jpg")
-
-    assert isinstance(result, ReceiptExtraction)
-    assert len(result.items) == 3
-    assert result.items[0].name == "Organic Spinach"
-
-    mock_ocr.assert_called_once()
+    result = extract_receipt("test_receipt.jpg", groq_api_key="test-key")
+    assert isinstance(result.extraction, ReceiptExtraction)
+    assert len(result.extraction.items) == 3
+    assert result.extraction.items[0].name == "Organic Spinach"
+    mock_ocr.assert_called_once_with("test_receipt.jpg")
     mock_llm.assert_called_once()
+    payload = mock_llm.call_args.args[0]
+    assert "Organic Spinach" in payload
+    assert all(text not in payload for text in ("VISA", "SUBTOTAL", "Main St"))
 
 
-@patch("app.receipt_extractor.run_ocr", return_value="")
-@patch("app.receipt_extractor.call_extraction_llm", return_value={"items": []})
+@patch("app.receipt_extractor.extract_text_with_ocr", return_value="")
+@patch("app.receipt_extractor.extract_with_groq")
 def test_extract_receipt_empty_ocr(mock_llm, mock_ocr):
-    """Empty OCR output produces an empty item list, no crash."""
     from app.receipt_extractor import extract_receipt
 
-    result = extract_receipt(b"blank", filename="blank.jpg")
-    assert result.items == []
+    result = extract_receipt("blank.jpg", groq_api_key="test-key")
+    assert result.source == "manual_review"
+    assert result.extraction is None
+    mock_llm.assert_not_called()
