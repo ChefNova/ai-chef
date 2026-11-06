@@ -47,7 +47,9 @@ class Substitution(BaseModel):
 
 class IngredientAmount(BaseModel):
     ingredient: str
-    quantity: float = Field(gt=0, allow_inf_nan=False)
+    # Gemini structured output does not support exclusiveMinimum.
+    # The local parser checks that returned quantities are positive.
+    quantity: float = Field(allow_inf_nan=False)
     unit: str
 
 

@@ -331,3 +331,26 @@ def test_gemini_usage_includes_thinking_tokens():
     gemini_complete("key", "prompt", client_factory=lambda key: client,
                     config_builder=lambda: {}, usage_callback=usage.append)
     assert usage == [{"input_tokens": 800, "output_tokens": 900}]
+
+
+
+def test_gemini_serializes_recipe_quantity_schema():
+    import httpx
+    from google import genai
+    from google.genai import types
+
+    def respond(request):
+        body = json.loads(request.content)
+        quantity = (body["generationConfig"]["responseSchema"]["properties"]["recipes"]
+                    ["items"]["properties"]["ingredient_amounts"]["items"]["properties"]["quantity"])
+        assert quantity["type"] == "NUMBER"
+        return httpx.Response(200, json={
+            "candidates": [{"content": {"role": "model", "parts": [{"text": '{"recipes": []}'}]}}],
+        })
+
+    def factory(key):
+        return genai.Client(api_key=key, http_options=types.HttpOptions(
+            client_args={"transport": httpx.MockTransport(respond)},
+        ))
+
+    assert json.loads(gemini_complete("test-key", "{}", client_factory=factory)) == {"recipes": []}

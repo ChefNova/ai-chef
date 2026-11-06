@@ -103,11 +103,15 @@ Run just this corpus with `python -m pytest tests/test_recommendation_accuracy.p
 
 These results apply to the cases above. For example, a 100% ingredient match can still show **Check quantities** when the recipe omits amounts.
 
-### Current live walkthrough status
+### Live walkthrough results on the current pipeline
 
-| Walkthrough | Status |
-| --- | --- |
-| Automatic Groq-to-Gemini fallback | Pending a live run with both providers configured. The historical provider benchmark ran each independently. |
-| Receipt upload through OCR, extraction, and pantry save | Local OCR and filtering ran on a synthetic receipt. All three grocery lines survived and the loyalty ID was removed. Tesseract misread the banana price as 8.78 instead of 0.78. Provider extraction and pantry save still need a live run. |
-| Typed groceries through extraction and pantry save | Pending a provider key. |
-| Voice recording through transcription, extraction, and pantry save | A synthetic grocery-list recording is ready. Live transcription and extraction need a Groq key. |
+On November 5, 2026 (Central time), a local harness ran ChefNova's application functions with real provider calls and synthetic inputs. It saved reviewed grocery rows to a disposable SQLite database and read them back. The harness exercised the same extraction, transcription, recipe, and storage code used by Streamlit. Browser widgets and microphone capture were outside this run.
+
+| Walkthrough | Input and execution | Observed result |
+| --- | --- | --- |
+| Recipe generation and automatic fallback | Pantry with two cups of rice, one can of chickpeas, and one bag of spinach. Vegan, at most 20 minutes. First ran with both configured keys, then supplied a deliberately invalid Groq key to elicit a real HTTP 401. | Groq returned **Quick Vegan Rice & Chickpea Spinach Bowl** in 2.73 s, labeled **Needs shopping**. On the controlled failure, Groq returned HTTP 401 and ChefNova automatically used Gemini, which returned **Quick Chickpea Spinach Rice Bowl** in 1.42 s total, labeled **Almost ready**. This run verified recovery from authentication failure. The HTTP 429 cooldown still has simulated test coverage. |
+| Receipt OCR, extraction, and save | Synthetic receipt with rice, chickpeas, bananas, and a loyalty ID. Used local Tesseract, then Groq. | Filtering kept all three grocery lines and removed the loyalty ID. Tesseract misread the banana price as 8.78 instead of 0.78. Groq still extracted **1.12 lb bananas** and left the rice and chickpea amounts unknown. During review, each single purchase line was saved as **1 count**. SQLite readback returned all three items. |
+| Typed grocery entry | Typed “I have two cups of rice and one can of chickpeas.” | Groq returned **2 cups rice** and **1 can chickpeas**. Both amounts and units matched the SQLite readback. The flow took 1.20 s. |
+| Voice grocery entry | Passed a synthesized recording of the same sentence to the app's voice transcription function. | Groq Whisper transcribed the sentence correctly. Grocery extraction returned **2 cups rice** and **1 can chickpeas**, both verified in SQLite. Transcription, extraction, and save took 1.13 s. |
+
+The first live pass exposed two issues. Gemini's SDK rejected the recipe quantity schema before sending a request, and Groq rejected typed and transcribed grocery requests with HTTP 429 because the expected output exceeded the account's token limit. The successful rerun used a Gemini-compatible quantity schema, kept the positive-quantity check in Python, and capped Groq grocery structuring at 700 completion tokens.

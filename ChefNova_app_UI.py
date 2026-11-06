@@ -543,6 +543,7 @@ User input:
                 retry_messages=typed_retry_messages,
                 schema=ReceiptExtraction.model_json_schema(),
                 task_label="typed/voice grocery structuring",
+                max_completion_tokens=700,
                 temperature=0,
                 reasoning_effort="none",
             )
