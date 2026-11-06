@@ -73,4 +73,41 @@ The team ran **36 real API requests on November 4, 2026 (Central time)** using s
 | Rice, tofu, and broccoli. Vegan, at most 30 minutes, avoid peanut and groundnut. | Groq hit its rate limit on all three attempts. Gemini produced displayable recipes on all three, including **Simple Tofu and Broccoli Rice Bowl**. |
 | Rice and spinach. Vegan, with a request for chicken and butter. | No displayable recipe on any attempt. Groq returned three rate-limit errors and Gemini returned three client errors. |
 
-After the guardrail update, all **19 of 19 local application checks** matched their expected outcomes when rerun on the current branch. These checks exercise parsing, filtering, and ranking with synthetic inputs. They do not measure live recipe quality. The automated provider-failure tests above simulate errors. A live run of the current automatic fallback chain and live receipt, typed, and voice walkthroughs have yet to be recorded here.
+### Current-branch offline checks
+
+**Result: 19/19 passed.** Each case passes a hand-written model response through the same JSON parser and local recipe ranker used by the app. The runner compares the observed recipe titles and, where specified, parse status, match score, and readiness label against the case's expected values. The default pantry has one cup of rice. Some cases substitute a different pantry or apply explicit constraints. The tests do not call an AI provider or run OCR, voice transcription, or the browser UI.
+
+Run just this corpus with `python -m pytest tests/test_recommendation_accuracy.py -q`. The inputs and assertions are in [cases.py](../validation/recommendations/cases.py) and [evaluate.py](../validation/recommendations/evaluate.py).
+
+| # | Check | Expected and observed result |
+| ---: | --- | --- |
+| 1 | Vegan filter with chicken, milk, and rice candidates labeled vegan | Keeps rice and drops chicken and milk. |
+| 2 | Vegetarian filter with yogurt and fish candidates | Keeps yogurt and drops fish. |
+| 3 | 20-minute cap with recipes taking 21 minutes, an unknown time, and exactly 20 minutes | Keeps only the recipe at the 20-minute boundary. |
+| 4 | Uppercase `PEANUT` in the avoid list | Drops the peanut butter recipe and keeps rice. |
+| 5 | Pantry overlap versus provider order | Reorders the candidates by match to 100%, 50%, and 25%, with **Check quantities**, **Almost ready**, and **Needs shopping**, respectively. |
+| 6 | Rice names with different capitalization and surrounding spaces | Recognizes the same ingredient and reports 100% overlap. |
+| 7 | Fastest ranking priority | Puts the five-minute recipe above the 20-minute recipe despite its lower pantry match. |
+| 8 | Highest protein ranking priority | Puts the recipe listing 30 g above the recipe listing 5 g despite its lower pantry match. |
+| 9 | Fewest missing ingredients priority | Puts the rice-only recipe above the recipe that also needs lemon. |
+| 10 | High-protein preference with equal pantry matches | Breaks the tie in favor of the recipe listing more protein. |
+| 11 | Eggplant under the vegan filter | Keeps eggplant. The word boundary prevents it from matching egg. |
+| 12 | Recipe with an empty ingredient list | Reports 0% overlap and **Needs shopping**. |
+| 13 | Ingredient list contains both `Rice` and `rice` | Rejects the duplicate during parsing and returns no candidates. |
+| 14 | Well-formed response with an empty recipes array | Accepts the response and returns no candidates. |
+| 15 | Pantry contains rice with zero stock | Reports 0% overlap and **Almost ready** for the rice recipe. |
+| 16 | Pantry contains `Chickpeas` and the recipe requests `Chickpea` | Recognizes the alias and reports 100% overlap. |
+| 17 | Duck candidate under the vegetarian filter | Drops the duck candidate. |
+| 18 | Feta candidate under the vegan filter | Drops the feta candidate. |
+| 19 | Groundnut oil with `peanut` in the avoid list | Recognizes the alias and drops the recipe. |
+
+These results apply to the cases above. For example, a 100% ingredient match can still show **Check quantities** when the recipe omits amounts.
+
+### Current live walkthrough status
+
+| Walkthrough | Status |
+| --- | --- |
+| Automatic Groq-to-Gemini fallback | Pending a live run with both providers configured. The historical provider benchmark ran each independently. |
+| Receipt upload through OCR, extraction, and pantry save | Local OCR and filtering ran on a synthetic receipt. All three grocery lines survived and the loyalty ID was removed. Tesseract misread the banana price as 8.78 instead of 0.78. Provider extraction and pantry save still need a live run. |
+| Typed groceries through extraction and pantry save | Pending a provider key. |
+| Voice recording through transcription, extraction, and pantry save | A synthetic grocery-list recording is ready. Live transcription and extraction need a Groq key. |
