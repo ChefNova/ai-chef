@@ -1,91 +1,61 @@
-# ChefNova — Use-Case Walkthroughs
+# ChefNova use-case walkthroughs
 
-## UC-1: Upload a receipt and populate pantry
+These walkthroughs cover the Streamlit app on `stagging`. Use a disposable profile and synthetic data for the demo. A new profile may start with sample pantry items.
 
-**Actor:** Home cook  
-**Goal:** Parse a grocery receipt photo to build a pantry inventory
+## Demo setup
 
-### Steps
+1. Follow the [local setup guide](../app/INSTALL.md), then run `streamlit run ChefNova_app_UI.py` from the repository root.
+2. Open **My Inventory** and enter your provider keys under **AI API Keys**. Either provider can run receipt extraction or recipe generation. Use both keys to exercise Groq-to-Gemini fallback. Voice transcription requires a Groq key and microphone permission.
+3. Use a clear synthetic receipt for the primary flow. Keep a short typed grocery list ready for the recovery walkthrough.
 
-1. User opens ChefNova at `http://localhost:8501`.
-2. User clicks **Upload Receipt** and selects a photo (PNG or JPG).
-3. `receipt_extractor.py` runs Tesseract OCR on the image, producing raw text.
-4. The raw text is passed to the receipt extraction prompt; the LLM returns structured JSON.
-5. `receipt_validator.py` validates each item with Pydantic; items below confidence threshold are flagged.
-6. Validated items are added to the pantry panel in the UI.
-7. User reviews the list, edits quantities if needed, and confirms.
+## UC-1 · Build a pantry from a receipt, typed list, or voice
 
-**Expected outcome:** Pantry populated with grocery items; each item shows name, quantity, and unit.
+| Input | Steps | What to check |
+| --- | --- | --- |
+| **Receipt** | In **My Inventory**, open **Receipt**. Upload a PNG, JPG, JPEG, or WebP and click **Extract grocery items**. | Tesseract reads the image locally. ChefNova filters the OCR text before sending it to a provider, then checks the extracted items against the cleaned receipt. A receipt with no usable grocery lines can be entered manually. |
+| **Type** | Open **Type**, enter “I have two cups of rice and one can of chickpeas,” then click **Convert to grocery table**. | The grocery list becomes an editable draft. Check the item names, amounts, and units. |
+| **Voice** | Open **Voice** and use **Record grocery list** to say the same items. | Check the transcription and the resulting draft. If recording or transcription fails, use **Type**. |
 
-**Edge cases tested:**
+In the review table, correct a quantity and click **Add reviewed items**. Open the pantry table and verify the saved value. Review applies to all three input methods. Saving the same receipt twice adds its quantities twice because there is no receipt deduplication.
 
-- Blurry or low-contrast receipt → OCR returns partial text; app shows a warning and lists extracted items only.
-- Non-food items on receipt (e.g., detergent) → extractor filters them out per Rule 1 in the prompt.
-- Duplicate receipt upload → user is prompted to merge or replace.
+## UC-2 · Confirm the pantry and rank recipes
 
----
+1. In **My Inventory**, review the current pantry. If you edit it, click **Save pantry edits**, then click **Confirm Inventory**.
+2. Open **Get Recipe**. Set **Diet**, **Maximum cooking time**, or **Avoid ingredients**. For example, request a vegan meal in 20 minutes using rice and chickpeas.
+3. Click **Rank My Recipes**. Groq generates candidates first when configured. Gemini can take over if Groq fails or returns invalid output. Python validates, filters, and ranks the results locally. A valid empty response ends the provider request.
+4. Review the results. The initial view shows up to three recipes. Click **View recipe** to see the listed ingredients, quantities when supplied, and cooking steps.
 
-## UC-2: Get recipe recommendations from pantry
+**What to check.** **Cook now** means the listed amounts fit the confirmed pantry in matching units. **Check quantities** flags amounts that need review. Missing ingredients affect the pantry match. Compare the recipe steps with the ingredient list and check any dietary restrictions directly.
 
-**Actor:** Home cook  
-**Goal:** Receive actionable recipes using items currently in the pantry
+**Live recovery.** Edit and save a pantry quantity, then try **Rank My Recipes** before reconfirming. The app should require confirmation again. Return to **My Inventory**, confirm the updated pantry, and rerun. This recovery works without inducing an external provider failure.
 
-### Steps
+## UC-3 · Verify saved preferences and pantry state
 
-1. User sets optional dietary constraints (Vegan, Gluten-Free, etc.) and max cook time.
-2. User clicks **Find Recipes**.
-3. `recipe_recommendations.py` builds the prompt from pantry state and constraints.
-4. App calls Groq API (primary); on failure, falls back to Gemini API.
-5. A second call to Gemini Flash-Lite ranks the returned recipes by protein content, cook time, and pantry coverage.
-6. Up to 5 recipe cards are displayed with ingredients, instructions, and substitution suggestions.
+1. Under **Get Recipe**, set **Diet**, **Maximum cooking time**, and **Avoid ingredients**.
+2. Open a fresh session using the same profile. Return to **Get Recipe** and check that the settings are still selected.
+3. Verify the saved groceries in **My Inventory**. The pantry and preferences persist in SQLite. The confirmation is specific to the session and must be repeated before ranking.
 
-**Expected outcome:** Ranked recipe cards; each card shows title, estimated time, protein content, and step-by-step instructions.
+## UC-4 · Reset a disposable pantry
 
-**Edge cases tested:**
+1. In the pantry table under **My Inventory**, click **Clear pantry**.
+2. Reopen the same profile and verify that the pantry is still empty and saved preferences are still present.
+3. Verify that recipe generation is blocked until groceries are added and the pantry is confirmed.
 
-- Empty pantry → app shows "Add items to your pantry first" message; no LLM call made.
-- LLM returns malformed JSON → parser falls back to raw text display with a warning.
-- No recipes match constraints → LLM returns `[]`; app shows "No matching recipes found."
-- Groq API timeout → automatic retry once, then Gemini fallback.
+## Reproducible checks
 
----
+Run from the repository root:
 
-## UC-3: Adjust dietary profile
+```bash
+python -m pytest tests/test_guardrails.py tests/test_recipe_recommendations.py tests/test_ui_persistence.py -q
+```
 
-**Actor:** Home cook  
-**Goal:** Persist dietary preferences across sessions
+| Scenario | Expected result | Evidence |
+| --- | --- | --- |
+| Synthetic receipt includes personal details and an instruction to add a fake item | Both mocked providers receive cleaned text. The fake item fails the receipt evidence check. | [Guardrail tests](../tests/test_guardrails.py) |
+| Receipt contains only sensitive metadata | Extraction returns manual review without calling either provider. | [Guardrail tests](../tests/test_guardrails.py) |
+| Groq returns malformed JSON or a valid empty list | Malformed JSON can trigger Gemini fallback. A valid empty list does not. | [Recommendation tests](../tests/test_recipe_recommendations.py) |
+| Groq returns a simulated `429` or uses most of the time budget | The provider goes on cooldown after a `429`. Gemini can use the remaining budget. Failed attempts leave the confirmed pantry intact. | [Guardrail tests](../tests/test_guardrails.py) |
+| Amounts match, are insufficient, or use different units | The verified recipe can show **Cook now**. A shortfall affects the match and incompatible units can show **Check quantities**. | [Guardrail tests](../tests/test_guardrails.py) · [Streamlit tests](../tests/test_ui_persistence.py) |
+| Pantry or preferences change, then the user starts a fresh session | Saved values persist for the same profile. The pantry needs confirmation again. | [Streamlit tests](../tests/test_ui_persistence.py) |
 
-### Steps
-
-1. User opens the **Profile** sidebar.
-2. User selects one or more dietary tags (Vegan, Vegetarian, Gluten-Free, Halal, etc.).
-3. Preferences are stored in Streamlit session state.
-4. All subsequent recipe recommendation calls include the saved constraints automatically.
-
-**Expected outcome:** Recipe results filtered to match dietary profile without manual re-entry each session.
-
----
-
-## UC-4: Clear pantry
-
-**Actor:** Home cook  
-**Goal:** Reset pantry to start fresh
-
-### Steps
-
-1. User clicks **Clear Pantry** button.
-2. Session state pantry list is reset to `[]`.
-3. UI reflects empty pantry; previous receipt items are removed.
-
-**Expected outcome:** Pantry is empty; subsequent recipe recommendations are blocked until items are re-added.
-
----
-
-## Test case matrix
-
-| Use Case | Happy Path | Empty Input | API Failure | Bad LLM Output |
-|----------|------------|-------------|-------------|----------------|
-| UC-1 Receipt upload | ✅ | ✅ | N/A | ✅ |
-| UC-2 Recipe recommendations | ✅ | ✅ | ✅ (Groq→Gemini) | ✅ |
-| UC-3 Dietary profile | ✅ | ✅ | N/A | N/A |
-| UC-4 Clear pantry | ✅ | N/A | N/A | N/A |
+Provider failures in these tests are simulated. For live demo evidence, record the profile, input, selected constraints, provider shown in the recipe details, and observed result.
