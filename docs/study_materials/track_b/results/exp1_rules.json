@@ -1,0 +1,1049 @@
+{
+  "generated_at_utc": "2026-11-21T22:59:47.167119+00:00",
+  "commit": "c035d73190ebf773a64c585c5627235d0fb10a82",
+  "uncommitted_changes": true,
+  "python": "3.14.6",
+  "platform": "macOS-27.2.1-arm64-arm-64bit-Mach-O",
+  "gold_items": 166,
+  "system": "rules",
+  "metrics": {
+    "non_vegetarian": {
+      "n": 163,
+      "tp": 28,
+      "fp": 4,
+      "fn": 31,
+      "tn": 100,
+      "precision": 0.875,
+      "recall": 0.4746,
+      "f1": 0.6154,
+      "accuracy": 0.7853,
+      "recall_ci95": [
+        0.3527,
+        0.5996
+      ],
+      "by_category": {
+        "dairy": {
+          "n": 24,
+          "tp": 0,
+          "fp": 0,
+          "fn": 0,
+          "tn": 24,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "accuracy": 1.0
+        },
+        "egg": {
+          "n": 8,
+          "tp": 0,
+          "fp": 0,
+          "fn": 0,
+          "tn": 8,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "accuracy": 1.0
+        },
+        "hidden_animal": {
+          "n": 19,
+          "tp": 8,
+          "fp": 0,
+          "fn": 11,
+          "tn": 0,
+          "precision": 1.0,
+          "recall": 0.4211,
+          "f1": 0.5926,
+          "accuracy": 0.4211
+        },
+        "honey": {
+          "n": 3,
+          "tp": 0,
+          "fp": 0,
+          "fn": 0,
+          "tn": 3,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "accuracy": 1.0
+        },
+        "lookalike": {
+          "n": 23,
+          "tp": 0,
+          "fp": 4,
+          "fn": 0,
+          "tn": 19,
+          "precision": 0.0,
+          "recall": 1.0,
+          "f1": 0.0,
+          "accuracy": 0.8261
+        },
+        "meat": {
+          "n": 23,
+          "tp": 12,
+          "fp": 0,
+          "fn": 11,
+          "tn": 0,
+          "precision": 1.0,
+          "recall": 0.5217,
+          "f1": 0.6857,
+          "accuracy": 0.5217
+        },
+        "peanut": {
+          "n": 13,
+          "tp": 0,
+          "fp": 0,
+          "fn": 0,
+          "tn": 13,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "accuracy": 1.0
+        },
+        "plant": {
+          "n": 33,
+          "tp": 0,
+          "fp": 0,
+          "fn": 0,
+          "tn": 33,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "accuracy": 1.0
+        },
+        "seafood": {
+          "n": 17,
+          "tp": 8,
+          "fp": 0,
+          "fn": 9,
+          "tn": 0,
+          "precision": 1.0,
+          "recall": 0.4706,
+          "f1": 0.64,
+          "accuracy": 0.4706
+        }
+      },
+      "errors": [
+        {
+          "ingredient": "prosciutto",
+          "category": "meat",
+          "error": "false_negative"
+        },
+        {
+          "ingredient": "pepperoni",
+          "category": "meat",
+          "error": "false_negative"
+        },
+        {
+          "ingredient": "chorizo",
+          "category": "meat",
+          "error": "false_negative"
+        },
+        {
+          "ingredient": "salami",
+          "category": "meat",
+          "error": "false_negative"
+        },
+        {
+          "ingredient": "sausage",
+          "category": "meat",
+          "error": "false_negative"
+        },
+        {
+          "ingredient": "hot dog",
+          "category": "meat",
+          "error": "false_negative"
+        },
+        {
+          "ingredient": "veal",
+          "category": "meat",
+          "error": "false_negative"
+        },
+        {
+          "ingredient": "mutton",
+          "category": "meat",
+          "error": "false_negative"
+        },
+        {
+          "ingredient": "rabbit",
+          "category": "meat",
+          "error": "false_negative"
+        },
+        {
+          "ingredient": "pancetta",
+          "category": "meat",
+          "error": "false_negative"
+        },
+        {
+          "ingredient": "meatballs",
+          "category": "meat",
+          "error": "false_negative"
+        },
+        {
+          "ingredient": "prawns",
+          "category": "seafood",
+          "error": "false_negative"
+        },
+        {
+          "ingredient": "tilapia",
+          "category": "seafood",
+          "error": "false_negative"
+        },
+        {
+          "ingredient": "anchovies",
+          "category": "seafood",
+          "error": "false_negative"
+        },
+        {
+          "ingredient": "lobster",
+          "category": "seafood",
+          "error": "false_negative"
+        },
+        {
+          "ingredient": "scallops",
+          "category": "seafood",
+          "error": "false_negative"
+        },
+        {
+          "ingredient": "clams",
+          "category": "seafood",
+          "error": "false_negative"
+        },
+        {
+          "ingredient": "squid",
+          "category": "seafood",
+          "error": "false_negative"
+        },
+        {
+          "ingredient": "octopus",
+          "category": "seafood",
+          "error": "false_negative"
+        },
+        {
+          "ingredient": "smoked haddock",
+          "category": "seafood",
+          "error": "false_negative"
+        },
+        {
+          "ingredient": "gelatine",
+          "category": "hidden_animal",
+          "error": "false_negative"
+        },
+        {
+          "ingredient": "lard",
+          "category": "hidden_animal",
+          "error": "false_negative"
+        },
+        {
+          "ingredient": "suet",
+          "category": "hidden_animal",
+          "error": "false_negative"
+        },
+        {
+          "ingredient": "worcestershire sauce",
+          "category": "hidden_animal",
+          "error": "false_negative"
+        },
+        {
+          "ingredient": "bone broth",
+          "category": "hidden_animal",
+          "error": "false_negative"
+        },
+        {
+          "ingredient": "bonito flakes",
+          "category": "hidden_animal",
+          "error": "false_negative"
+        },
+        {
+          "ingredient": "dashi",
+          "category": "hidden_animal",
+          "error": "false_negative"
+        },
+        {
+          "ingredient": "caesar dressing",
+          "category": "hidden_animal",
+          "error": "false_negative"
+        },
+        {
+          "ingredient": "animal rennet",
+          "category": "hidden_animal",
+          "error": "false_negative"
+        },
+        {
+          "ingredient": "isinglass",
+          "category": "hidden_animal",
+          "error": "false_negative"
+        },
+        {
+          "ingredient": "schmaltz",
+          "category": "hidden_animal",
+          "error": "false_negative"
+        },
+        {
+          "ingredient": "oyster mushrooms",
+          "category": "lookalike",
+          "error": "false_positive"
+        },
+        {
+          "ingredient": "chicken of the woods mushroom",
+          "category": "lookalike",
+          "error": "false_positive"
+        },
+        {
+          "ingredient": "plant-based chicken",
+          "category": "lookalike",
+          "error": "false_positive"
+        },
+        {
+          "ingredient": "fish-free sauce",
+          "category": "lookalike",
+          "error": "false_positive"
+        }
+      ],
+      "ambiguous_decisions": {
+        "carmine": false,
+        "parmesan": false,
+        "gruyere": false
+      }
+    },
+    "non_vegan": {
+      "n": 162,
+      "tp": 53,
+      "fp": 18,
+      "fn": 44,
+      "tn": 47,
+      "precision": 0.7465,
+      "recall": 0.5464,
+      "f1": 0.631,
+      "accuracy": 0.6173,
+      "recall_ci95": [
+        0.4474,
+        0.6418
+      ],
+      "by_category": {
+        "dairy": {
+          "n": 26,
+          "tp": 18,
+          "fp": 0,
+          "fn": 8,
+          "tn": 0,
+          "precision": 1.0,
+          "recall": 0.6923,
+          "f1": 0.8182,
+          "accuracy": 0.6923
+        },
+        "egg": {
+          "n": 8,
+          "tp": 6,
+          "fp": 0,
+          "fn": 2,
+          "tn": 0,
+          "precision": 1.0,
+          "recall": 0.75,
+          "f1": 0.8571,
+          "accuracy": 0.75
+        },
+        "hidden_animal": {
+          "n": 20,
+          "tp": 8,
+          "fp": 0,
+          "fn": 12,
+          "tn": 0,
+          "precision": 1.0,
+          "recall": 0.4,
+          "f1": 0.5714,
+          "accuracy": 0.4
+        },
+        "honey": {
+          "n": 3,
+          "tp": 1,
+          "fp": 0,
+          "fn": 2,
+          "tn": 0,
+          "precision": 1.0,
+          "recall": 0.3333,
+          "f1": 0.5,
+          "accuracy": 0.3333
+        },
+        "lookalike": {
+          "n": 23,
+          "tp": 0,
+          "fp": 16,
+          "fn": 0,
+          "tn": 7,
+          "precision": 0.0,
+          "recall": 1.0,
+          "f1": 0.0,
+          "accuracy": 0.3043
+        },
+        "meat": {
+          "n": 23,
+          "tp": 12,
+          "fp": 0,
+          "fn": 11,
+          "tn": 0,
+          "precision": 1.0,
+          "recall": 0.5217,
+          "f1": 0.6857,
+          "accuracy": 0.5217
+        },
+        "peanut": {
+          "n": 13,
+          "tp": 0,
+          "fp": 1,
+          "fn": 0,
+          "tn": 12,
+          "precision": 0.0,
+          "recall": 1.0,
+          "f1": 0.0,
+          "accuracy": 0.9231
+        },
+        "plant": {
+          "n": 29,
+          "tp": 0,
+          "fp": 1,
+          "fn": 0,
+          "tn": 28,
+          "precision": 0.0,
+          "recall": 1.0,
+          "f1": 0.0,
+          "accuracy": 0.9655
+        },
+        "seafood": {
+          "n": 17,
+          "tp": 8,
+          "fp": 0,
+          "fn": 9,
+          "tn": 0,
+          "precision": 1.0,
+          "recall": 0.4706,
+          "f1": 0.64,
+          "accuracy": 0.4706
+        }
+      },
+      "errors": [
+        {
+          "ingredient": "prosciutto",
+          "category": "meat",
+          "error": "false_negative"
+        },
+        {
+          "ingredient": "pepperoni",
+          "category": "meat",
+          "error": "false_negative"
+        },
+        {
+          "ingredient": "chorizo",
+          "category": "meat",
+          "error": "false_negative"
+        },
+        {
+          "ingredient": "salami",
+          "category": "meat",
+          "error": "false_negative"
+        },
+        {
+          "ingredient": "sausage",
+          "category": "meat",
+          "error": "false_negative"
+        },
+        {
+          "ingredient": "hot dog",
+          "category": "meat",
+          "error": "false_negative"
+        },
+        {
+          "ingredient": "veal",
+          "category": "meat",
+          "error": "false_negative"
+        },
+        {
+          "ingredient": "mutton",
+          "category": "meat",
+          "error": "false_negative"
+        },
+        {
+          "ingredient": "rabbit",
+          "category": "meat",
+          "error": "false_negative"
+        },
+        {
+          "ingredient": "pancetta",
+          "category": "meat",
+          "error": "false_negative"
+        },
+        {
+          "ingredient": "meatballs",
+          "category": "meat",
+          "error": "false_negative"
+        },
+        {
+          "ingredient": "prawns",
+          "category": "seafood",
+          "error": "false_negative"
+        },
+        {
+          "ingredient": "tilapia",
+          "category": "seafood",
+          "error": "false_negative"
+        },
+        {
+          "ingredient": "anchovies",
+          "category": "seafood",
+          "error": "false_negative"
+        },
+        {
+          "ingredient": "lobster",
+          "category": "seafood",
+          "error": "false_negative"
+        },
+        {
+          "ingredient": "scallops",
+          "category": "seafood",
+          "error": "false_negative"
+        },
+        {
+          "ingredient": "clams",
+          "category": "seafood",
+          "error": "false_negative"
+        },
+        {
+          "ingredient": "squid",
+          "category": "seafood",
+          "error": "false_negative"
+        },
+        {
+          "ingredient": "octopus",
+          "category": "seafood",
+          "error": "false_negative"
+        },
+        {
+          "ingredient": "smoked haddock",
+          "category": "seafood",
+          "error": "false_negative"
+        },
+        {
+          "ingredient": "gelatine",
+          "category": "hidden_animal",
+          "error": "false_negative"
+        },
+        {
+          "ingredient": "lard",
+          "category": "hidden_animal",
+          "error": "false_negative"
+        },
+        {
+          "ingredient": "suet",
+          "category": "hidden_animal",
+          "error": "false_negative"
+        },
+        {
+          "ingredient": "worcestershire sauce",
+          "category": "hidden_animal",
+          "error": "false_negative"
+        },
+        {
+          "ingredient": "bone broth",
+          "category": "hidden_animal",
+          "error": "false_negative"
+        },
+        {
+          "ingredient": "bonito flakes",
+          "category": "hidden_animal",
+          "error": "false_negative"
+        },
+        {
+          "ingredient": "dashi",
+          "category": "hidden_animal",
+          "error": "false_negative"
+        },
+        {
+          "ingredient": "caesar dressing",
+          "category": "hidden_animal",
+          "error": "false_negative"
+        },
+        {
+          "ingredient": "animal rennet",
+          "category": "hidden_animal",
+          "error": "false_negative"
+        },
+        {
+          "ingredient": "isinglass",
+          "category": "hidden_animal",
+          "error": "false_negative"
+        },
+        {
+          "ingredient": "schmaltz",
+          "category": "hidden_animal",
+          "error": "false_negative"
+        },
+        {
+          "ingredient": "carmine",
+          "category": "hidden_animal",
+          "error": "false_negative"
+        },
+        {
+          "ingredient": "ricotta",
+          "category": "dairy",
+          "error": "false_negative"
+        },
+        {
+          "ingredient": "buttermilk",
+          "category": "dairy",
+          "error": "false_negative"
+        },
+        {
+          "ingredient": "halloumi",
+          "category": "dairy",
+          "error": "false_negative"
+        },
+        {
+          "ingredient": "brie",
+          "category": "dairy",
+          "error": "false_negative"
+        },
+        {
+          "ingredient": "mascarpone",
+          "category": "dairy",
+          "error": "false_negative"
+        },
+        {
+          "ingredient": "creme fraiche",
+          "category": "dairy",
+          "error": "false_negative"
+        },
+        {
+          "ingredient": "kefir",
+          "category": "dairy",
+          "error": "false_negative"
+        },
+        {
+          "ingredient": "gruyere",
+          "category": "dairy",
+          "error": "false_negative"
+        },
+        {
+          "ingredient": "mayonnaise",
+          "category": "egg",
+          "error": "false_negative"
+        },
+        {
+          "ingredient": "meringue",
+          "category": "egg",
+          "error": "false_negative"
+        },
+        {
+          "ingredient": "beeswax",
+          "category": "honey",
+          "error": "false_negative"
+        },
+        {
+          "ingredient": "royal jelly",
+          "category": "honey",
+          "error": "false_negative"
+        },
+        {
+          "ingredient": "coconut milk",
+          "category": "lookalike",
+          "error": "false_positive"
+        },
+        {
+          "ingredient": "almond milk",
+          "category": "lookalike",
+          "error": "false_positive"
+        },
+        {
+          "ingredient": "oat milk",
+          "category": "lookalike",
+          "error": "false_positive"
+        },
+        {
+          "ingredient": "soy milk",
+          "category": "lookalike",
+          "error": "false_positive"
+        },
+        {
+          "ingredient": "cocoa butter",
+          "category": "lookalike",
+          "error": "false_positive"
+        },
+        {
+          "ingredient": "cream of tartar",
+          "category": "lookalike",
+          "error": "false_positive"
+        },
+        {
+          "ingredient": "butter beans",
+          "category": "lookalike",
+          "error": "false_positive"
+        },
+        {
+          "ingredient": "oyster mushrooms",
+          "category": "lookalike",
+          "error": "false_positive"
+        },
+        {
+          "ingredient": "chicken of the woods mushroom",
+          "category": "lookalike",
+          "error": "false_positive"
+        },
+        {
+          "ingredient": "vegan butter",
+          "category": "lookalike",
+          "error": "false_positive"
+        },
+        {
+          "ingredient": "vegan cheese",
+          "category": "lookalike",
+          "error": "false_positive"
+        },
+        {
+          "ingredient": "plant-based chicken",
+          "category": "lookalike",
+          "error": "false_positive"
+        },
+        {
+          "ingredient": "egg-free pasta",
+          "category": "lookalike",
+          "error": "false_positive"
+        },
+        {
+          "ingredient": "coconut cream",
+          "category": "lookalike",
+          "error": "false_positive"
+        },
+        {
+          "ingredient": "apple butter",
+          "category": "lookalike",
+          "error": "false_positive"
+        },
+        {
+          "ingredient": "fish-free sauce",
+          "category": "lookalike",
+          "error": "false_positive"
+        },
+        {
+          "ingredient": "almond butter",
+          "category": "plant",
+          "error": "false_positive"
+        },
+        {
+          "ingredient": "peanut butter",
+          "category": "peanut",
+          "error": "false_positive"
+        }
+      ],
+      "ambiguous_decisions": {
+        "white sugar": false,
+        "red wine": false,
+        "dark chocolate": false,
+        "naan bread": false
+      }
+    },
+    "contains_peanut": {
+      "n": 164,
+      "tp": 7,
+      "fp": 0,
+      "fn": 4,
+      "tn": 153,
+      "precision": 1.0,
+      "recall": 0.6364,
+      "f1": 0.7778,
+      "accuracy": 0.9756,
+      "recall_ci95": [
+        0.3538,
+        0.8483
+      ],
+      "by_category": {
+        "dairy": {
+          "n": 26,
+          "tp": 0,
+          "fp": 0,
+          "fn": 0,
+          "tn": 26,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "accuracy": 1.0
+        },
+        "egg": {
+          "n": 8,
+          "tp": 0,
+          "fp": 0,
+          "fn": 0,
+          "tn": 8,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "accuracy": 1.0
+        },
+        "hidden_animal": {
+          "n": 20,
+          "tp": 0,
+          "fp": 0,
+          "fn": 0,
+          "tn": 20,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "accuracy": 1.0
+        },
+        "honey": {
+          "n": 3,
+          "tp": 0,
+          "fp": 0,
+          "fn": 0,
+          "tn": 3,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "accuracy": 1.0
+        },
+        "lookalike": {
+          "n": 23,
+          "tp": 0,
+          "fp": 0,
+          "fn": 0,
+          "tn": 23,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "accuracy": 1.0
+        },
+        "meat": {
+          "n": 23,
+          "tp": 0,
+          "fp": 0,
+          "fn": 0,
+          "tn": 23,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "accuracy": 1.0
+        },
+        "peanut": {
+          "n": 11,
+          "tp": 7,
+          "fp": 0,
+          "fn": 4,
+          "tn": 0,
+          "precision": 1.0,
+          "recall": 0.6364,
+          "f1": 0.7778,
+          "accuracy": 0.6364
+        },
+        "plant": {
+          "n": 33,
+          "tp": 0,
+          "fp": 0,
+          "fn": 0,
+          "tn": 33,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "accuracy": 1.0
+        },
+        "seafood": {
+          "n": 17,
+          "tp": 0,
+          "fp": 0,
+          "fn": 0,
+          "tn": 17,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "accuracy": 1.0
+        }
+      },
+      "errors": [
+        {
+          "ingredient": "arachis oil",
+          "category": "peanut",
+          "error": "false_negative"
+        },
+        {
+          "ingredient": "monkey nuts",
+          "category": "peanut",
+          "error": "false_negative"
+        },
+        {
+          "ingredient": "satay sauce",
+          "category": "peanut",
+          "error": "false_negative"
+        },
+        {
+          "ingredient": "goober peas",
+          "category": "peanut",
+          "error": "false_negative"
+        }
+      ],
+      "ambiguous_decisions": {
+        "mixed nuts": false,
+        "vegetable oil": false
+      }
+    }
+  },
+  "robustness": {
+    "as labelled": {
+      "non_vegetarian": {
+        "recall": 0.4746,
+        "precision": 0.875,
+        "f1": 0.6154,
+        "fn": 31,
+        "fp": 4
+      },
+      "non_vegan": {
+        "recall": 0.5464,
+        "precision": 0.7465,
+        "f1": 0.631,
+        "fn": 44,
+        "fp": 18
+      },
+      "contains_peanut": {
+        "recall": 0.6364,
+        "precision": 1.0,
+        "f1": 0.7778,
+        "fn": 4,
+        "fp": 0
+      }
+    },
+    "UPPER CASE": {
+      "non_vegetarian": {
+        "recall": 0.4746,
+        "precision": 0.875,
+        "f1": 0.6154,
+        "fn": 31,
+        "fp": 4
+      },
+      "non_vegan": {
+        "recall": 0.5464,
+        "precision": 0.7465,
+        "f1": 0.631,
+        "fn": 44,
+        "fp": 18
+      },
+      "contains_peanut": {
+        "recall": 0.6364,
+        "precision": 1.0,
+        "f1": 0.7778,
+        "fn": 4,
+        "fp": 0
+      }
+    },
+    "Title Case": {
+      "non_vegetarian": {
+        "recall": 0.4746,
+        "precision": 0.875,
+        "f1": 0.6154,
+        "fn": 31,
+        "fp": 4
+      },
+      "non_vegan": {
+        "recall": 0.5464,
+        "precision": 0.7465,
+        "f1": 0.631,
+        "fn": 44,
+        "fp": 18
+      },
+      "contains_peanut": {
+        "recall": 0.6364,
+        "precision": 1.0,
+        "f1": 0.7778,
+        "fn": 4,
+        "fp": 0
+      }
+    },
+    "with amount": {
+      "non_vegetarian": {
+        "recall": 0.4746,
+        "precision": 0.875,
+        "f1": 0.6154,
+        "fn": 31,
+        "fp": 4
+      },
+      "non_vegan": {
+        "recall": 0.5464,
+        "precision": 0.7465,
+        "f1": 0.631,
+        "fn": 44,
+        "fp": 18
+      },
+      "contains_peanut": {
+        "recall": 0.6364,
+        "precision": 1.0,
+        "f1": 0.7778,
+        "fn": 4,
+        "fp": 0
+      }
+    },
+    "with descriptor": {
+      "non_vegetarian": {
+        "recall": 0.4746,
+        "precision": 0.875,
+        "f1": 0.6154,
+        "fn": 31,
+        "fp": 4
+      },
+      "non_vegan": {
+        "recall": 0.5464,
+        "precision": 0.7465,
+        "f1": 0.631,
+        "fn": 44,
+        "fp": 18
+      },
+      "contains_peanut": {
+        "recall": 0.6364,
+        "precision": 1.0,
+        "f1": 0.7778,
+        "fn": 4,
+        "fp": 0
+      }
+    },
+    "hyphenated": {
+      "non_vegetarian": {
+        "recall": 0.4746,
+        "precision": 0.875,
+        "f1": 0.6154,
+        "fn": 31,
+        "fp": 4
+      },
+      "non_vegan": {
+        "recall": 0.5464,
+        "precision": 0.7465,
+        "f1": 0.631,
+        "fn": 44,
+        "fp": 18
+      },
+      "contains_peanut": {
+        "recall": 0.6364,
+        "precision": 1.0,
+        "f1": 0.7778,
+        "fn": 4,
+        "fp": 0
+      }
+    },
+    "trailing note": {
+      "non_vegetarian": {
+        "recall": 0.4746,
+        "precision": 0.875,
+        "f1": 0.6154,
+        "fn": 31,
+        "fp": 4
+      },
+      "non_vegan": {
+        "recall": 0.5464,
+        "precision": 0.7465,
+        "f1": 0.631,
+        "fn": 44,
+        "fp": 18
+      },
+      "contains_peanut": {
+        "recall": 0.6364,
+        "precision": 1.0,
+        "f1": 0.7778,
+        "fn": 4,
+        "fp": 0
+      }
+    }
+  },
+  "latency_per_ingredient_ms": 0.00491
+}

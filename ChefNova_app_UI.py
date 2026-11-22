@@ -922,7 +922,6 @@ def process_refinement(text):
 
 
 # ---------- Saved pantry and preferences ----------
-DEFAULT_PROFILE = "default"
 NO_TIME_LIMIT = "No limit"
 MAX_TIME_CHOICES = [label_from_minutes(minutes) for minutes in MAX_MINUTES_CHOICES] + [NO_TIME_LIMIT]
 SAVE_ERRORS = (StorageError, ValidationError, sqlite3.Error)
@@ -950,12 +949,94 @@ PREFERENCE_FIELDS = {
 }
 
 
-def profile_from_url():
-    """The name in the URL keeps a browser refresh on the same profile."""
+def google_login_configured():
     try:
-        return normalize_username(st.query_params.get("profile", DEFAULT_PROFILE))
-    except ValueError:
-        return DEFAULT_PROFILE
+        return "auth" in st.secrets
+    except FileNotFoundError:
+        return False
+
+
+def password_sign_in():
+    """Form callback for an existing username/password account."""
+    try:
+        user = PantryStore().check_password(st.session_state.signin_username, st.session_state.signin_password)
+    except (*SAVE_ERRORS, OSError) as exc:
+        st.session_state.auth_error = f"Could not check the account. {exc}"
+        return
+    if user is None:
+        # One message for both cases, so the form does not reveal which usernames exist.
+        st.session_state.auth_error = "Wrong username or password."
+        return
+    st.session_state.password_user = user.username
+
+
+def password_create_account():
+    """Form callback. A new account starts with the same pantry and preferences as any new profile."""
+    if st.session_state.signup_password != st.session_state.signup_confirm:
+        st.session_state.auth_error = "The two passwords do not match."
+        return
+    try:
+        user = PantryStore().create_account(
+            st.session_state.signup_username,
+            st.session_state.signup_email,
+            st.session_state.signup_password,
+            seed_items=STARTER_ITEMS,
+        )
+    except (ValueError, *SAVE_ERRORS, OSError) as exc:
+        st.session_state.auth_error = str(exc)
+        return
+    st.session_state.password_user = user.username
+
+
+def require_login():
+    """Show only the sign-in screen until the visitor signs in with Google or a password.
+
+    Nothing from any pantry is read before then. A Google account is created on its first sign-in;
+    a password account is created by the Create account form.
+    """
+    if st.user.get("is_logged_in") or st.session_state.get("password_user"):
+        return
+    st.markdown("## 🍳 ChefNova")
+    st.write("Sign in to open your saved pantry, or create an account.")
+    if error := st.session_state.pop("auth_error", None):
+        st.error(error)
+
+    # Keyed, so an error from Create account keeps that tab open instead of jumping back to Sign in.
+    sign_in_tab, create_tab = st.tabs(["Sign in", "Create account"], key="auth_tab", on_change="rerun")
+    with sign_in_tab:
+        with st.form("signin_form"):
+            st.text_input("Username", key="signin_username")
+            st.text_input("Password", type="password", key="signin_password")
+            st.form_submit_button("Sign in", type="primary", on_click=password_sign_in)
+    with create_tab:
+        with st.form("signup_form"):
+            st.text_input("Username", key="signup_username", help="Letters, numbers, spaces, '.', '_', or '-'.")
+            st.text_input("Email", key="signup_email", placeholder="name@example.com")
+            st.text_input("Password", type="password", key="signup_password", help="At least 8 characters.")
+            st.text_input("Confirm password", type="password", key="signup_confirm")
+            st.form_submit_button("Create account", type="primary", on_click=password_create_account)
+
+    # Without the OAuth client (see app/INSTALL.md) Google sign-in is simply not offered.
+    if google_login_configured():
+        st.divider()
+        st.button("Sign in with Google", on_click=st.login)
+    st.stop()
+
+
+def profile_for_signed_in_user():
+    if st.user.get("is_logged_in"):
+        # Google's `sub` never changes, unlike the email, so the pantry follows the account.
+        # Only this id is stored; the email and name are shown from the login but never saved.
+        return normalize_username(f"google-{st.user.sub}")
+    return st.session_state.password_user
+
+
+def log_out():
+    if st.user.get("is_logged_in"):
+        st.logout()
+    else:
+        # Clear everything, so the next person in this browser sees nothing from this account.
+        st.session_state.clear()
 
 
 def load_saved_state():
@@ -1001,29 +1082,9 @@ def save_preference(key):
         st.error(f"This preference applies for now but was not saved. {describe_save_error(exc)}")
 
 
-def switch_profile():
-    """Sidebar callback. Clears the session so nothing from one profile shows under another."""
-    try:
-        name = normalize_username(st.session_state.profile_input)
-    except ValueError as exc:
-        st.session_state.profile_input = st.session_state.profile
-        st.error(str(exc))
-        return
-    st.session_state.profile_input = name
-    if name == st.session_state.profile:
-        return
-    keep = {"profile_input", "gemini_api_key", "groq_api_key"}
-    for key in list(st.session_state.keys()):
-        if key not in keep:
-            del st.session_state[key]
-    st.session_state.profile = name
-    st.query_params["profile"] = name
-    init_state()
-
-
-if "profile" not in st.session_state:
-    st.session_state.profile = profile_from_url()
-    st.session_state.profile_input = st.session_state.profile
+require_login()
+# Logging out clears the browser session, so one session never holds two accounts.
+st.session_state.profile = profile_for_signed_in_user()
 
 try:
     store = PantryStore()
@@ -1045,12 +1106,8 @@ with st.sidebar:
         unsafe_allow_html=True,
     )
 
-    st.text_input(
-        "Profile",
-        key="profile_input",
-        on_change=switch_profile,
-        help="Your pantry and preferences are saved under this name. It is not a login: anyone using this app can open the same profile.",
-    )
+    st.caption(f"Signed in as {st.user.get('email') if st.user.get('is_logged_in') else st.session_state.profile}")
+    st.button("Log out", use_container_width=True, on_click=log_out)
 
     if st.button("⌂  Home", use_container_width=True):
         st.session_state.page = "Home"
@@ -1644,6 +1701,11 @@ def show_recommendations():
 
     if recipes:
         st.markdown('<div class="section-title">ChefNova recommends</div>', unsafe_allow_html=True)
+        # Track B found the diet filter misses about half of unlisted animal products, so say so where it matters.
+        st.caption(
+            "Diet and avoid filters are preference filters, not allergy checks. "
+            "Always check every ingredient against your own needs before cooking."
+        )
         top_results = recipes[:3]
         cols = st.columns(len(top_results), gap="medium")
         for i, (col, result) in enumerate(zip(cols, top_results)):

@@ -41,7 +41,7 @@ Version-controlled notes on the prompts and response contracts. The recipe runti
 ```
 Persistence · SQLite (data/chefnova.db)
 │
-├── users                  — one row per profile (names stored lowercase)
+├── users                  — one row per account: password accounts store an email (unique) and a scrypt password_hash; Google accounts use username = google-<sub> and no password
 ├── pantry_items           — one row per ingredient + unit
 ├── user_preferences       — one row per profile: diet, cuisine, time limit,
 │                            ranking priority, high-protein flag

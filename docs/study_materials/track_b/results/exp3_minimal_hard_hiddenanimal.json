@@ -1,0 +1,75 @@
+{
+  "generated_at_utc": "2026-11-21T22:59:47.167119+00:00",
+  "commit": "c035d73190ebf773a64c585c5627235d0fb10a82",
+  "uncommitted_changes": true,
+  "python": "3.14.6",
+  "platform": "macOS-27.2.1-arm64-arm-64bit-Mach-O",
+  "gold_items": 166,
+  "repeats": 3,
+  "pause_s": 45.0,
+  "runs": [
+    {
+      "config": "Groq 120B + minimal prompt",
+      "provider": "groq",
+      "model": "openai/gpt-oss-120b",
+      "status": "measured",
+      "prompt": "minimal",
+      "requests": 3,
+      "status_counts": {
+        "ok": 0,
+        "invalid_output": 0,
+        "rate_limited": 3,
+        "error": 0
+      },
+      "parse_ok_rate": 0.0,
+      "coverage": 0.0,
+      "coverage_ci95": [
+        0.0,
+        0.5615
+      ],
+      "recipes_returned": 0,
+      "recipes_shown": 0,
+      "violating_recipes_without_filter": 0,
+      "violation_rate_without_filter": null,
+      "violating_recipes_shown": 0,
+      "violation_rate_shown": null,
+      "violation_rate_shown_ci95": null,
+      "time_unknown_recipes": 0,
+      "wrongly_hidden_recipes": 0,
+      "wrongly_hidden": [],
+      "unjudged_ingredients": [],
+      "latency_ok": null,
+      "mean_cost_usd": null,
+      "cost_per_1000_requests_usd": null,
+      "samples": [
+        {
+          "scenario": "hidden-animal temptation",
+          "repetition": 1,
+          "status": "rate_limited",
+          "error_type": "RateLimitError",
+          "latency_ms": 266.2,
+          "usage": null,
+          "estimated_cost_usd": null
+        },
+        {
+          "scenario": "hidden-animal temptation",
+          "repetition": 2,
+          "status": "rate_limited",
+          "error_type": "RateLimitError",
+          "latency_ms": 105.4,
+          "usage": null,
+          "estimated_cost_usd": null
+        },
+        {
+          "scenario": "hidden-animal temptation",
+          "repetition": 3,
+          "status": "rate_limited",
+          "error_type": "RateLimitError",
+          "latency_ms": 101.5,
+          "usage": null,
+          "estimated_cost_usd": null
+        }
+      ]
+    }
+  ]
+}

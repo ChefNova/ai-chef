@@ -40,7 +40,7 @@ The live recipe run deliberately elicited a real Groq HTTP 401. ChefNova switche
 | --- | --- |
 | Receipt image | Processed locally through a temporary file. Filtered OCR text is sent to the extraction provider. |
 | Typed and voice input | Typed grocery text and voice transcripts are sent for grocery structuring. Voice audio is sent to Groq for transcription. Receipt-specific PII filtering applies to the receipt path. |
-| Pantry and preferences | Saved per profile in local SQLite. Recipe requests send confirmed pantry items and selected constraints to the attempted provider. Local profile names identify records. The prototype has no authentication or formal retention policy. |
+| Pantry and preferences | Saved per profile in local SQLite. Recipe requests send confirmed pantry items and selected constraints to the attempted provider. Users sign in with a username and password (the password stored as a salted scrypt hash; the sign-up email stored lowercased and not verified) or with Google (OpenID Connect via `st.login`; records are keyed by Google's account id, and the email is not stored). There is no password reset, login rate limiting, or persistent password-session cookie: a browser refresh signs a password user out. The optional FastAPI service has no authentication and must not be exposed publicly. There is no formal retention policy. |
 | API keys | Configure keys in the ignored `app/.env` file or use the session fields in the app. Keep `app/.env.example` as a blank template for credentials. |
 
 ## Reproduce the automated checks

@@ -1,0 +1,99 @@
+{
+  "generated_at_utc": "2026-11-21T22:55:07.622952+00:00",
+  "commit": "c035d73190ebf773a64c585c5627235d0fb10a82",
+  "uncommitted_changes": true,
+  "python": "3.14.6",
+  "platform": "macOS-27.2.1-arm64-arm-64bit-Mach-O",
+  "gold_items": 166,
+  "repeats": 3,
+  "pause_s": 30.0,
+  "runs": [
+    {
+      "config": "Groq 120B + minimal prompt",
+      "provider": "groq",
+      "model": "openai/gpt-oss-120b",
+      "status": "measured",
+      "prompt": "minimal",
+      "requests": 3,
+      "status_counts": {
+        "ok": 0,
+        "invalid_output": 3,
+        "rate_limited": 0,
+        "error": 0
+      },
+      "parse_ok_rate": 0.0,
+      "coverage": 0.0,
+      "coverage_ci95": [
+        0.0,
+        0.5615
+      ],
+      "recipes_returned": 0,
+      "recipes_shown": 0,
+      "violating_recipes_without_filter": 0,
+      "violation_rate_without_filter": null,
+      "violating_recipes_shown": 0,
+      "violation_rate_shown": null,
+      "violation_rate_shown_ci95": null,
+      "time_unknown_recipes": 0,
+      "wrongly_hidden_recipes": 0,
+      "wrongly_hidden": [],
+      "unjudged_ingredients": [],
+      "latency_ok": null,
+      "mean_cost_usd": 0.000986,
+      "cost_per_1000_requests_usd": 0.986,
+      "samples": [
+        {
+          "scenario": "honey and butter in a vegan pantry",
+          "repetition": 1,
+          "latency_ms": 3895.5,
+          "raw": "{\"recipes\":[{\"title\":\"Vegan Banana Oat Pancakes\",\"minutes\":20,\"protein_g\":8,\"diet\":\"Vegan\",\"cuisine\":\"American\",\"emoji\":\"🥞\",\"tags\":[\"breakfast\",\"vegan\",\"quick\"],\"ingredients\":[\"Oats\",\"Banana\",\"Plant milk\",\"Maple syrup\",\"Vegan butter\"],\"ingredient_amounts\":[{\"ingredient\":\"Oats\",\"quantity\":1,\"unit\":\"cup\"},{\"ingredient\":\"Banana\",\"quantity\":1,\"unit\":\"pcs\"},{\"ingredient\":\"Plant milk\",\"quantity\":1,\"unit\":\"cup\"},{\"ingredient\":\"Maple syrup\",\"quantity\":2,\"unit\":\"tbsp\"},{\"ingredient\":\"Vegan butter\",\"quantity\":2,\"unit\":\"tbsp\"}],\"instructions\":[\"Blend oats into a fine flour using a blender or food processor.\",\"Add banana, plant milk, maple syrup and melted vegan butter; blend until smooth.\",\"Heat a non‑stick skillet over medium heat and lightly grease with vegan butter.\",\"Pour ¼ cup batter per pancake; cook until bubbles form, then flip and cook another 2 minutes.\",\"Serve warm with extra maple syrup if desired.\"],\"substitutions\":[{\"ingredient\":\"Butter\",\"instead\":\"Vegan butter\"}],\"missing_fields\":[]},{\"title\":\"Overnight Oats with Banana & Maple Syrup\",\"minutes\":5,\"protein_g\":6,\"diet\":\"Vegan\",\"cuisine\":\"International\",\"emoji\":\"🥣\",\"tags\":[\"breakfast\",\"vegan\",\"no‑cook\"],\"ingredients\":[\"Oats\",\"Banana\",\"Plant milk\",\"Maple syrup\",\"Chia seeds\"],\"ingredient_amounts\":[{\"ingredient\":\"Oats\",\"quantity\":0.5,\"unit\":\"cup\"},{\"ingredient\":\"Banana\",\"quantity\":1,\"unit\":\"pcs\"},{\"ingredient\":\"Plant milk\",\"quantity\":0.5,\"unit\":\"cup\"},{\"ingredient\":\"Maple syrup\",\"quantity\":1,\"unit\":\"tbsp\"},{\"ingredient\":\"Chia seeds\",\"quantity\":1,\"unit\":\"tbsp\"}],\"instructions\":[\"In a jar or bowl combine oats, chia seeds, plant milk and maple syrup; stir well.\",\"Slice banana and layer on top or stir in.\",\"Cover and refrigerate overnight (or at least 4 hours).\",\"In the morning give it a quick stir and enjoy cold or warmed.\"],\"substitutions\":[{\"ingredient\":\"Honey\",\"instead\":\"Maple syrup\"}],\"missing_fields\":[]},{\"title\":\"Vegan Banana Oat Cookies\",\"minutes\":30,\"protein_g\":5,\"diet\":\"Vegan\",\"cuisine\":\"Dessert\",\"emoji\":\"🍪\",\"tags\":[\"snack\",\"vegan\",\"dessert\"],\"ingredients\":[\"Oats\",\"Banana\",\"Maple syrup\",\"Vegan butter\",\"Vanilla extract\"],\"ingredient_amounts\":[{\"ingredient\":\"Oats\",\"quantity\":1,\"unit\":\"cup\"},{\"ingredient\":\"Banana\",\"quantity\":2,\"unit\":\"pcs\"},{\"ingredient\":\"Maple syrup\",\"quantity\":2,\"unit\":\"tbsp\"},{\"ingredient\":\"Vegan butter\",\"quantity\":2,\"unit\":\"tbsp\"},{\"ingredient\":\"Vanilla extract\",\"quantity\":0.5,\"unit\":\"tsp\"}],\"instructions\":[\"Preheat oven to 350°F (175°C) and line a baking sheet with parchment paper.\",\"Mash bananas in a bowl until smooth.\",\"Stir in melted vegan butter, maple syrup and vanilla extract.\",\"Add oats and mix until a sticky dough forms.\",\"Drop spoonfuls onto the sheet and flatten slightly.\",\"Bake 12‑15 minutes until edges turn golden.\",\"Cool on a rack before serving.\"],\"substitutions\":[{\"ingredient\":\"Butter\",\"instead\":\"Vegan butter\"},{\"ingredient\":\"Honey\",\"instead\":\"Maple syrup\"}],\"missing_fields\":[]}]}",
+          "parse_error": "The model returned inconsistent ingredients. No recipes were shown.",
+          "status": "invalid_output",
+          "returned": 0,
+          "shown": 0,
+          "recipes": [],
+          "ingredients": {},
+          "usage": {
+            "input_tokens": 847,
+            "output_tokens": 1652
+          },
+          "estimated_cost_usd": 0.00111825
+        },
+        {
+          "scenario": "honey and butter in a vegan pantry",
+          "repetition": 2,
+          "latency_ms": 2961.5,
+          "raw": "{\"recipes\":[{\"title\":\"Banana Oat Pancakes\",\"minutes\":20,\"protein_g\":8,\"diet\":\"Vegan\",\"cuisine\":\"American\",\"emoji\":\"🥞\",\"tags\":[\"breakfast\",\"quick\",\"vegan\"],\"ingredients\":[\"Oats\",\"Banana\",\"Plant‑based butter\",\"Maple syrup\",\"Plant milk\"],\"ingredient_amounts\":[{\"ingredient\":\"Oats\",\"quantity\":1,\"unit\":\"cup\"},{\"ingredient\":\"Banana\",\"quantity\":1,\"unit\":\"count\"},{\"ingredient\":\"Plant‑based butter\",\"quantity\":2,\"unit\":\"tbsp\"},{\"ingredient\":\"Maple syrup\",\"quantity\":2,\"unit\":\"tbsp\"},{\"ingredient\":\"Plant milk\",\"quantity\":0.5,\"unit\":\"cup\"}],\"instructions\":[\"Blend oats into a fine flour.\",\"Add banana, plant‑based butter, maple syrup and plant milk; blend until smooth.\",\"Heat a non‑stick pan over medium heat and pour batter to form pancakes.\",\"Cook 2‑3 minutes per side until golden.\",\"Serve with extra maple syrup if desired.\"],\"substitutions\":[{\"ingredient\":\"Butter\",\"instead\":\"Plant‑based butter\"},{\"ingredient\":\"Honey\",\"instead\":\"Maple syrup\"}],\"missing_fields\":[]},{\"title\":\"No‑Bake Oat Energy Bites\",\"minutes\":10,\"protein_g\":6,\"diet\":\"Vegan\",\"cuisine\":\"Snack\",\"emoji\":\"🍪\",\"tags\":[\"snack\",\"vegan\",\"no‑bake\"],\"ingredients\":[\"Oats\",\"Banana\",\"Maple syrup\",\"Peanut butter\"],\"ingredient_amounts\":[{\"ingredient\":\"Oats\",\"quantity\":1,\"unit\":\"cup\"},{\"ingredient\":\"Banana\",\"quantity\":1,\"unit\":\"count\"},{\"ingredient\":\"Maple syrup\",\"quantity\":2,\"unit\":\"tbsp\"},{\"ingredient\":\"Peanut butter\",\"quantity\":2,\"unit\":\"tbsp\"}],\"instructions\":[\"Mash the banana in a bowl.\",\"Stir in maple syrup and peanut butter until well combined.\",\"Add oats and mix until a sticky dough forms.\",\"Roll into bite‑size balls and refrigerate for 15 minutes before serving.\"],\"substitutions\":[{\"ingredient\":\"Honey\",\"instead\":\"Maple syrup\"}],\"missing_fields\":[]},{\"title\":\"Vegan Oatmeal with Banana\",\"minutes\":5,\"protein_g\":4,\"diet\":\"Vegan\",\"cuisine\":\"American\",\"emoji\":\"🥣\",\"tags\":[\"breakfast\",\"vegan\",\"comfort\"],\"ingredients\":[\"Oats\",\"Banana\",\"Plant milk\",\"Maple syrup\"],\"ingredient_amounts\":[{\"ingredient\":\"Oats\",\"quantity\":0.5,\"unit\":\"cup\"},{\"ingredient\":\"Plant milk\",\"quantity\":1,\"unit\":\"cup\"},{\"ingredient\":\"Banana\",\"quantity\":1,\"unit\":\"count\"},{\"ingredient\":\"Maple syrup\",\"quantity\":1,\"unit\":\"tbsp\"}],\"instructions\":[\"Combine oats and plant milk in a saucepan; bring to a boil.\",\"Reduce heat and simmer 3‑4 minutes, stirring occasionally.\",\"Slice banana and stir into cooked oatmeal.\",\"Drizzle with maple syrup and serve warm.\"],\"substitutions\":[{\"ingredient\":\"Honey\",\"instead\":\"Maple syrup\"},{\"ingredient\":\"Butter\",\"instead\":\"Plant‑based butter\"}],\"missing_fields\":[]},{\"title\":\"Banana Oat Smoothie\",\"minutes\":5,\"protein_g\":5,\"diet\":\"Vegan\",\"cuisine\":\"International\",\"emoji\":\"🥤\",\"tags\":[\"smoothie\",\"vegan\",\"quick\"],\"ingredients\":[\"Oats\",\"Banana\",\"Plant milk\",\"Maple syrup\"],\"ingredient_amounts\":[{\"ingredient\":\"Oats\",\"quantity\":0.25,\"unit\":\"cup\"},{\"ingredient\":\"Banana\",\"quantity\":1,\"unit\":\"count\"},{\"ingredient\":\"Plant milk\",\"quantity\":1,\"unit\":\"cup\"},{\"ingredient\":\"Maple syrup\",\"quantity\":1,\"unit\":\"tbsp\"}],\"instructions\":[\"Place oats in a blender and pulse to a fine powder.\",\"Add banana, plant milk and maple syrup; blend until smooth.\",\"Pour into a glass and enjoy immediately.\"],\"substitutions\":[{\"ingredient\":\"Honey\",\"instead\":\"Maple syrup\"},{\"ingredient\":\"Butter\",\"instead\":\"Plant‑based butter\"}],\"missing_fields\":[]}]}",
+          "parse_error": "The model returned inconsistent ingredients. No recipes were shown.",
+          "status": "invalid_output",
+          "returned": 0,
+          "shown": 0,
+          "recipes": [],
+          "ingredients": {},
+          "usage": {
+            "input_tokens": 847,
+            "output_tokens": 1237
+          },
+          "estimated_cost_usd": 0.00086925
+        },
+        {
+          "scenario": "honey and butter in a vegan pantry",
+          "repetition": 3,
+          "latency_ms": 3335.8,
+          "raw": "{\"recipes\":[{\"title\":\"Vegan Banana Oat Pancakes\",\"minutes\":20,\"protein_g\":8,\"diet\":\"Vegan\",\"cuisine\":\"American\",\"emoji\":\"🥞\",\"tags\":[\"breakfast\",\"easy\",\"pantry\"],\"ingredients\":[\"Oats\",\"Banana\",\"Plant milk\",\"Maple syrup\",\"Baking powder\",\"Coconut oil\"],\"ingredient_amounts\":[{\"ingredient\":\"Oats\",\"quantity\":1,\"unit\":\"cup\"},{\"ingredient\":\"Banana\",\"quantity\":1,\"unit\":\"count\"},{\"ingredient\":\"Plant milk\",\"quantity\":0.5,\"unit\":\"cup\"},{\"ingredient\":\"Maple syrup\",\"quantity\":2,\"unit\":\"tablespoons\"},{\"ingredient\":\"Baking powder\",\"quantity\":1,\"unit\":\"teaspoon\"},{\"ingredient\":\"Coconut oil\",\"quantity\":1,\"unit\":\"tablespoon\"}],\"instructions\":[\"Blend oats into flour consistency.\",\"Add banana, plant milk, maple syrup, baking powder, and melted coconut oil; blend until smooth.\",\"Heat a non‑stick skillet over medium heat and pour batter to form pancakes.\",\"Cook until bubbles form, flip and cook another 2 minutes.\",\"Serve warm with extra maple syrup if desired.\"],\"substitutions\":[{\"ingredient\":\"Honey\",\"instead\":\"Maple syrup\"},{\"ingredient\":\"Butter\",\"instead\":\"Coconut oil\"}],\"missing_fields\":[]},{\"title\":\"Vegan Oatmeal Banana Cookies\",\"minutes\":30,\"protein_g\":6,\"diet\":\"Vegan\",\"cuisine\":\"International\",\"emoji\":\"🍪\",\"tags\":[\"snack\",\"dessert\",\"pantry\"],\"ingredients\":[\"Oats\",\"Banana\",\"Maple syrup\",\"Coconut oil\",\"Vanilla extract\",\"Cinnamon\"],\"ingredient_amounts\":[{\"ingredient\":\"Oats\",\"quantity\":1.5,\"unit\":\"cup\"},{\"ingredient\":\"Banana\",\"quantity\":2,\"unit\":\"count\"},{\"ingredient\":\"Maple syrup\",\"quantity\":3,\"unit\":\"tablespoons\"},{\"ingredient\":\"Coconut oil\",\"quantity\":2,\"unit\":\"tablespoons\"},{\"ingredient\":\"Vanilla extract\",\"quantity\":1,\"unit\":\"teaspoon\"},{\"ingredient\":\"Cinnamon\",\"quantity\":0.5,\"unit\":\"teaspoon\"}],\"instructions\":[\"Preheat oven to 350°F (175°C) and line a baking sheet with parchment paper.\",\"In a bowl mash bananas, then stir in maple syrup, melted coconut oil, vanilla, and cinnamon.\",\"Mix in oats until a sticky dough forms.\",\"Drop spoonfuls onto the sheet and flatten slightly.\",\"Bake 12‑15 minutes until golden brown.\"],\"substitutions\":[{\"ingredient\":\"Honey\",\"instead\":\"Maple syrup\"},{\"ingredient\":\"Butter\",\"instead\":\"Coconut oil\"}],\"missing_fields\":[]},{\"title\":\"Vegan Banana Oat Smoothie\",\"minutes\":5,\"protein_g\":5,\"diet\":\"Vegan\",\"cuisine\":\"Global\",\"emoji\":\"🥤\",\"tags\":[\"drink\",\"quick\",\"pantry\"],\"ingredients\":[\"Oats\",\"Banana\",\"Plant milk\",\"Maple syrup\"],\"ingredient_amounts\":[{\"ingredient\":\"Oats\",\"quantity\":0.5,\"unit\":\"cup\"},{\"ingredient\":\"Banana\",\"quantity\":1,\"unit\":\"count\"},{\"ingredient\":\"Plant milk\",\"quantity\":1,\"unit\":\"cup\"},{\"ingredient\":\"Maple syrup\",\"quantity\":1,\"unit\":\"tablespoon\"}],\"instructions\":[\"Combine all ingredients in a blender.\",\"Blend on high until smooth and creamy.\",\"Pour into a glass and enjoy immediately.\"],\"substitutions\":[{\"ingredient\":\"Honey\",\"instead\":\"Maple syrup\"}],\"missing_fields\":[]},{\"title\":\"Vegan No‑Bake Oat Energy Bars\",\"minutes\":15,\"protein_g\":7,\"diet\":\"Vegan\",\"cuisine\":\"American\",\"emoji\":\"💪\",\"tags\":[\"snack\",\"energy\",\"pantry\"],\"ingredients\":[\"Oats\",\"Banana\",\"Maple syrup\",\"Coconut oil\",\"Chia seeds\"],\"ingredient_amounts\":[{\"ingredient\":\"Oats\",\"quantity\":2,\"unit\":\"cup\"},{\"ingredient\":\"Banana\",\"quantity\":2,\"unit\":\"count\"},{\"ingredient\":\"Maple syrup\",\"quantity\":4,\"unit\":\"tablespoons\"},{\"ingredient\":\"Coconut oil\",\"quantity\":2,\"unit\":\"tablespoons\"},{\"ingredient\":\"Chia seeds\",\"quantity\":2,\"unit\":\"tablespoons\"}],\"instructions\":[\"Mash bananas in a bowl, then stir in maple syrup and melted coconut oil.\",\"Add oats and chia seeds; mix until well combined.\",\"Press the mixture into a lined 8×8‑inch pan.\",\"Refrigerate for at least 1 hour, then cut into bars.\"],\"substitutions\":[{\"ingredient\":\"Honey\",\"instead\":\"Maple syrup\"},{\"ingredient\":\"Butter\",\"instead\":\"Coconut oil\"}],\"missing_fields\":[]}]}",
+          "parse_error": "The model returned inconsistent ingredients. No recipes were shown.",
+          "status": "invalid_output",
+          "returned": 0,
+          "shown": 0,
+          "recipes": [],
+          "ingredients": {},
+          "usage": {
+            "input_tokens": 847,
+            "output_tokens": 1404
+          },
+          "estimated_cost_usd": 0.00096945
+        }
+      ]
+    }
+  ]
+}

@@ -26,3 +26,6 @@ data/*.db-*
 .DS_Store
 .vscode/
 .idea/
+
+# Google OAuth client secret and cookie secret
+.streamlit/secrets.toml

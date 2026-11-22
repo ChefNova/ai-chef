@@ -1,0 +1,6177 @@
+{
+  "generated_at_utc": "2026-11-21T21:23:27.536491+00:00",
+  "commit": "c035d73190ebf773a64c585c5627235d0fb10a82",
+  "uncommitted_changes": true,
+  "python": "3.14.6",
+  "platform": "macOS-27.2.1-arm64-arm-64bit-Mach-O",
+  "gold_items": 166,
+  "repeats": 3,
+  "pause_s": 30.0,
+  "runs": [
+    {
+      "config": "Groq 120B + full prompt (production)",
+      "provider": "groq",
+      "model": "openai/gpt-oss-120b",
+      "status": "measured",
+      "prompt": "full",
+      "requests": 36,
+      "status_counts": {
+        "ok": 35,
+        "invalid_output": 1,
+        "rate_limited": 0,
+        "error": 0
+      },
+      "parse_ok_rate": 0.9722,
+      "coverage": 0.8333,
+      "coverage_ci95": [
+        0.6811,
+        0.9213
+      ],
+      "recipes_returned": 76,
+      "recipes_shown": 59,
+      "violating_recipes_without_filter": 0,
+      "violation_rate_without_filter": 0.0,
+      "violating_recipes_shown": 0,
+      "violation_rate_shown": 0.0,
+      "violation_rate_shown_ci95": [
+        0.0,
+        0.0611
+      ],
+      "unjudged_ingredients": [
+        "Baking powder",
+        "Baking soda",
+        "Banana",
+        "Basil",
+        "Bay leaf",
+        "Bean sprouts",
+        "Beans",
+        "Black pepper",
+        "Bread",
+        "Brown sugar",
+        "Canned tomatoes",
+        "Carrot",
+        "Celery",
+        "Cheese",
+        "Cherry tomatoes",
+        "Chia seeds",
+        "Chili flakes",
+        "Cilantro",
+        "Cinnamon",
+        "Corn",
+        "Cucumber",
+        "Cumin",
+        "Curry powder",
+        "Flax seeds",
+        "Flour",
+        "Fresh cilantro",
+        "Ginger",
+        "Granola",
+        "Green onion",
+        "Green onions",
+        "Green peas",
+        "Lemon",
+        "Lemon juice",
+        "Lime",
+        "Oil",
+        "Parmesan cheese",
+        "Parsley",
+        "Pasta",
+        "Peanut",
+        "Peas",
+        "Pepper",
+        "Plant milk",
+        "Red onion",
+        "Red pepper",
+        "Rice",
+        "Rice noodles",
+        "Rice vinegar",
+        "Salt",
+        "Scallions",
+        "Sesame oil",
+        "Strawberry jam",
+        "Sugar",
+        "Tamarind paste",
+        "Tomato",
+        "Tomato paste",
+        "Turmeric",
+        "Vanilla extract",
+        "Vegetable broth",
+        "Yogurt",
+        "black pepper",
+        "chili flakes",
+        "frozen peas",
+        "green onions",
+        "lime",
+        "rice noodles",
+        "salt",
+        "sesame oil",
+        "vegetable broth"
+      ],
+      "latency_ok": {
+        "p50_ms": 3530.0,
+        "p95_ms": 5629.5
+      },
+      "mean_cost_usd": 0.001073,
+      "cost_per_1000_requests_usd": 1.073,
+      "samples": [
+        {
+          "scenario": "vegan dinner",
+          "repetition": 1,
+          "latency_ms": 7138.0,
+          "status": "ok",
+          "returned": 4,
+          "shown": 3,
+          "recipes": [
+            {
+              "title": "Quick Chickpea Spinach Fried Rice",
+              "shown": true,
+              "violations": [],
+              "unjudged": [
+                "Rice",
+                "Green onion"
+              ]
+            },
+            {
+              "title": "Spinach Chickpea Rice Bowl with Lemon Tahini Dressing",
+              "shown": true,
+              "violations": [],
+              "unjudged": [
+                "Rice",
+                "Lemon",
+                "Salt",
+                "Pepper"
+              ]
+            },
+            {
+              "title": "Garlic Chickpea Spinach Soup",
+              "shown": false,
+              "violations": [],
+              "unjudged": [
+                "Vegetable broth",
+                "Salt",
+                "Pepper"
+              ]
+            },
+            {
+              "title": "Spicy Chickpea Spinach Rice Pilaf",
+              "shown": true,
+              "violations": [],
+              "unjudged": [
+                "Rice",
+                "Chili flakes",
+                "Cumin",
+                "Salt"
+              ]
+            }
+          ],
+          "ingredients": {
+            "Quick Chickpea Spinach Fried Rice": [
+              "Rice",
+              "Chickpeas",
+              "Spinach",
+              "Garlic",
+              "Soy sauce",
+              "Olive oil",
+              "Green onion"
+            ],
+            "Spinach Chickpea Rice Bowl with Lemon Tahini Dressing": [
+              "Rice",
+              "Chickpeas",
+              "Spinach",
+              "Garlic",
+              "Lemon",
+              "Tahini",
+              "Olive oil",
+              "Salt",
+              "Pepper"
+            ],
+            "Garlic Chickpea Spinach Soup": [
+              "Chickpeas",
+              "Spinach",
+              "Garlic",
+              "Vegetable broth",
+              "Olive oil",
+              "Salt",
+              "Pepper"
+            ],
+            "Spicy Chickpea Spinach Rice Pilaf": [
+              "Rice",
+              "Chickpeas",
+              "Spinach",
+              "Garlic",
+              "Chili flakes",
+              "Cumin",
+              "Olive oil",
+              "Salt"
+            ]
+          },
+          "usage": {
+            "input_tokens": 1112,
+            "output_tokens": 2876
+          },
+          "estimated_cost_usd": 0.0018924
+        },
+        {
+          "scenario": "vegan dinner",
+          "repetition": 2,
+          "latency_ms": 2630.9,
+          "status": "ok",
+          "returned": 2,
+          "shown": 1,
+          "recipes": [
+            {
+              "title": "Chickpea Spinach Fried Rice",
+              "shown": true,
+              "violations": [],
+              "unjudged": [
+                "Rice"
+              ]
+            },
+            {
+              "title": "Garlic Spinach Chickpea Curry with Rice",
+              "shown": false,
+              "violations": [],
+              "unjudged": [
+                "Rice",
+                "Curry powder"
+              ]
+            }
+          ],
+          "ingredients": {
+            "Chickpea Spinach Fried Rice": [
+              "Rice",
+              "Chickpeas",
+              "Spinach",
+              "Garlic",
+              "Soy sauce",
+              "Olive oil"
+            ],
+            "Garlic Spinach Chickpea Curry with Rice": [
+              "Rice",
+              "Chickpeas",
+              "Spinach",
+              "Garlic",
+              "Coconut milk",
+              "Curry powder",
+              "Olive oil"
+            ]
+          },
+          "usage": {
+            "input_tokens": 1112,
+            "output_tokens": 1107
+          },
+          "estimated_cost_usd": 0.000831
+        },
+        {
+          "scenario": "vegan dinner",
+          "repetition": 3,
+          "latency_ms": 3742.2,
+          "status": "ok",
+          "returned": 2,
+          "shown": 1,
+          "recipes": [
+            {
+              "title": "Garlic Chickpea Spinach Rice Bowl",
+              "shown": true,
+              "violations": [],
+              "unjudged": [
+                "Rice",
+                "Lemon juice",
+                "Salt",
+                "Black pepper"
+              ]
+            },
+            {
+              "title": "Spicy Chickpea Spinach Curry with Rice",
+              "shown": false,
+              "violations": [],
+              "unjudged": [
+                "Rice",
+                "Curry powder",
+                "Tomato paste",
+                "Salt"
+              ]
+            }
+          ],
+          "ingredients": {
+            "Garlic Chickpea Spinach Rice Bowl": [
+              "Rice",
+              "Chickpeas",
+              "Spinach",
+              "Garlic",
+              "Olive oil",
+              "Soy sauce",
+              "Lemon juice",
+              "Salt",
+              "Black pepper"
+            ],
+            "Spicy Chickpea Spinach Curry with Rice": [
+              "Rice",
+              "Chickpeas",
+              "Spinach",
+              "Garlic",
+              "Coconut milk",
+              "Curry powder",
+              "Onion",
+              "Tomato paste",
+              "Olive oil",
+              "Salt"
+            ]
+          },
+          "usage": {
+            "input_tokens": 1112,
+            "output_tokens": 1604
+          },
+          "estimated_cost_usd": 0.0011292
+        },
+        {
+          "scenario": "vegetarian quick meal",
+          "repetition": 1,
+          "latency_ms": 2835.5,
+          "status": "ok",
+          "returned": 1,
+          "shown": 0,
+          "recipes": [
+            {
+              "title": "Quick Tomato Cheese Pasta",
+              "shown": false,
+              "violations": [
+                "time None > 15"
+              ],
+              "unjudged": [
+                "Pasta",
+                "Cheese",
+                "Salt",
+                "Pepper",
+                "Basil"
+              ]
+            }
+          ],
+          "ingredients": {
+            "Quick Tomato Cheese Pasta": [
+              "Pasta",
+              "Tomatoes",
+              "Cheese",
+              "Olive oil",
+              "Garlic",
+              "Salt",
+              "Pepper",
+              "Basil"
+            ]
+          },
+          "usage": {
+            "input_tokens": 1091,
+            "output_tokens": 1174
+          },
+          "estimated_cost_usd": 0.00086805
+        },
+        {
+          "scenario": "vegetarian quick meal",
+          "repetition": 2,
+          "latency_ms": 1781.1,
+          "status": "ok",
+          "returned": 1,
+          "shown": 1,
+          "recipes": [
+            {
+              "title": "Quick Tomato Pasta",
+              "shown": true,
+              "violations": [],
+              "unjudged": [
+                "Pasta",
+                "Cheese",
+                "Basil"
+              ]
+            }
+          ],
+          "ingredients": {
+            "Quick Tomato Pasta": [
+              "Pasta",
+              "Tomatoes",
+              "Cheese",
+              "Olive oil",
+              "Garlic",
+              "Basil"
+            ]
+          },
+          "usage": {
+            "input_tokens": 1091,
+            "output_tokens": 679
+          },
+          "estimated_cost_usd": 0.00057105
+        },
+        {
+          "scenario": "vegetarian quick meal",
+          "repetition": 3,
+          "latency_ms": 3846.5,
+          "status": "ok",
+          "returned": 2,
+          "shown": 2,
+          "recipes": [
+            {
+              "title": "Quick Pasta with Tomato & Cheese",
+              "shown": true,
+              "violations": [],
+              "unjudged": [
+                "Pasta",
+                "Cheese",
+                "Basil",
+                "Salt",
+                "Pepper"
+              ]
+            },
+            {
+              "title": "Tomato & Cheese Pasta Salad",
+              "shown": true,
+              "violations": [],
+              "unjudged": [
+                "Pasta",
+                "Cheese",
+                "Lemon juice",
+                "Parsley",
+                "Salt",
+                "Pepper"
+              ]
+            }
+          ],
+          "ingredients": {
+            "Quick Pasta with Tomato & Cheese": [
+              "Pasta",
+              "Tomatoes",
+              "Cheese",
+              "Olive oil",
+              "Garlic",
+              "Basil",
+              "Salt",
+              "Pepper"
+            ],
+            "Tomato & Cheese Pasta Salad": [
+              "Pasta",
+              "Tomatoes",
+              "Cheese",
+              "Olive oil",
+              "Lemon juice",
+              "Parsley",
+              "Salt",
+              "Pepper"
+            ]
+          },
+          "usage": {
+            "input_tokens": 1091,
+            "output_tokens": 1681
+          },
+          "estimated_cost_usd": 0.00117225
+        },
+        {
+          "scenario": "avoid peanuts",
+          "repetition": 1,
+          "latency_ms": 4295.9,
+          "status": "ok",
+          "returned": 2,
+          "shown": 2,
+          "recipes": [
+            {
+              "title": "Tofu Broccoli Stir‑Fry with Rice",
+              "shown": true,
+              "violations": [],
+              "unjudged": [
+                "Rice",
+                "Ginger",
+                "Sesame oil",
+                "Green onions"
+              ]
+            },
+            {
+              "title": "Vegan Rice Bowl with Marinated Tofu and Steamed Broccoli",
+              "shown": true,
+              "violations": [],
+              "unjudged": [
+                "Rice",
+                "Rice vinegar",
+                "Sesame oil"
+              ]
+            }
+          ],
+          "ingredients": {
+            "Tofu Broccoli Stir‑Fry with Rice": [
+              "Rice",
+              "Tofu",
+              "Broccoli",
+              "Soy sauce",
+              "Garlic",
+              "Ginger",
+              "Sesame oil",
+              "Green onions"
+            ],
+            "Vegan Rice Bowl with Marinated Tofu and Steamed Broccoli": [
+              "Rice",
+              "Tofu",
+              "Broccoli",
+              "Soy sauce",
+              "Maple syrup",
+              "Rice vinegar",
+              "Sesame oil",
+              "Sesame seeds"
+            ]
+          },
+          "usage": {
+            "input_tokens": 1093,
+            "output_tokens": 1816
+          },
+          "estimated_cost_usd": 0.00125355
+        },
+        {
+          "scenario": "avoid peanuts",
+          "repetition": 2,
+          "latency_ms": 5629.5,
+          "status": "ok",
+          "returned": 3,
+          "shown": 3,
+          "recipes": [
+            {
+              "title": "Vegan Tofu Broccoli Stir‑Fry with Rice",
+              "shown": true,
+              "violations": [],
+              "unjudged": [
+                "Rice",
+                "Ginger",
+                "Sesame oil",
+                "Green onions",
+                "Salt",
+                "Black pepper"
+              ]
+            },
+            {
+              "title": "Simple Vegan Fried Rice",
+              "shown": true,
+              "violations": [],
+              "unjudged": [
+                "Rice",
+                "Carrot",
+                "Peas",
+                "Green onions",
+                "Salt"
+              ]
+            },
+            {
+              "title": "Vegan Rice and Tofu Soup",
+              "shown": true,
+              "violations": [],
+              "unjudged": [
+                "Rice",
+                "Vegetable broth",
+                "Ginger",
+                "Scallions",
+                "Sesame oil",
+                "Salt",
+                "Black pepper"
+              ]
+            }
+          ],
+          "ingredients": {
+            "Vegan Tofu Broccoli Stir‑Fry with Rice": [
+              "Rice",
+              "Tofu",
+              "Broccoli",
+              "Soy sauce",
+              "Garlic",
+              "Ginger",
+              "Sesame oil",
+              "Green onions",
+              "Salt",
+              "Black pepper"
+            ],
+            "Simple Vegan Fried Rice": [
+              "Rice",
+              "Tofu",
+              "Broccoli",
+              "Carrot",
+              "Peas",
+              "Soy sauce",
+              "Olive oil",
+              "Green onions",
+              "Garlic",
+              "Salt"
+            ],
+            "Vegan Rice and Tofu Soup": [
+              "Rice",
+              "Tofu",
+              "Broccoli",
+              "Vegetable broth",
+              "Soy sauce",
+              "Garlic",
+              "Ginger",
+              "Scallions",
+              "Sesame oil",
+              "Salt",
+              "Black pepper"
+            ]
+          },
+          "usage": {
+            "input_tokens": 1093,
+            "output_tokens": 2557
+          },
+          "estimated_cost_usd": 0.00169815
+        },
+        {
+          "scenario": "avoid peanuts",
+          "repetition": 3,
+          "latency_ms": 4914.3,
+          "status": "ok",
+          "returned": 2,
+          "shown": 2,
+          "recipes": [
+            {
+              "title": "Tofu and Broccoli Stir‑Fry with Rice",
+              "shown": true,
+              "violations": [],
+              "unjudged": [
+                "Rice",
+                "Ginger",
+                "Sesame oil",
+                "Green onions",
+                "Salt",
+                "Pepper"
+              ]
+            },
+            {
+              "title": "Vegan Fried Rice with Tofu and Broccoli",
+              "shown": true,
+              "violations": [],
+              "unjudged": [
+                "Rice",
+                "Green peas",
+                "Carrot",
+                "Sesame oil",
+                "Green onions",
+                "Turmeric",
+                "Salt"
+              ]
+            }
+          ],
+          "ingredients": {
+            "Tofu and Broccoli Stir‑Fry with Rice": [
+              "Rice",
+              "Tofu",
+              "Broccoli",
+              "Soy sauce",
+              "Garlic",
+              "Ginger",
+              "Sesame oil",
+              "Green onions",
+              "Salt",
+              "Pepper"
+            ],
+            "Vegan Fried Rice with Tofu and Broccoli": [
+              "Rice",
+              "Tofu",
+              "Broccoli",
+              "Soy sauce",
+              "Garlic",
+              "Green peas",
+              "Carrot",
+              "Sesame oil",
+              "Green onions",
+              "Turmeric",
+              "Salt"
+            ]
+          },
+          "usage": {
+            "input_tokens": 1093,
+            "output_tokens": 2210
+          },
+          "estimated_cost_usd": 0.00148995
+        },
+        {
+          "scenario": "sparse pantry",
+          "repetition": 1,
+          "latency_ms": 5426.4,
+          "status": "ok",
+          "returned": 4,
+          "shown": 0,
+          "recipes": [
+            {
+              "title": "Vegetable Fried Rice",
+              "shown": false,
+              "violations": [
+                "time None > 20"
+              ],
+              "unjudged": []
+            },
+            {
+              "title": "Simple Rice and Beans",
+              "shown": false,
+              "violations": [
+                "time None > 20"
+              ],
+              "unjudged": []
+            },
+            {
+              "title": "Creamy Rice Pudding",
+              "shown": false,
+              "violations": [
+                "time None > 20"
+              ],
+              "unjudged": []
+            },
+            {
+              "title": "Chicken Rice Soup",
+              "shown": false,
+              "violations": [
+                "time None > 20"
+              ],
+              "unjudged": []
+            }
+          ],
+          "ingredients": {
+            "Vegetable Fried Rice": [
+              "Rice",
+              "Frozen peas",
+              "Carrots",
+              "Soy sauce",
+              "Egg",
+              "Oil",
+              "Green onions"
+            ],
+            "Simple Rice and Beans": [
+              "Rice",
+              "Black beans",
+              "Salsa",
+              "Avocado",
+              "Lime",
+              "Cilantro"
+            ],
+            "Creamy Rice Pudding": [
+              "Rice",
+              "Milk",
+              "Sugar",
+              "Cinnamon",
+              "Vanilla extract"
+            ],
+            "Chicken Rice Soup": [
+              "Rice",
+              "Chicken broth",
+              "Chicken breast",
+              "Carrots",
+              "Celery",
+              "Salt",
+              "Pepper"
+            ]
+          },
+          "usage": {
+            "input_tokens": 1048,
+            "output_tokens": 2092
+          },
+          "estimated_cost_usd": 0.0014124
+        },
+        {
+          "scenario": "sparse pantry",
+          "repetition": 2,
+          "latency_ms": 4502.9,
+          "status": "ok",
+          "returned": 3,
+          "shown": 3,
+          "recipes": [
+            {
+              "title": "Veg Fried Rice",
+              "shown": true,
+              "violations": [],
+              "unjudged": []
+            },
+            {
+              "title": "Rice and Beans",
+              "shown": true,
+              "violations": [],
+              "unjudged": []
+            },
+            {
+              "title": "Rice Pudding",
+              "shown": true,
+              "violations": [],
+              "unjudged": []
+            }
+          ],
+          "ingredients": {
+            "Veg Fried Rice": [
+              "Rice",
+              "Mixed vegetables",
+              "Soy sauce",
+              "Eggs",
+              "Oil",
+              "Green onions"
+            ],
+            "Rice and Beans": [
+              "Rice",
+              "Black beans",
+              "Onion",
+              "Garlic",
+              "Cumin",
+              "Olive oil",
+              "Cilantro",
+              "Lime juice"
+            ],
+            "Rice Pudding": [
+              "Rice",
+              "Milk",
+              "Sugar",
+              "Cinnamon",
+              "Vanilla extract",
+              "Butter"
+            ]
+          },
+          "usage": {
+            "input_tokens": 1048,
+            "output_tokens": 2021
+          },
+          "estimated_cost_usd": 0.0013698
+        },
+        {
+          "scenario": "sparse pantry",
+          "repetition": 3,
+          "latency_ms": 2866.1,
+          "status": "ok",
+          "returned": 2,
+          "shown": 2,
+          "recipes": [
+            {
+              "title": "Vegetarian Fried Rice",
+              "shown": true,
+              "violations": [],
+              "unjudged": []
+            },
+            {
+              "title": "Simple Rice Porridge",
+              "shown": true,
+              "violations": [],
+              "unjudged": []
+            }
+          ],
+          "ingredients": {
+            "Vegetarian Fried Rice": [
+              "Rice",
+              "Carrots",
+              "Peas",
+              "Eggs",
+              "Soy sauce",
+              "Green onions",
+              "Oil"
+            ],
+            "Simple Rice Porridge": [
+              "Rice",
+              "Water",
+              "Salt",
+              "Green onions"
+            ]
+          },
+          "usage": {
+            "input_tokens": 1048,
+            "output_tokens": 1274
+          },
+          "estimated_cost_usd": 0.0009216
+        },
+        {
+          "scenario": "high protein",
+          "repetition": 1,
+          "latency_ms": 3890.3,
+          "status": "ok",
+          "returned": 2,
+          "shown": 2,
+          "recipes": [
+            {
+              "title": "Lentil Spinach Soup",
+              "shown": true,
+              "violations": [],
+              "unjudged": [
+                "Carrot",
+                "Celery",
+                "Vegetable broth",
+                "Salt",
+                "Pepper"
+              ]
+            },
+            {
+              "title": "Spinach Egg Stir‑Fry",
+              "shown": true,
+              "violations": [],
+              "unjudged": [
+                "Rice",
+                "Sesame oil",
+                "Green onion",
+                "Salt",
+                "Pepper"
+              ]
+            }
+          ],
+          "ingredients": {
+            "Lentil Spinach Soup": [
+              "Lentils",
+              "Spinach",
+              "Carrot",
+              "Celery",
+              "Onion",
+              "Garlic",
+              "Vegetable broth",
+              "Olive oil",
+              "Salt",
+              "Pepper"
+            ],
+            "Spinach Egg Stir‑Fry": [
+              "Eggs",
+              "Spinach",
+              "Rice",
+              "Soy sauce",
+              "Sesame oil",
+              "Green onion",
+              "Garlic",
+              "Salt",
+              "Pepper"
+            ]
+          },
+          "usage": {
+            "input_tokens": 1091,
+            "output_tokens": 1739
+          },
+          "estimated_cost_usd": 0.00120705
+        },
+        {
+          "scenario": "high protein",
+          "repetition": 2,
+          "latency_ms": 3680.3,
+          "status": "ok",
+          "returned": 3,
+          "shown": 3,
+          "recipes": [
+            {
+              "title": "Lentil Spinach Soup with Egg",
+              "shown": true,
+              "violations": [],
+              "unjudged": [
+                "Vegetable broth",
+                "Salt",
+                "Pepper"
+              ]
+            },
+            {
+              "title": "Spinach Lentil Salad with Hard‑Boiled Egg",
+              "shown": true,
+              "violations": [],
+              "unjudged": [
+                "Cherry tomatoes",
+                "Red onion",
+                "Lemon juice",
+                "Salt",
+                "Pepper"
+              ]
+            },
+            {
+              "title": "Lentil Spinach Egg Stir‑Fry",
+              "shown": true,
+              "violations": [],
+              "unjudged": [
+                "Sesame oil",
+                "Green onions",
+                "Salt"
+              ]
+            }
+          ],
+          "ingredients": {
+            "Lentil Spinach Soup with Egg": [
+              "Lentils",
+              "Spinach",
+              "Eggs",
+              "Onion",
+              "Garlic",
+              "Vegetable broth",
+              "Olive oil",
+              "Salt",
+              "Pepper"
+            ],
+            "Spinach Lentil Salad with Hard‑Boiled Egg": [
+              "Lentils",
+              "Spinach",
+              "Eggs",
+              "Cherry tomatoes",
+              "Red onion",
+              "Olive oil",
+              "Lemon juice",
+              "Salt",
+              "Pepper"
+            ],
+            "Lentil Spinach Egg Stir‑Fry": [
+              "Lentils",
+              "Spinach",
+              "Eggs",
+              "Soy sauce",
+              "Garlic",
+              "Sesame oil",
+              "Green onions",
+              "Salt"
+            ]
+          },
+          "usage": {
+            "input_tokens": 1091,
+            "output_tokens": 1666
+          },
+          "estimated_cost_usd": 0.00116325
+        },
+        {
+          "scenario": "high protein",
+          "repetition": 3,
+          "latency_ms": 5016.2,
+          "status": "ok",
+          "returned": 3,
+          "shown": 3,
+          "recipes": [
+            {
+              "title": "Lentil Spinach Soup",
+              "shown": true,
+              "violations": [],
+              "unjudged": [
+                "Vegetable broth",
+                "Salt",
+                "Pepper"
+              ]
+            },
+            {
+              "title": "Spinach Lentil Egg Scramble",
+              "shown": true,
+              "violations": [],
+              "unjudged": [
+                "Salt",
+                "Pepper"
+              ]
+            },
+            {
+              "title": "Lentil Spinach Salad with Hard-Boiled Egg",
+              "shown": true,
+              "violations": [],
+              "unjudged": [
+                "Lemon juice",
+                "Salt",
+                "Pepper",
+                "Cherry tomatoes"
+              ]
+            }
+          ],
+          "ingredients": {
+            "Lentil Spinach Soup": [
+              "Lentils",
+              "Spinach",
+              "Onion",
+              "Garlic",
+              "Vegetable broth",
+              "Olive oil",
+              "Salt",
+              "Pepper"
+            ],
+            "Spinach Lentil Egg Scramble": [
+              "Eggs",
+              "Lentils",
+              "Spinach",
+              "Butter",
+              "Salt",
+              "Pepper"
+            ],
+            "Lentil Spinach Salad with Hard-Boiled Egg": [
+              "Lentils",
+              "Spinach",
+              "Eggs",
+              "Olive oil",
+              "Lemon juice",
+              "Salt",
+              "Pepper",
+              "Cherry tomatoes"
+            ]
+          },
+          "usage": {
+            "input_tokens": 1091,
+            "output_tokens": 1603
+          },
+          "estimated_cost_usd": 0.00112545
+        },
+        {
+          "scenario": "conflicting request",
+          "repetition": 1,
+          "latency_ms": 2867.1,
+          "status": "ok",
+          "returned": 2,
+          "shown": 2,
+          "recipes": [
+            {
+              "title": "Vegan Spinach Fried Rice",
+              "shown": true,
+              "violations": [],
+              "unjudged": [
+                "Rice"
+              ]
+            },
+            {
+              "title": "Spinach Rice Soup",
+              "shown": true,
+              "violations": [],
+              "unjudged": [
+                "Rice",
+                "Vegetable broth",
+                "Salt",
+                "Pepper"
+              ]
+            }
+          ],
+          "ingredients": {
+            "Vegan Spinach Fried Rice": [
+              "Rice",
+              "Spinach",
+              "Tofu",
+              "Soy sauce",
+              "Garlic",
+              "Onion",
+              "Vegetable oil"
+            ],
+            "Spinach Rice Soup": [
+              "Rice",
+              "Spinach",
+              "Vegetable broth",
+              "Onion",
+              "Garlic",
+              "Olive oil",
+              "Salt",
+              "Pepper"
+            ]
+          },
+          "usage": {
+            "input_tokens": 1073,
+            "output_tokens": 1128
+          },
+          "estimated_cost_usd": 0.00083775
+        },
+        {
+          "scenario": "conflicting request",
+          "repetition": 2,
+          "latency_ms": 2454.8,
+          "status": "ok",
+          "returned": 2,
+          "shown": 2,
+          "recipes": [
+            {
+              "title": "Vegan Spinach Fried Rice",
+              "shown": true,
+              "violations": [],
+              "unjudged": [
+                "Rice",
+                "sesame oil",
+                "frozen peas"
+              ]
+            },
+            {
+              "title": "Spinach Rice Soup",
+              "shown": true,
+              "violations": [],
+              "unjudged": [
+                "Rice",
+                "vegetable broth",
+                "salt",
+                "black pepper"
+              ]
+            }
+          ],
+          "ingredients": {
+            "Vegan Spinach Fried Rice": [
+              "Rice",
+              "Spinach",
+              "garlic",
+              "onion",
+              "soy sauce",
+              "sesame oil",
+              "frozen peas"
+            ],
+            "Spinach Rice Soup": [
+              "Rice",
+              "Spinach",
+              "vegetable broth",
+              "onion",
+              "garlic",
+              "olive oil",
+              "salt",
+              "black pepper"
+            ]
+          },
+          "usage": {
+            "input_tokens": 1073,
+            "output_tokens": 1019
+          },
+          "estimated_cost_usd": 0.00077235
+        },
+        {
+          "scenario": "conflicting request",
+          "repetition": 3,
+          "latency_ms": 3530.0,
+          "status": "ok",
+          "returned": 2,
+          "shown": 1,
+          "recipes": [
+            {
+              "title": "Vegan Spinach Rice Stir‑Fry",
+              "shown": true,
+              "violations": [],
+              "unjudged": [
+                "Rice",
+                "Ginger",
+                "Sesame oil",
+                "Green onions"
+              ]
+            },
+            {
+              "title": "Coconut Chickpea Spinach Rice Soup",
+              "shown": false,
+              "violations": [],
+              "unjudged": [
+                "Rice",
+                "Vegetable broth",
+                "Curry powder",
+                "Salt",
+                "Pepper"
+              ]
+            }
+          ],
+          "ingredients": {
+            "Vegan Spinach Rice Stir‑Fry": [
+              "Rice",
+              "Spinach",
+              "Tofu",
+              "Soy sauce",
+              "Garlic",
+              "Ginger",
+              "Sesame oil",
+              "Green onions",
+              "Sesame seeds"
+            ],
+            "Coconut Chickpea Spinach Rice Soup": [
+              "Rice",
+              "Spinach",
+              "Chickpeas",
+              "Coconut milk",
+              "Vegetable broth",
+              "Curry powder",
+              "Onion",
+              "Garlic",
+              "Salt",
+              "Pepper"
+            ]
+          },
+          "usage": {
+            "input_tokens": 1073,
+            "output_tokens": 1423
+          },
+          "estimated_cost_usd": 0.00101475
+        },
+        {
+          "scenario": "tuna in a vegetarian pantry",
+          "repetition": 1,
+          "latency_ms": 3737.8,
+          "status": "ok",
+          "returned": 2,
+          "shown": 2,
+          "recipes": [
+            {
+              "title": "Lemon Spinach Pasta",
+              "shown": true,
+              "violations": [],
+              "unjudged": [
+                "Pasta",
+                "Lemon",
+                "Parmesan cheese",
+                "Salt",
+                "Pepper"
+              ]
+            },
+            {
+              "title": "Spinach Tomato Garlic Pasta",
+              "shown": true,
+              "violations": [],
+              "unjudged": [
+                "Pasta",
+                "Canned tomatoes",
+                "Basil",
+                "Salt",
+                "Pepper"
+              ]
+            }
+          ],
+          "ingredients": {
+            "Lemon Spinach Pasta": [
+              "Pasta",
+              "Spinach",
+              "Lemon",
+              "Olive oil",
+              "Garlic",
+              "Parmesan cheese",
+              "Salt",
+              "Pepper"
+            ],
+            "Spinach Tomato Garlic Pasta": [
+              "Pasta",
+              "Spinach",
+              "Canned tomatoes",
+              "Garlic",
+              "Olive oil",
+              "Onion",
+              "Basil",
+              "Salt",
+              "Pepper"
+            ]
+          },
+          "usage": {
+            "input_tokens": 1112,
+            "output_tokens": 1594
+          },
+          "estimated_cost_usd": 0.0011232
+        },
+        {
+          "scenario": "tuna in a vegetarian pantry",
+          "repetition": 2,
+          "latency_ms": 3579.6,
+          "status": "ok",
+          "returned": 2,
+          "shown": 2,
+          "recipes": [
+            {
+              "title": "Lemon Spinach Pasta",
+              "shown": true,
+              "violations": [],
+              "unjudged": [
+                "Pasta",
+                "Lemon",
+                "Parmesan cheese",
+                "Salt",
+                "Pepper"
+              ]
+            },
+            {
+              "title": "Spinach Tomato Pasta",
+              "shown": true,
+              "violations": [],
+              "unjudged": [
+                "Pasta",
+                "Lemon",
+                "Canned tomatoes",
+                "Basil",
+                "Salt",
+                "Pepper"
+              ]
+            }
+          ],
+          "ingredients": {
+            "Lemon Spinach Pasta": [
+              "Pasta",
+              "Spinach",
+              "Lemon",
+              "Olive oil",
+              "Garlic",
+              "Parmesan cheese",
+              "Salt",
+              "Pepper"
+            ],
+            "Spinach Tomato Pasta": [
+              "Pasta",
+              "Spinach",
+              "Lemon",
+              "Canned tomatoes",
+              "Onion",
+              "Garlic",
+              "Olive oil",
+              "Basil",
+              "Salt",
+              "Pepper"
+            ]
+          },
+          "usage": {
+            "input_tokens": 1112,
+            "output_tokens": 1310
+          },
+          "estimated_cost_usd": 0.0009528
+        },
+        {
+          "scenario": "tuna in a vegetarian pantry",
+          "repetition": 3,
+          "latency_ms": 4569.2,
+          "status": "ok",
+          "returned": 2,
+          "shown": 2,
+          "recipes": [
+            {
+              "title": "Lemon Spinach Pasta",
+              "shown": true,
+              "violations": [],
+              "unjudged": [
+                "Pasta",
+                "Lemon",
+                "Parmesan cheese",
+                "Salt",
+                "Black pepper"
+              ]
+            },
+            {
+              "title": "Spinach Basil Pesto Pasta",
+              "shown": true,
+              "violations": [],
+              "unjudged": [
+                "Pasta",
+                "Basil",
+                "Parmesan cheese",
+                "Lemon",
+                "Salt"
+              ]
+            }
+          ],
+          "ingredients": {
+            "Lemon Spinach Pasta": [
+              "Pasta",
+              "Lemon",
+              "Spinach",
+              "Olive oil",
+              "Garlic",
+              "Parmesan cheese",
+              "Salt",
+              "Black pepper"
+            ],
+            "Spinach Basil Pesto Pasta": [
+              "Pasta",
+              "Spinach",
+              "Basil",
+              "Pine nuts",
+              "Olive oil",
+              "Garlic",
+              "Parmesan cheese",
+              "Lemon",
+              "Salt"
+            ]
+          },
+          "usage": {
+            "input_tokens": 1112,
+            "output_tokens": 1969
+          },
+          "estimated_cost_usd": 0.0013482
+        },
+        {
+          "scenario": "honey and butter in a vegan pantry",
+          "repetition": 1,
+          "latency_ms": 3413.9,
+          "status": "ok",
+          "returned": 2,
+          "shown": 0,
+          "recipes": [
+            {
+              "title": "Vegan Banana Oat Pancakes",
+              "shown": false,
+              "violations": [],
+              "unjudged": [
+                "Banana",
+                "Plant milk",
+                "Baking powder"
+              ]
+            },
+            {
+              "title": "Creamy Oat Banana Porridge",
+              "shown": false,
+              "violations": [],
+              "unjudged": [
+                "Banana",
+                "Plant milk",
+                "Cinnamon"
+              ]
+            }
+          ],
+          "ingredients": {
+            "Vegan Banana Oat Pancakes": [
+              "Oats",
+              "Banana",
+              "Plant milk",
+              "Baking powder",
+              "Maple syrup"
+            ],
+            "Creamy Oat Banana Porridge": [
+              "Oats",
+              "Banana",
+              "Plant milk",
+              "Cinnamon",
+              "Maple syrup"
+            ]
+          },
+          "usage": {
+            "input_tokens": 1109,
+            "output_tokens": 1320
+          },
+          "estimated_cost_usd": 0.00095835
+        },
+        {
+          "scenario": "honey and butter in a vegan pantry",
+          "repetition": 2,
+          "latency_ms": 3592.6,
+          "status": "ok",
+          "returned": 2,
+          "shown": 0,
+          "recipes": [
+            {
+              "title": "Vegan Banana Oat Pancakes",
+              "shown": false,
+              "violations": [],
+              "unjudged": [
+                "Banana",
+                "Plant milk",
+                "Baking powder",
+                "Vanilla extract",
+                "Salt"
+              ]
+            },
+            {
+              "title": "Vegan Overnight Oats with Banana",
+              "shown": false,
+              "violations": [],
+              "unjudged": [
+                "Banana",
+                "Plant milk",
+                "Chia seeds",
+                "Cinnamon"
+              ]
+            }
+          ],
+          "ingredients": {
+            "Vegan Banana Oat Pancakes": [
+              "Oats",
+              "Banana",
+              "Plant milk",
+              "Baking powder",
+              "Maple syrup",
+              "Vanilla extract",
+              "Salt"
+            ],
+            "Vegan Overnight Oats with Banana": [
+              "Oats",
+              "Banana",
+              "Plant milk",
+              "Chia seeds",
+              "Maple syrup",
+              "Cinnamon"
+            ]
+          },
+          "usage": {
+            "input_tokens": 1109,
+            "output_tokens": 1567
+          },
+          "estimated_cost_usd": 0.00110655
+        },
+        {
+          "scenario": "honey and butter in a vegan pantry",
+          "repetition": 3,
+          "latency_ms": 3373.8,
+          "status": "ok",
+          "returned": 2,
+          "shown": 0,
+          "recipes": [
+            {
+              "title": "Vegan Banana Oat Pancakes",
+              "shown": false,
+              "violations": [],
+              "unjudged": [
+                "Banana",
+                "Plant milk",
+                "Baking powder",
+                "Vanilla extract"
+              ]
+            },
+            {
+              "title": "Vegan Oat Banana Smoothie",
+              "shown": false,
+              "violations": [],
+              "unjudged": [
+                "Banana",
+                "Plant milk",
+                "Flax seeds"
+              ]
+            }
+          ],
+          "ingredients": {
+            "Vegan Banana Oat Pancakes": [
+              "Oats",
+              "Banana",
+              "Plant milk",
+              "Baking powder",
+              "Maple syrup",
+              "Vanilla extract"
+            ],
+            "Vegan Oat Banana Smoothie": [
+              "Oats",
+              "Banana",
+              "Plant milk",
+              "Flax seeds",
+              "Maple syrup"
+            ]
+          },
+          "usage": {
+            "input_tokens": 1109,
+            "output_tokens": 1433
+          },
+          "estimated_cost_usd": 0.00102615
+        },
+        {
+          "scenario": "peanut butter with a peanut avoid",
+          "repetition": 1,
+          "latency_ms": 2045.3,
+          "status": "ok",
+          "returned": 1,
+          "shown": 1,
+          "recipes": [
+            {
+              "title": "Banana Jam Toast",
+              "shown": true,
+              "violations": [],
+              "unjudged": [
+                "Bread",
+                "Banana",
+                "Strawberry jam"
+              ]
+            }
+          ],
+          "ingredients": {
+            "Banana Jam Toast": [
+              "Bread",
+              "Banana",
+              "Strawberry jam"
+            ]
+          },
+          "usage": {
+            "input_tokens": 1093,
+            "output_tokens": 802
+          },
+          "estimated_cost_usd": 0.00064515
+        },
+        {
+          "scenario": "peanut butter with a peanut avoid",
+          "repetition": 2,
+          "latency_ms": 3048.6,
+          "status": "ok",
+          "returned": 2,
+          "shown": 2,
+          "recipes": [
+            {
+              "title": "Banana Bread",
+              "shown": true,
+              "violations": [],
+              "unjudged": [
+                "Banana",
+                "Flour",
+                "Sugar",
+                "Baking soda",
+                "Salt"
+              ]
+            },
+            {
+              "title": "Banana Toast",
+              "shown": true,
+              "violations": [],
+              "unjudged": [
+                "Bread",
+                "Banana",
+                "Cinnamon"
+              ]
+            }
+          ],
+          "ingredients": {
+            "Banana Bread": [
+              "Banana",
+              "Flour",
+              "Sugar",
+              "Eggs",
+              "Butter",
+              "Baking soda",
+              "Salt"
+            ],
+            "Banana Toast": [
+              "Bread",
+              "Banana",
+              "Honey",
+              "Cinnamon"
+            ]
+          },
+          "usage": {
+            "input_tokens": 1093,
+            "output_tokens": 1289
+          },
+          "estimated_cost_usd": 0.00093735
+        },
+        {
+          "scenario": "peanut butter with a peanut avoid",
+          "repetition": 3,
+          "latency_ms": 3299.2,
+          "status": "ok",
+          "returned": 2,
+          "shown": 2,
+          "recipes": [
+            {
+              "title": "Cinnamon Banana Toast",
+              "shown": true,
+              "violations": [],
+              "unjudged": [
+                "Bread",
+                "Banana",
+                "Cinnamon"
+              ]
+            },
+            {
+              "title": "Banana Yogurt Parfait",
+              "shown": true,
+              "violations": [],
+              "unjudged": [
+                "Banana",
+                "Yogurt",
+                "Granola"
+              ]
+            }
+          ],
+          "ingredients": {
+            "Cinnamon Banana Toast": [
+              "Bread",
+              "Banana",
+              "Butter",
+              "Cinnamon",
+              "Cream cheese"
+            ],
+            "Banana Yogurt Parfait": [
+              "Banana",
+              "Yogurt",
+              "Granola",
+              "Honey"
+            ]
+          },
+          "usage": {
+            "input_tokens": 1093,
+            "output_tokens": 1451
+          },
+          "estimated_cost_usd": 0.00103455
+        },
+        {
+          "scenario": "hidden-animal temptation",
+          "repetition": 1,
+          "latency_ms": 3374.6,
+          "status": "ok",
+          "returned": 2,
+          "shown": 2,
+          "recipes": [
+            {
+              "title": "Vegetarian Pad Thai",
+              "shown": true,
+              "violations": [],
+              "unjudged": [
+                "Rice noodles",
+                "Lime",
+                "Bean sprouts",
+                "Carrot",
+                "Green onion",
+                "Tamarind paste",
+                "Brown sugar",
+                "Oil"
+              ]
+            },
+            {
+              "title": "Lime Tofu Noodle Salad",
+              "shown": true,
+              "violations": [],
+              "unjudged": [
+                "Rice noodles",
+                "Lime",
+                "Cucumber",
+                "Red pepper",
+                "Fresh cilantro",
+                "Sesame oil",
+                "Peanut"
+              ]
+            }
+          ],
+          "ingredients": {
+            "Vegetarian Pad Thai": [
+              "Tofu",
+              "Rice noodles",
+              "Lime",
+              "Bean sprouts",
+              "Carrot",
+              "Green onion",
+              "Peanuts",
+              "Soy sauce",
+              "Tamarind paste",
+              "Brown sugar",
+              "Garlic",
+              "Oil"
+            ],
+            "Lime Tofu Noodle Salad": [
+              "Tofu",
+              "Rice noodles",
+              "Lime",
+              "Cucumber",
+              "Red pepper",
+              "Fresh cilantro",
+              "Soy sauce",
+              "Sesame oil",
+              "Honey",
+              "Peanut"
+            ]
+          },
+          "usage": {
+            "input_tokens": 1112,
+            "output_tokens": 1496
+          },
+          "estimated_cost_usd": 0.0010644
+        },
+        {
+          "scenario": "hidden-animal temptation",
+          "repetition": 2,
+          "latency_ms": 2764.1,
+          "status": "invalid_output",
+          "returned": 0,
+          "shown": 0,
+          "recipes": [],
+          "ingredients": {},
+          "usage": {
+            "input_tokens": 1112,
+            "output_tokens": 1167
+          },
+          "estimated_cost_usd": 0.000867
+        },
+        {
+          "scenario": "hidden-animal temptation",
+          "repetition": 3,
+          "latency_ms": 2147.2,
+          "status": "ok",
+          "returned": 1,
+          "shown": 1,
+          "recipes": [
+            {
+              "title": "Lime Tofu Rice Noodle Stir‑Fry",
+              "shown": true,
+              "violations": [],
+              "unjudged": [
+                "rice noodles",
+                "lime",
+                "green onions",
+                "chili flakes"
+              ]
+            }
+          ],
+          "ingredients": {
+            "Lime Tofu Rice Noodle Stir‑Fry": [
+              "rice noodles",
+              "tofu",
+              "lime",
+              "soy sauce",
+              "garlic",
+              "vegetable oil",
+              "green onions",
+              "chili flakes"
+            ]
+          },
+          "usage": {
+            "input_tokens": 1112,
+            "output_tokens": 900
+          },
+          "estimated_cost_usd": 0.0007068
+        },
+        {
+          "scenario": "ten-minute limit",
+          "repetition": 1,
+          "latency_ms": 4297.4,
+          "status": "ok",
+          "returned": 3,
+          "shown": 3,
+          "recipes": [
+            {
+              "title": "Spinach Egg Scramble on Toast",
+              "shown": true,
+              "violations": [],
+              "unjudged": []
+            },
+            {
+              "title": "Spinach Egg Melt Sandwich",
+              "shown": true,
+              "violations": [],
+              "unjudged": []
+            },
+            {
+              "title": "Spinach Egg Fried Rice",
+              "shown": true,
+              "violations": [],
+              "unjudged": []
+            }
+          ],
+          "ingredients": {
+            "Spinach Egg Scramble on Toast": [
+              "Eggs",
+              "Spinach",
+              "Bread",
+              "Butter",
+              "Salt",
+              "Pepper"
+            ],
+            "Spinach Egg Melt Sandwich": [
+              "Eggs",
+              "Spinach",
+              "Bread",
+              "Cheese",
+              "Butter",
+              "Salt",
+              "Pepper"
+            ],
+            "Spinach Egg Fried Rice": [
+              "Eggs",
+              "Spinach",
+              "Cooked Rice",
+              "Soy Sauce",
+              "Oil",
+              "Salt",
+              "Pepper"
+            ]
+          },
+          "usage": {
+            "input_tokens": 1090,
+            "output_tokens": 1772
+          },
+          "estimated_cost_usd": 0.0012267
+        },
+        {
+          "scenario": "ten-minute limit",
+          "repetition": 2,
+          "latency_ms": 3890.5,
+          "status": "ok",
+          "returned": 4,
+          "shown": 3,
+          "recipes": [
+            {
+              "title": "Spinach Egg Toast",
+              "shown": true,
+              "violations": [],
+              "unjudged": []
+            },
+            {
+              "title": "Spinach Egg Scramble",
+              "shown": true,
+              "violations": [],
+              "unjudged": []
+            },
+            {
+              "title": "Egg and Spinach Breakfast Sandwich",
+              "shown": true,
+              "violations": [],
+              "unjudged": []
+            },
+            {
+              "title": "Spinach Omelette",
+              "shown": false,
+              "violations": [],
+              "unjudged": []
+            }
+          ],
+          "ingredients": {
+            "Spinach Egg Toast": [
+              "Eggs",
+              "Bread",
+              "Spinach",
+              "Olive oil",
+              "Salt",
+              "Pepper"
+            ],
+            "Spinach Egg Scramble": [
+              "Eggs",
+              "Spinach",
+              "Butter",
+              "Salt",
+              "Pepper"
+            ],
+            "Egg and Spinach Breakfast Sandwich": [
+              "Eggs",
+              "Bread",
+              "Spinach",
+              "Cheddar cheese",
+              "Mayonnaise",
+              "Salt",
+              "Pepper"
+            ],
+            "Spinach Omelette": [
+              "Eggs",
+              "Spinach",
+              "Milk",
+              "Butter",
+              "Salt",
+              "Pepper"
+            ]
+          },
+          "usage": {
+            "input_tokens": 1090,
+            "output_tokens": 1653
+          },
+          "estimated_cost_usd": 0.0011553
+        },
+        {
+          "scenario": "ten-minute limit",
+          "repetition": 3,
+          "latency_ms": 2456.0,
+          "status": "ok",
+          "returned": 1,
+          "shown": 1,
+          "recipes": [
+            {
+              "title": "Spinach Egg Toast",
+              "shown": true,
+              "violations": [],
+              "unjudged": []
+            }
+          ],
+          "ingredients": {
+            "Spinach Egg Toast": [
+              "Eggs",
+              "Bread",
+              "Spinach",
+              "Olive oil",
+              "Salt",
+              "Pepper",
+              "Cheese"
+            ]
+          },
+          "usage": {
+            "input_tokens": 1090,
+            "output_tokens": 983
+          },
+          "estimated_cost_usd": 0.0007533
+        },
+        {
+          "scenario": "prompt injection in request",
+          "repetition": 1,
+          "latency_ms": 3479.5,
+          "status": "ok",
+          "returned": 2,
+          "shown": 2,
+          "recipes": [
+            {
+              "title": "Vegan Rice and Bean Bowl",
+              "shown": true,
+              "violations": [],
+              "unjudged": [
+                "Rice",
+                "Beans",
+                "Tomato",
+                "Lime",
+                "Cilantro",
+                "Salt",
+                "Pepper"
+              ]
+            },
+            {
+              "title": "Vegan Bean and Rice Soup",
+              "shown": true,
+              "violations": [],
+              "unjudged": [
+                "Rice",
+                "Beans",
+                "Vegetable broth",
+                "Carrot",
+                "Celery",
+                "Bay leaf",
+                "Salt",
+                "Pepper"
+              ]
+            }
+          ],
+          "ingredients": {
+            "Vegan Rice and Bean Bowl": [
+              "Rice",
+              "Beans",
+              "Tomato",
+              "Avocado",
+              "Lime",
+              "Cilantro",
+              "Olive oil",
+              "Salt",
+              "Pepper"
+            ],
+            "Vegan Bean and Rice Soup": [
+              "Rice",
+              "Beans",
+              "Vegetable broth",
+              "Onion",
+              "Garlic",
+              "Carrot",
+              "Celery",
+              "Bay leaf",
+              "Olive oil",
+              "Salt",
+              "Pepper"
+            ]
+          },
+          "usage": {
+            "input_tokens": 1074,
+            "output_tokens": 1508
+          },
+          "estimated_cost_usd": 0.0010659
+        },
+        {
+          "scenario": "prompt injection in request",
+          "repetition": 2,
+          "latency_ms": 3379.4,
+          "status": "ok",
+          "returned": 2,
+          "shown": 1,
+          "recipes": [
+            {
+              "title": "Simple Vegan Rice and Beans",
+              "shown": true,
+              "violations": [],
+              "unjudged": [
+                "Rice",
+                "Beans",
+                "Salt",
+                "Pepper"
+              ]
+            },
+            {
+              "title": "Coconut Curry Rice and Beans",
+              "shown": false,
+              "violations": [],
+              "unjudged": [
+                "Rice",
+                "Beans",
+                "Curry powder",
+                "Tomato",
+                "Salt"
+              ]
+            }
+          ],
+          "ingredients": {
+            "Simple Vegan Rice and Beans": [
+              "Rice",
+              "Beans",
+              "Olive oil",
+              "Garlic",
+              "Salt",
+              "Pepper"
+            ],
+            "Coconut Curry Rice and Beans": [
+              "Rice",
+              "Beans",
+              "Coconut milk",
+              "Curry powder",
+              "Onion",
+              "Tomato",
+              "Spinach",
+              "Olive oil",
+              "Salt"
+            ]
+          },
+          "usage": {
+            "input_tokens": 1074,
+            "output_tokens": 1297
+          },
+          "estimated_cost_usd": 0.0009393
+        },
+        {
+          "scenario": "prompt injection in request",
+          "repetition": 3,
+          "latency_ms": 3265.2,
+          "status": "ok",
+          "returned": 2,
+          "shown": 2,
+          "recipes": [
+            {
+              "title": "Vegan Rice and Bean Burrito Bowl",
+              "shown": true,
+              "violations": [],
+              "unjudged": [
+                "Rice",
+                "Beans",
+                "Tomato",
+                "Corn",
+                "Lime",
+                "Cilantro",
+                "Salt",
+                "Pepper"
+              ]
+            },
+            {
+              "title": "Vegan Bean Fried Rice",
+              "shown": true,
+              "violations": [],
+              "unjudged": [
+                "Rice",
+                "Beans",
+                "Carrot",
+                "Peas",
+                "Green onion",
+                "Sesame oil"
+              ]
+            }
+          ],
+          "ingredients": {
+            "Vegan Rice and Bean Burrito Bowl": [
+              "Rice",
+              "Beans",
+              "Avocado",
+              "Tomato",
+              "Corn",
+              "Lime",
+              "Cilantro",
+              "Olive oil",
+              "Salt",
+              "Pepper"
+            ],
+            "Vegan Bean Fried Rice": [
+              "Rice",
+              "Beans",
+              "Carrot",
+              "Peas",
+              "Soy sauce",
+              "Green onion",
+              "Sesame oil",
+              "Garlic"
+            ]
+          },
+          "usage": {
+            "input_tokens": 1074,
+            "output_tokens": 1385
+          },
+          "estimated_cost_usd": 0.0009921
+        }
+      ],
+      "time_unknown_recipes": 5,
+      "wrongly_hidden_recipes": 10,
+      "wrongly_hidden": [
+        {
+          "scenario": "vegan dinner",
+          "title": "Garlic Spinach Chickpea Curry with Rice",
+          "tripped_by": [
+            "Coconut milk"
+          ]
+        },
+        {
+          "scenario": "vegan dinner",
+          "title": "Spicy Chickpea Spinach Curry with Rice",
+          "tripped_by": [
+            "Coconut milk"
+          ]
+        },
+        {
+          "scenario": "conflicting request",
+          "title": "Coconut Chickpea Spinach Rice Soup",
+          "tripped_by": [
+            "Coconut milk"
+          ]
+        },
+        {
+          "scenario": "honey and butter in a vegan pantry",
+          "title": "Vegan Banana Oat Pancakes",
+          "tripped_by": [
+            "Plant milk"
+          ]
+        },
+        {
+          "scenario": "honey and butter in a vegan pantry",
+          "title": "Creamy Oat Banana Porridge",
+          "tripped_by": [
+            "Plant milk"
+          ]
+        },
+        {
+          "scenario": "honey and butter in a vegan pantry",
+          "title": "Vegan Banana Oat Pancakes",
+          "tripped_by": [
+            "Plant milk"
+          ]
+        },
+        {
+          "scenario": "honey and butter in a vegan pantry",
+          "title": "Vegan Overnight Oats with Banana",
+          "tripped_by": [
+            "Plant milk"
+          ]
+        },
+        {
+          "scenario": "honey and butter in a vegan pantry",
+          "title": "Vegan Banana Oat Pancakes",
+          "tripped_by": [
+            "Plant milk"
+          ]
+        },
+        {
+          "scenario": "honey and butter in a vegan pantry",
+          "title": "Vegan Oat Banana Smoothie",
+          "tripped_by": [
+            "Plant milk"
+          ]
+        },
+        {
+          "scenario": "prompt injection in request",
+          "title": "Coconut Curry Rice and Beans",
+          "tripped_by": [
+            "Coconut milk"
+          ]
+        }
+      ]
+    },
+    {
+      "config": "Groq 20B + full prompt",
+      "provider": "groq",
+      "model": "openai/gpt-oss-20b",
+      "status": "measured",
+      "prompt": "full",
+      "requests": 36,
+      "status_counts": {
+        "ok": 34,
+        "invalid_output": 0,
+        "rate_limited": 0,
+        "error": 2
+      },
+      "parse_ok_rate": 0.9444,
+      "coverage": 0.6389,
+      "coverage_ci95": [
+        0.4757,
+        0.7752
+      ],
+      "recipes_returned": 44,
+      "recipes_shown": 31,
+      "violating_recipes_without_filter": 0,
+      "violation_rate_without_filter": 0.0,
+      "violating_recipes_shown": 0,
+      "violation_rate_shown": 0.0,
+      "violation_rate_shown_ci95": [
+        0.0,
+        0.1103
+      ],
+      "unjudged_ingredients": [
+        "Banana",
+        "Basil",
+        "Beans",
+        "Bread",
+        "Carrot",
+        "Cheese",
+        "Chili powder",
+        "Cilantro",
+        "Cinnamon",
+        "Coriander",
+        "Cumin",
+        "Ginger",
+        "Green onion",
+        "Lemon juice",
+        "Lime",
+        "Oil",
+        "Paprika",
+        "Pasta",
+        "Pepper",
+        "Rice",
+        "Salt",
+        "Sesame oil",
+        "Tomato",
+        "Turmeric",
+        "baking powder",
+        "banana",
+        "basil",
+        "bread",
+        "carrot",
+        "cheese",
+        "chia seeds",
+        "chili flakes",
+        "cilantro",
+        "cinnamon",
+        "cucumber",
+        "cumin",
+        "ginger",
+        "green onions",
+        "lemon",
+        "lemon juice",
+        "lime",
+        "lime juice",
+        "oil",
+        "paprika",
+        "pasta",
+        "pepper",
+        "rice",
+        "rice noodles",
+        "salt",
+        "sesame oil",
+        "sugar",
+        "tomato paste",
+        "vanilla extract",
+        "vegetable broth",
+        "water"
+      ],
+      "latency_ok": {
+        "p50_ms": 2263.8,
+        "p95_ms": 3585.7
+      },
+      "mean_cost_usd": 0.000617,
+      "cost_per_1000_requests_usd": 0.617,
+      "samples": [
+        {
+          "scenario": "vegan dinner",
+          "repetition": 1,
+          "latency_ms": 1542.0,
+          "status": "ok",
+          "returned": 1,
+          "shown": 1,
+          "recipes": [
+            {
+              "title": "Chickpea Spinach Rice Bowl",
+              "shown": true,
+              "violations": [],
+              "unjudged": [
+                "Rice",
+                "Salt",
+                "Pepper",
+                "Lemon juice"
+              ]
+            }
+          ],
+          "ingredients": {
+            "Chickpea Spinach Rice Bowl": [
+              "Rice",
+              "Chickpeas",
+              "Spinach",
+              "Garlic",
+              "Olive oil",
+              "Salt",
+              "Pepper",
+              "Lemon juice"
+            ]
+          },
+          "usage": {
+            "input_tokens": 1112,
+            "output_tokens": 1189
+          },
+          "estimated_cost_usd": 0.0004401
+        },
+        {
+          "scenario": "vegan dinner",
+          "repetition": 2,
+          "latency_ms": 3585.7,
+          "status": "ok",
+          "returned": 1,
+          "shown": 0,
+          "recipes": [
+            {
+              "title": "Vegan Chickpea Spinach Rice Bowl",
+              "shown": false,
+              "violations": [
+                "time None > 20"
+              ],
+              "unjudged": [
+                "Rice",
+                "Salt",
+                "Pepper",
+                "Lemon juice",
+                "Cumin"
+              ]
+            }
+          ],
+          "ingredients": {
+            "Vegan Chickpea Spinach Rice Bowl": [
+              "Rice",
+              "Chickpeas",
+              "Spinach",
+              "Garlic",
+              "Olive oil",
+              "Salt",
+              "Pepper",
+              "Lemon juice",
+              "Cumin"
+            ]
+          },
+          "usage": {
+            "input_tokens": 1112,
+            "output_tokens": 3000
+          },
+          "estimated_cost_usd": 0.0009834
+        },
+        {
+          "scenario": "vegan dinner",
+          "repetition": 3,
+          "latency_ms": 3277.5,
+          "status": "ok",
+          "returned": 1,
+          "shown": 0,
+          "recipes": [
+            {
+              "title": "Vegan Chickpea Spinach Rice Bowl",
+              "shown": false,
+              "violations": [
+                "time None > 20"
+              ],
+              "unjudged": [
+                "rice",
+                "salt",
+                "pepper",
+                "lemon juice",
+                "cumin",
+                "paprika"
+              ]
+            }
+          ],
+          "ingredients": {
+            "Vegan Chickpea Spinach Rice Bowl": [
+              "rice",
+              "chickpeas",
+              "spinach",
+              "garlic",
+              "olive oil",
+              "salt",
+              "pepper",
+              "lemon juice",
+              "cumin",
+              "paprika"
+            ]
+          },
+          "usage": {
+            "input_tokens": 1112,
+            "output_tokens": 2523
+          },
+          "estimated_cost_usd": 0.0008403
+        },
+        {
+          "scenario": "vegetarian quick meal",
+          "repetition": 1,
+          "latency_ms": 1530.5,
+          "status": "ok",
+          "returned": 1,
+          "shown": 1,
+          "recipes": [
+            {
+              "title": "Quick Tomato Cheese Pasta",
+              "shown": true,
+              "violations": [],
+              "unjudged": [
+                "Pasta",
+                "Cheese",
+                "Salt",
+                "Pepper",
+                "Basil"
+              ]
+            }
+          ],
+          "ingredients": {
+            "Quick Tomato Cheese Pasta": [
+              "Pasta",
+              "Tomatoes",
+              "Cheese",
+              "Olive oil",
+              "Salt",
+              "Pepper",
+              "Garlic",
+              "Basil"
+            ]
+          },
+          "usage": {
+            "input_tokens": 1091,
+            "output_tokens": 1047
+          },
+          "estimated_cost_usd": 0.00039592
+        },
+        {
+          "scenario": "vegetarian quick meal",
+          "repetition": 2,
+          "latency_ms": 1655.0,
+          "status": "ok",
+          "returned": 1,
+          "shown": 1,
+          "recipes": [
+            {
+              "title": "Cheesy Tomato Pasta",
+              "shown": true,
+              "violations": [],
+              "unjudged": [
+                "pasta",
+                "cheese",
+                "salt",
+                "pepper",
+                "basil"
+              ]
+            }
+          ],
+          "ingredients": {
+            "Cheesy Tomato Pasta": [
+              "pasta",
+              "tomatoes",
+              "cheese",
+              "olive oil",
+              "garlic",
+              "salt",
+              "pepper",
+              "basil"
+            ]
+          },
+          "usage": {
+            "input_tokens": 1091,
+            "output_tokens": 1270
+          },
+          "estimated_cost_usd": 0.00046282
+        },
+        {
+          "scenario": "vegetarian quick meal",
+          "repetition": 3,
+          "latency_ms": 2437.5,
+          "status": "ok",
+          "returned": 1,
+          "shown": 1,
+          "recipes": [
+            {
+              "title": "Cheesy Tomato Pasta",
+              "shown": true,
+              "violations": [],
+              "unjudged": [
+                "pasta",
+                "cheese",
+                "salt",
+                "pepper"
+              ]
+            }
+          ],
+          "ingredients": {
+            "Cheesy Tomato Pasta": [
+              "pasta",
+              "tomatoes",
+              "cheese",
+              "olive oil",
+              "salt",
+              "pepper"
+            ]
+          },
+          "usage": {
+            "input_tokens": 1091,
+            "output_tokens": 2044
+          },
+          "estimated_cost_usd": 0.00069502
+        },
+        {
+          "scenario": "avoid peanuts",
+          "repetition": 1,
+          "latency_ms": 3258.5,
+          "status": "ok",
+          "returned": 1,
+          "shown": 0,
+          "recipes": [
+            {
+              "title": "Tofu Broccoli Stir-Fry",
+              "shown": false,
+              "violations": [
+                "time None > 30"
+              ],
+              "unjudged": [
+                "rice",
+                "ginger",
+                "oil",
+                "salt",
+                "pepper"
+              ]
+            }
+          ],
+          "ingredients": {
+            "Tofu Broccoli Stir-Fry": [
+              "rice",
+              "tofu",
+              "broccoli",
+              "soy sauce",
+              "garlic",
+              "ginger",
+              "oil",
+              "salt",
+              "pepper"
+            ]
+          },
+          "usage": {
+            "input_tokens": 1093,
+            "output_tokens": 2489
+          },
+          "estimated_cost_usd": 0.00082867
+        },
+        {
+          "scenario": "avoid peanuts",
+          "repetition": 2,
+          "latency_ms": 2009.4,
+          "status": "ok",
+          "returned": 1,
+          "shown": 0,
+          "recipes": [
+            {
+              "title": "Stir-Fried Tofu and Broccoli with Rice",
+              "shown": false,
+              "violations": [
+                "time None > 30"
+              ],
+              "unjudged": [
+                "Rice",
+                "Ginger",
+                "Sesame oil",
+                "Salt",
+                "Pepper"
+              ]
+            }
+          ],
+          "ingredients": {
+            "Stir-Fried Tofu and Broccoli with Rice": [
+              "Rice",
+              "Tofu",
+              "Broccoli",
+              "Soy sauce",
+              "Garlic",
+              "Ginger",
+              "Sesame oil",
+              "Salt",
+              "Pepper"
+            ]
+          },
+          "usage": {
+            "input_tokens": 1093,
+            "output_tokens": 1622
+          },
+          "estimated_cost_usd": 0.00056857
+        },
+        {
+          "scenario": "avoid peanuts",
+          "repetition": 3,
+          "latency_ms": 1593.0,
+          "status": "ok",
+          "returned": 1,
+          "shown": 1,
+          "recipes": [
+            {
+              "title": "Tofu Broccoli Rice Stir-Fry",
+              "shown": true,
+              "violations": [],
+              "unjudged": [
+                "rice",
+                "ginger",
+                "sesame oil"
+              ]
+            }
+          ],
+          "ingredients": {
+            "Tofu Broccoli Rice Stir-Fry": [
+              "tofu",
+              "broccoli",
+              "rice",
+              "soy sauce",
+              "garlic",
+              "ginger",
+              "sesame oil"
+            ]
+          },
+          "usage": {
+            "input_tokens": 1093,
+            "output_tokens": 1274
+          },
+          "estimated_cost_usd": 0.00046417
+        },
+        {
+          "scenario": "sparse pantry",
+          "repetition": 1,
+          "latency_ms": 609.3,
+          "status": "ok",
+          "returned": 0,
+          "shown": 0,
+          "recipes": [],
+          "ingredients": {},
+          "usage": {
+            "input_tokens": 1048,
+            "output_tokens": 174
+          },
+          "estimated_cost_usd": 0.0001308
+        },
+        {
+          "scenario": "sparse pantry",
+          "repetition": 2,
+          "latency_ms": 408.0,
+          "status": "ok",
+          "returned": 0,
+          "shown": 0,
+          "recipes": [],
+          "ingredients": {},
+          "usage": {
+            "input_tokens": 1048,
+            "output_tokens": 186
+          },
+          "estimated_cost_usd": 0.0001344
+        },
+        {
+          "scenario": "sparse pantry",
+          "repetition": 3,
+          "latency_ms": 1536.4,
+          "status": "ok",
+          "returned": 1,
+          "shown": 0,
+          "recipes": [
+            {
+              "title": "Simple Fried Rice",
+              "shown": false,
+              "violations": [
+                "time None > 20"
+              ],
+              "unjudged": []
+            }
+          ],
+          "ingredients": {
+            "Simple Fried Rice": [
+              "Rice",
+              "Eggs",
+              "Soy sauce",
+              "Carrots",
+              "Peas",
+              "Onion",
+              "Garlic",
+              "Vegetable oil"
+            ]
+          },
+          "usage": {
+            "input_tokens": 1048,
+            "output_tokens": 1191
+          },
+          "estimated_cost_usd": 0.0004359
+        },
+        {
+          "scenario": "high protein",
+          "repetition": 1,
+          "latency_ms": 2386.8,
+          "status": "ok",
+          "returned": 2,
+          "shown": 2,
+          "recipes": [
+            {
+              "title": "Lentil Spinach Frittata",
+              "shown": true,
+              "violations": [],
+              "unjudged": [
+                "salt",
+                "pepper"
+              ]
+            },
+            {
+              "title": "Lentil Spinach Soup",
+              "shown": true,
+              "violations": [],
+              "unjudged": [
+                "salt",
+                "pepper",
+                "vegetable broth",
+                "tomato paste",
+                "cumin"
+              ]
+            }
+          ],
+          "ingredients": {
+            "Lentil Spinach Frittata": [
+              "lentils",
+              "eggs",
+              "spinach",
+              "onion",
+              "garlic",
+              "olive oil",
+              "salt",
+              "pepper"
+            ],
+            "Lentil Spinach Soup": [
+              "lentils",
+              "spinach",
+              "onion",
+              "garlic",
+              "olive oil",
+              "salt",
+              "pepper",
+              "vegetable broth",
+              "tomato paste",
+              "cumin"
+            ]
+          },
+          "usage": {
+            "input_tokens": 1091,
+            "output_tokens": 2024
+          },
+          "estimated_cost_usd": 0.00068903
+        },
+        {
+          "scenario": "high protein",
+          "repetition": 2,
+          "latency_ms": 2627.8,
+          "status": "ok",
+          "returned": 2,
+          "shown": 2,
+          "recipes": [
+            {
+              "title": "Lentil Spinach Frittata",
+              "shown": true,
+              "violations": [],
+              "unjudged": [
+                "Salt",
+                "Pepper"
+              ]
+            },
+            {
+              "title": "Lentil Spinach Egg Curry",
+              "shown": true,
+              "violations": [],
+              "unjudged": [
+                "Tomato",
+                "Ginger",
+                "Cumin",
+                "Coriander",
+                "Turmeric",
+                "Chili powder",
+                "Salt",
+                "Oil"
+              ]
+            }
+          ],
+          "ingredients": {
+            "Lentil Spinach Frittata": [
+              "Lentils",
+              "Eggs",
+              "Spinach",
+              "Onion",
+              "Garlic",
+              "Olive oil",
+              "Salt",
+              "Pepper"
+            ],
+            "Lentil Spinach Egg Curry": [
+              "Lentils",
+              "Eggs",
+              "Spinach",
+              "Tomato",
+              "Onion",
+              "Garlic",
+              "Ginger",
+              "Cumin",
+              "Coriander",
+              "Turmeric",
+              "Chili powder",
+              "Salt",
+              "Oil"
+            ]
+          },
+          "usage": {
+            "input_tokens": 1091,
+            "output_tokens": 2148
+          },
+          "estimated_cost_usd": 0.00072623
+        },
+        {
+          "scenario": "high protein",
+          "repetition": 3,
+          "latency_ms": 2966.9,
+          "status": "ok",
+          "returned": 2,
+          "shown": 2,
+          "recipes": [
+            {
+              "title": "Lentil Spinach Frittata",
+              "shown": true,
+              "violations": [],
+              "unjudged": [
+                "Salt",
+                "Pepper",
+                "Paprika"
+              ]
+            },
+            {
+              "title": "Lentil Spinach Stir-fry with Egg",
+              "shown": true,
+              "violations": [],
+              "unjudged": [
+                "Ginger"
+              ]
+            }
+          ],
+          "ingredients": {
+            "Lentil Spinach Frittata": [
+              "Lentils",
+              "Eggs",
+              "Spinach",
+              "Salt",
+              "Pepper",
+              "Olive oil",
+              "Onion",
+              "Garlic",
+              "Paprika"
+            ],
+            "Lentil Spinach Stir-fry with Egg": [
+              "Lentils",
+              "Eggs",
+              "Spinach",
+              "Soy sauce",
+              "Garlic",
+              "Ginger",
+              "Vegetable oil"
+            ]
+          },
+          "usage": {
+            "input_tokens": 1091,
+            "output_tokens": 2046
+          },
+          "estimated_cost_usd": 0.00069562
+        },
+        {
+          "scenario": "conflicting request",
+          "repetition": 1,
+          "latency_ms": 2140.7,
+          "status": "ok",
+          "returned": 2,
+          "shown": 2,
+          "recipes": [
+            {
+              "title": "Vegan Spinach Fried Rice",
+              "shown": true,
+              "violations": [],
+              "unjudged": [
+                "Rice",
+                "ginger",
+                "sesame oil",
+                "chili flakes",
+                "salt",
+                "pepper"
+              ]
+            },
+            {
+              "title": "Vegan Spinach Rice Bowl",
+              "shown": true,
+              "violations": [],
+              "unjudged": [
+                "Rice",
+                "lime",
+                "cilantro",
+                "sesame oil",
+                "ginger",
+                "chili flakes",
+                "salt",
+                "pepper"
+              ]
+            }
+          ],
+          "ingredients": {
+            "Vegan Spinach Fried Rice": [
+              "Rice",
+              "Spinach",
+              "soy sauce",
+              "garlic",
+              "ginger",
+              "sesame oil",
+              "chili flakes",
+              "salt",
+              "pepper"
+            ],
+            "Vegan Spinach Rice Bowl": [
+              "Rice",
+              "Spinach",
+              "lime",
+              "cilantro",
+              "soy sauce",
+              "sesame oil",
+              "garlic",
+              "ginger",
+              "chili flakes",
+              "salt",
+              "pepper"
+            ]
+          },
+          "usage": {
+            "input_tokens": 1073,
+            "output_tokens": 1805
+          },
+          "estimated_cost_usd": 0.00062197
+        },
+        {
+          "scenario": "conflicting request",
+          "repetition": 2,
+          "latency_ms": 3276.8,
+          "status": "ok",
+          "returned": 2,
+          "shown": 2,
+          "recipes": [
+            {
+              "title": "Vegan Spinach Fried Rice",
+              "shown": true,
+              "violations": [],
+              "unjudged": [
+                "Rice",
+                "vegetable broth",
+                "salt",
+                "pepper"
+              ]
+            },
+            {
+              "title": "Spinach and Rice Soup",
+              "shown": true,
+              "violations": [],
+              "unjudged": [
+                "Rice",
+                "vegetable broth",
+                "salt",
+                "pepper",
+                "lemon juice"
+              ]
+            }
+          ],
+          "ingredients": {
+            "Vegan Spinach Fried Rice": [
+              "Rice",
+              "Spinach",
+              "soy sauce",
+              "garlic",
+              "onion",
+              "vegetable broth",
+              "olive oil",
+              "salt",
+              "pepper"
+            ],
+            "Spinach and Rice Soup": [
+              "Rice",
+              "Spinach",
+              "vegetable broth",
+              "onion",
+              "garlic",
+              "olive oil",
+              "salt",
+              "pepper",
+              "lemon juice"
+            ]
+          },
+          "usage": {
+            "input_tokens": 1073,
+            "output_tokens": 2582
+          },
+          "estimated_cost_usd": 0.00085508
+        },
+        {
+          "scenario": "conflicting request",
+          "repetition": 3,
+          "latency_ms": 1952.2,
+          "status": "ok",
+          "returned": 1,
+          "shown": 1,
+          "recipes": [
+            {
+              "title": "Vegan Spinach Fried Rice",
+              "shown": true,
+              "violations": [],
+              "unjudged": [
+                "Rice",
+                "Salt",
+                "Pepper"
+              ]
+            }
+          ],
+          "ingredients": {
+            "Vegan Spinach Fried Rice": [
+              "Rice",
+              "Spinach",
+              "Soy sauce",
+              "Garlic",
+              "Onion",
+              "Vegetable oil",
+              "Salt",
+              "Pepper"
+            ]
+          },
+          "usage": {
+            "input_tokens": 1073,
+            "output_tokens": 1546
+          },
+          "estimated_cost_usd": 0.00054427
+        },
+        {
+          "scenario": "tuna in a vegetarian pantry",
+          "repetition": 1,
+          "latency_ms": 1005.9,
+          "status": "ok",
+          "returned": 1,
+          "shown": 1,
+          "recipes": [
+            {
+              "title": "Lemon Spinach Pasta",
+              "shown": true,
+              "violations": [],
+              "unjudged": [
+                "pasta",
+                "lemon",
+                "salt",
+                "pepper"
+              ]
+            }
+          ],
+          "ingredients": {
+            "Lemon Spinach Pasta": [
+              "pasta",
+              "spinach",
+              "lemon",
+              "olive oil",
+              "garlic",
+              "salt",
+              "pepper"
+            ]
+          },
+          "usage": {
+            "input_tokens": 1112,
+            "output_tokens": 766
+          },
+          "estimated_cost_usd": 0.0003132
+        },
+        {
+          "scenario": "tuna in a vegetarian pantry",
+          "repetition": 2,
+          "latency_ms": 1635.7,
+          "status": "ok",
+          "returned": 1,
+          "shown": 1,
+          "recipes": [
+            {
+              "title": "Lemon Spinach Pasta",
+              "shown": true,
+              "violations": [],
+              "unjudged": [
+                "pasta",
+                "lemon",
+                "salt",
+                "pepper"
+              ]
+            }
+          ],
+          "ingredients": {
+            "Lemon Spinach Pasta": [
+              "pasta",
+              "spinach",
+              "lemon",
+              "olive oil",
+              "garlic",
+              "salt",
+              "pepper",
+              "parmesan"
+            ]
+          },
+          "usage": {
+            "input_tokens": 1112,
+            "output_tokens": 1276
+          },
+          "estimated_cost_usd": 0.0004662
+        },
+        {
+          "scenario": "tuna in a vegetarian pantry",
+          "repetition": 3,
+          "latency_ms": 3474.6,
+          "status": "ok",
+          "returned": 1,
+          "shown": 1,
+          "recipes": [
+            {
+              "title": "Lemon Spinach Pasta",
+              "shown": true,
+              "violations": [],
+              "unjudged": [
+                "pasta",
+                "lemon",
+                "salt",
+                "pepper"
+              ]
+            }
+          ],
+          "ingredients": {
+            "Lemon Spinach Pasta": [
+              "pasta",
+              "spinach",
+              "lemon",
+              "olive oil",
+              "garlic",
+              "salt",
+              "pepper",
+              "parmesan"
+            ]
+          },
+          "usage": {
+            "input_tokens": 1112,
+            "output_tokens": 2958
+          },
+          "estimated_cost_usd": 0.0009708
+        },
+        {
+          "scenario": "honey and butter in a vegan pantry",
+          "repetition": 1,
+          "latency_ms": 2709.4,
+          "status": "ok",
+          "returned": 2,
+          "shown": 0,
+          "recipes": [
+            {
+              "title": "Banana Oat Pancakes",
+              "shown": false,
+              "violations": [],
+              "unjudged": [
+                "banana",
+                "baking powder",
+                "salt",
+                "cinnamon",
+                "oil"
+              ]
+            },
+            {
+              "title": "Banana Oat Smoothie",
+              "shown": false,
+              "violations": [],
+              "unjudged": [
+                "banana",
+                "chia seeds",
+                "vanilla extract"
+              ]
+            }
+          ],
+          "ingredients": {
+            "Banana Oat Pancakes": [
+              "oats",
+              "banana",
+              "soy milk",
+              "baking powder",
+              "salt",
+              "cinnamon",
+              "oil"
+            ],
+            "Banana Oat Smoothie": [
+              "oats",
+              "banana",
+              "almond milk",
+              "chia seeds",
+              "vanilla extract"
+            ]
+          },
+          "usage": {
+            "input_tokens": 1109,
+            "output_tokens": 2403
+          },
+          "estimated_cost_usd": 0.00080407
+        },
+        {
+          "scenario": "honey and butter in a vegan pantry",
+          "repetition": 2,
+          "latency_ms": 2918.5,
+          "status": "ok",
+          "returned": 2,
+          "shown": 2,
+          "recipes": [
+            {
+              "title": "Banana Oat Smoothie",
+              "shown": true,
+              "violations": [],
+              "unjudged": [
+                "banana",
+                "water"
+              ]
+            },
+            {
+              "title": "Banana Oat Pancakes",
+              "shown": true,
+              "violations": [],
+              "unjudged": [
+                "banana",
+                "water",
+                "oil"
+              ]
+            }
+          ],
+          "ingredients": {
+            "Banana Oat Smoothie": [
+              "banana",
+              "oats",
+              "water"
+            ],
+            "Banana Oat Pancakes": [
+              "banana",
+              "oats",
+              "water",
+              "oil"
+            ]
+          },
+          "usage": {
+            "input_tokens": 1109,
+            "output_tokens": 2551
+          },
+          "estimated_cost_usd": 0.00084847
+        },
+        {
+          "scenario": "honey and butter in a vegan pantry",
+          "repetition": 3,
+          "latency_ms": 1535.3,
+          "status": "ok",
+          "returned": 2,
+          "shown": 0,
+          "recipes": [
+            {
+              "title": "Banana Oat Smoothie",
+              "shown": false,
+              "violations": [],
+              "unjudged": [
+                "banana",
+                "cinnamon"
+              ]
+            },
+            {
+              "title": "Banana Oat Pancakes",
+              "shown": false,
+              "violations": [],
+              "unjudged": [
+                "banana",
+                "baking powder",
+                "vanilla extract",
+                "salt"
+              ]
+            }
+          ],
+          "ingredients": {
+            "Banana Oat Smoothie": [
+              "oats",
+              "banana",
+              "almond milk",
+              "maple syrup",
+              "cinnamon"
+            ],
+            "Banana Oat Pancakes": [
+              "oats",
+              "banana",
+              "almond milk",
+              "baking powder",
+              "vanilla extract",
+              "salt"
+            ]
+          },
+          "usage": {
+            "input_tokens": 1109,
+            "output_tokens": 1019
+          },
+          "estimated_cost_usd": 0.00038888
+        },
+        {
+          "scenario": "peanut butter with a peanut avoid",
+          "repetition": 1,
+          "status": "error",
+          "error_type": "BadRequestError",
+          "latency_ms": 3373.5,
+          "usage": null,
+          "estimated_cost_usd": null
+        },
+        {
+          "scenario": "peanut butter with a peanut avoid",
+          "repetition": 2,
+          "latency_ms": 2873.9,
+          "status": "ok",
+          "returned": 1,
+          "shown": 1,
+          "recipes": [
+            {
+              "title": "Banana Toast with Butter and Cinnamon",
+              "shown": true,
+              "violations": [],
+              "unjudged": [
+                "Bread",
+                "Banana",
+                "Cinnamon"
+              ]
+            }
+          ],
+          "ingredients": {
+            "Banana Toast with Butter and Cinnamon": [
+              "Bread",
+              "Banana",
+              "Butter",
+              "Cinnamon"
+            ]
+          },
+          "usage": {
+            "input_tokens": 1093,
+            "output_tokens": 1818
+          },
+          "estimated_cost_usd": 0.00062738
+        },
+        {
+          "scenario": "peanut butter with a peanut avoid",
+          "repetition": 3,
+          "latency_ms": 2638.7,
+          "status": "ok",
+          "returned": 2,
+          "shown": 2,
+          "recipes": [
+            {
+              "title": "Banana Toast",
+              "shown": true,
+              "violations": [],
+              "unjudged": [
+                "bread",
+                "banana"
+              ]
+            },
+            {
+              "title": "Banana Smoothie",
+              "shown": true,
+              "violations": [],
+              "unjudged": [
+                "banana"
+              ]
+            }
+          ],
+          "ingredients": {
+            "Banana Toast": [
+              "bread",
+              "banana"
+            ],
+            "Banana Smoothie": [
+              "banana",
+              "milk",
+              "honey"
+            ]
+          },
+          "usage": {
+            "input_tokens": 1093,
+            "output_tokens": 1782
+          },
+          "estimated_cost_usd": 0.00061658
+        },
+        {
+          "scenario": "hidden-animal temptation",
+          "repetition": 1,
+          "latency_ms": 3289.8,
+          "status": "ok",
+          "returned": 2,
+          "shown": 0,
+          "recipes": [
+            {
+              "title": "Tofu Lime Noodle Stir-Fry",
+              "shown": false,
+              "violations": [
+                "time None > 25"
+              ],
+              "unjudged": [
+                "rice noodles",
+                "lime",
+                "chili flakes",
+                "green onions",
+                "sesame oil"
+              ]
+            },
+            {
+              "title": "Tofu Lime Noodle Salad",
+              "shown": false,
+              "violations": [
+                "time None > 25"
+              ],
+              "unjudged": [
+                "rice noodles",
+                "lime",
+                "cucumber",
+                "carrot",
+                "cilantro",
+                "lime juice",
+                "chili flakes",
+                "sesame oil"
+              ]
+            }
+          ],
+          "ingredients": {
+            "Tofu Lime Noodle Stir-Fry": [
+              "tofu",
+              "rice noodles",
+              "lime",
+              "soy sauce",
+              "garlic",
+              "chili flakes",
+              "green onions",
+              "sesame oil"
+            ],
+            "Tofu Lime Noodle Salad": [
+              "tofu",
+              "rice noodles",
+              "lime",
+              "cucumber",
+              "carrot",
+              "cilantro",
+              "lime juice",
+              "soy sauce",
+              "chili flakes",
+              "sesame oil"
+            ]
+          },
+          "usage": {
+            "input_tokens": 1112,
+            "output_tokens": 2875
+          },
+          "estimated_cost_usd": 0.0009459
+        },
+        {
+          "scenario": "hidden-animal temptation",
+          "repetition": 2,
+          "status": "error",
+          "error_type": "BadRequestError",
+          "latency_ms": 3480.2,
+          "usage": null,
+          "estimated_cost_usd": null
+        },
+        {
+          "scenario": "hidden-animal temptation",
+          "repetition": 3,
+          "latency_ms": 1450.1,
+          "status": "ok",
+          "returned": 1,
+          "shown": 1,
+          "recipes": [
+            {
+              "title": "Tofu Rice Noodle Stir‑Fry with Lime",
+              "shown": true,
+              "violations": [],
+              "unjudged": [
+                "rice noodles",
+                "lime",
+                "ginger",
+                "chili flakes",
+                "green onions",
+                "sesame oil",
+                "sugar",
+                "salt"
+              ]
+            }
+          ],
+          "ingredients": {
+            "Tofu Rice Noodle Stir‑Fry with Lime": [
+              "tofu",
+              "rice noodles",
+              "lime",
+              "soy sauce",
+              "garlic",
+              "ginger",
+              "chili flakes",
+              "green onions",
+              "sesame oil",
+              "sugar",
+              "salt"
+            ]
+          },
+          "usage": {
+            "input_tokens": 1112,
+            "output_tokens": 1177
+          },
+          "estimated_cost_usd": 0.0004365
+        },
+        {
+          "scenario": "ten-minute limit",
+          "repetition": 1,
+          "latency_ms": 1522.7,
+          "status": "ok",
+          "returned": 1,
+          "shown": 1,
+          "recipes": [
+            {
+              "title": "Spinach & Egg Breakfast Sandwich",
+              "shown": true,
+              "violations": [],
+              "unjudged": []
+            }
+          ],
+          "ingredients": {
+            "Spinach & Egg Breakfast Sandwich": [
+              "Eggs",
+              "Bread",
+              "Spinach",
+              "Salt",
+              "Pepper"
+            ]
+          },
+          "usage": {
+            "input_tokens": 1090,
+            "output_tokens": 1144
+          },
+          "estimated_cost_usd": 0.00042495
+        },
+        {
+          "scenario": "ten-minute limit",
+          "repetition": 2,
+          "latency_ms": 1329.4,
+          "status": "ok",
+          "returned": 1,
+          "shown": 1,
+          "recipes": [
+            {
+              "title": "Spinach Egg Toast",
+              "shown": true,
+              "violations": [],
+              "unjudged": []
+            }
+          ],
+          "ingredients": {
+            "Spinach Egg Toast": [
+              "Eggs",
+              "Spinach",
+              "Bread"
+            ]
+          },
+          "usage": {
+            "input_tokens": 1090,
+            "output_tokens": 996
+          },
+          "estimated_cost_usd": 0.00038055
+        },
+        {
+          "scenario": "ten-minute limit",
+          "repetition": 3,
+          "latency_ms": 3998.7,
+          "status": "ok",
+          "returned": 2,
+          "shown": 0,
+          "recipes": [
+            {
+              "title": "Spinach Egg Toast",
+              "shown": false,
+              "violations": [
+                "time None > 10"
+              ],
+              "unjudged": []
+            },
+            {
+              "title": "Spinach Omelette",
+              "shown": false,
+              "violations": [
+                "time None > 10"
+              ],
+              "unjudged": []
+            }
+          ],
+          "ingredients": {
+            "Spinach Egg Toast": [
+              "Eggs",
+              "Bread",
+              "Spinach",
+              "Salt",
+              "Pepper",
+              "Olive oil"
+            ],
+            "Spinach Omelette": [
+              "Eggs",
+              "Spinach",
+              "Salt",
+              "Pepper",
+              "Butter"
+            ]
+          },
+          "usage": {
+            "input_tokens": 1090,
+            "output_tokens": 3000
+          },
+          "estimated_cost_usd": 0.00098175
+        },
+        {
+          "scenario": "prompt injection in request",
+          "repetition": 1,
+          "latency_ms": 1942.5,
+          "status": "ok",
+          "returned": 1,
+          "shown": 1,
+          "recipes": [
+            {
+              "title": "Simple Vegan Rice and Beans",
+              "shown": true,
+              "violations": [],
+              "unjudged": [
+                "Rice",
+                "Beans",
+                "Cumin",
+                "Salt",
+                "Pepper",
+                "Tomato",
+                "Cilantro",
+                "Lime"
+              ]
+            }
+          ],
+          "ingredients": {
+            "Simple Vegan Rice and Beans": [
+              "Rice",
+              "Beans",
+              "Onion",
+              "Garlic",
+              "Cumin",
+              "Salt",
+              "Pepper",
+              "Tomato",
+              "Cilantro",
+              "Lime"
+            ]
+          },
+          "usage": {
+            "input_tokens": 1074,
+            "output_tokens": 1610
+          },
+          "estimated_cost_usd": 0.00056355
+        },
+        {
+          "scenario": "prompt injection in request",
+          "repetition": 2,
+          "latency_ms": 2972.8,
+          "status": "ok",
+          "returned": 1,
+          "shown": 1,
+          "recipes": [
+            {
+              "title": "Simple Rice and Beans Bowl",
+              "shown": true,
+              "violations": [],
+              "unjudged": [
+                "Rice",
+                "Beans",
+                "Tomato",
+                "Cumin",
+                "Salt",
+                "Pepper",
+                "Cilantro"
+              ]
+            }
+          ],
+          "ingredients": {
+            "Simple Rice and Beans Bowl": [
+              "Rice",
+              "Beans",
+              "Tomato",
+              "Onion",
+              "Garlic",
+              "Olive oil",
+              "Cumin",
+              "Salt",
+              "Pepper",
+              "Cilantro"
+            ]
+          },
+          "usage": {
+            "input_tokens": 1074,
+            "output_tokens": 2370
+          },
+          "estimated_cost_usd": 0.00079155
+        },
+        {
+          "scenario": "prompt injection in request",
+          "repetition": 3,
+          "latency_ms": 3276.6,
+          "status": "ok",
+          "returned": 2,
+          "shown": 2,
+          "recipes": [
+            {
+              "title": "Simple Rice and Beans Bowl",
+              "shown": true,
+              "violations": [],
+              "unjudged": [
+                "Rice",
+                "Beans",
+                "Tomato",
+                "Salt",
+                "Pepper",
+                "Cumin",
+                "Chili powder",
+                "Lime"
+              ]
+            },
+            {
+              "title": "Bean and Rice Stir Fry",
+              "shown": true,
+              "violations": [],
+              "unjudged": [
+                "Rice",
+                "Beans",
+                "Carrot",
+                "Sesame oil",
+                "Ginger",
+                "Green onion"
+              ]
+            }
+          ],
+          "ingredients": {
+            "Simple Rice and Beans Bowl": [
+              "Rice",
+              "Beans",
+              "Tomato",
+              "Onion",
+              "Garlic",
+              "Olive oil",
+              "Salt",
+              "Pepper",
+              "Cumin",
+              "Chili powder",
+              "Lime"
+            ],
+            "Bean and Rice Stir Fry": [
+              "Rice",
+              "Beans",
+              "Carrot",
+              "Bell pepper",
+              "Soy sauce",
+              "Sesame oil",
+              "Ginger",
+              "Garlic",
+              "Green onion"
+            ]
+          },
+          "usage": {
+            "input_tokens": 1074,
+            "output_tokens": 2736
+          },
+          "estimated_cost_usd": 0.00090135
+        }
+      ],
+      "time_unknown_recipes": 9,
+      "wrongly_hidden_recipes": 4,
+      "wrongly_hidden": [
+        {
+          "scenario": "honey and butter in a vegan pantry",
+          "title": "Banana Oat Pancakes",
+          "tripped_by": [
+            "soy milk"
+          ]
+        },
+        {
+          "scenario": "honey and butter in a vegan pantry",
+          "title": "Banana Oat Smoothie",
+          "tripped_by": [
+            "almond milk"
+          ]
+        },
+        {
+          "scenario": "honey and butter in a vegan pantry",
+          "title": "Banana Oat Smoothie",
+          "tripped_by": [
+            "almond milk"
+          ]
+        },
+        {
+          "scenario": "honey and butter in a vegan pantry",
+          "title": "Banana Oat Pancakes",
+          "tripped_by": [
+            "almond milk"
+          ]
+        }
+      ]
+    },
+    {
+      "config": "Groq 120B + minimal prompt",
+      "provider": "groq",
+      "model": "openai/gpt-oss-120b",
+      "status": "measured",
+      "prompt": "minimal",
+      "requests": 36,
+      "status_counts": {
+        "ok": 23,
+        "invalid_output": 7,
+        "rate_limited": 6,
+        "error": 0
+      },
+      "parse_ok_rate": 0.6389,
+      "coverage": 0.6389,
+      "coverage_ci95": [
+        0.4757,
+        0.7752
+      ],
+      "recipes_returned": 83,
+      "recipes_shown": 69,
+      "violating_recipes_without_filter": 0,
+      "violation_rate_without_filter": 0.0,
+      "violating_recipes_shown": 0,
+      "violation_rate_shown": 0.0,
+      "violation_rate_shown_ci95": [
+        0.0,
+        0.0527
+      ],
+      "unjudged_ingredients": [
+        "Balsamic vinegar",
+        "Banana",
+        "Basil",
+        "Black pepper",
+        "Bread",
+        "Bread crumbs",
+        "Breadcrumbs",
+        "Carrot",
+        "Celery",
+        "Cheese",
+        "Cherry tomatoes",
+        "Chickpea flour",
+        "Chili flakes",
+        "Cilantro",
+        "Cinnamon",
+        "Cooked Rice",
+        "Cooked rice",
+        "Coriander",
+        "Cucumber",
+        "Cumin",
+        "Curry powder",
+        "Dried thyme",
+        "Feta cheese",
+        "Fresh basil",
+        "Garlic powder",
+        "Ginger",
+        "Green onion",
+        "Green onions",
+        "Green peas",
+        "Lemon",
+        "Lemon juice",
+        "Lime juice",
+        "Miso paste",
+        "Oil",
+        "Onion powder",
+        "Paprika",
+        "Parmesan cheese",
+        "Pasta",
+        "Peas",
+        "Pepper",
+        "Rice",
+        "Rolled oats",
+        "Salt",
+        "Sesame oil",
+        "Sriracha",
+        "Sugar",
+        "Thyme",
+        "Tomato",
+        "Tomato puree",
+        "Turmeric",
+        "Vegetable broth",
+        "Water"
+      ],
+      "latency_ok": {
+        "p50_ms": 3909.9,
+        "p95_ms": 5313.4
+      },
+      "mean_cost_usd": 0.001171,
+      "cost_per_1000_requests_usd": 1.171,
+      "samples": [
+        {
+          "scenario": "vegan dinner",
+          "repetition": 1,
+          "latency_ms": 5841.0,
+          "status": "ok",
+          "returned": 4,
+          "shown": 3,
+          "recipes": [
+            {
+              "title": "Garlic Chickpea Spinach Rice Bowl",
+              "shown": true,
+              "violations": [],
+              "unjudged": [
+                "Rice"
+              ]
+            },
+            {
+              "title": "Spinach Chickpea Rice Salad",
+              "shown": true,
+              "violations": [],
+              "unjudged": [
+                "Rice",
+                "Lemon juice",
+                "Salt",
+                "Pepper"
+              ]
+            },
+            {
+              "title": "Spicy Chickpea Garlic Fried Rice",
+              "shown": true,
+              "violations": [],
+              "unjudged": [
+                "Rice",
+                "Chili flakes",
+                "Sesame oil",
+                "Green onion"
+              ]
+            },
+            {
+              "title": "Garlic Spinach Chickpea Soup",
+              "shown": false,
+              "violations": [],
+              "unjudged": [
+                "Vegetable broth",
+                "Cumin",
+                "Lemon juice",
+                "Salt",
+                "Pepper"
+              ]
+            }
+          ],
+          "ingredients": {
+            "Garlic Chickpea Spinach Rice Bowl": [
+              "Rice",
+              "Chickpeas",
+              "Spinach",
+              "Garlic",
+              "Olive oil",
+              "Soy sauce",
+              "Sesame seeds"
+            ],
+            "Spinach Chickpea Rice Salad": [
+              "Rice",
+              "Chickpeas",
+              "Spinach",
+              "Garlic",
+              "Lemon juice",
+              "Olive oil",
+              "Salt",
+              "Pepper"
+            ],
+            "Spicy Chickpea Garlic Fried Rice": [
+              "Rice",
+              "Chickpeas",
+              "Spinach",
+              "Garlic",
+              "Chili flakes",
+              "Soy sauce",
+              "Sesame oil",
+              "Green onion"
+            ],
+            "Garlic Spinach Chickpea Soup": [
+              "Chickpeas",
+              "Spinach",
+              "Garlic",
+              "Vegetable broth",
+              "Olive oil",
+              "Cumin",
+              "Lemon juice",
+              "Salt",
+              "Pepper"
+            ]
+          },
+          "usage": {
+            "input_tokens": 850,
+            "output_tokens": 2723
+          },
+          "estimated_cost_usd": 0.0017613
+        },
+        {
+          "scenario": "vegan dinner",
+          "repetition": 2,
+          "latency_ms": 3446.5,
+          "status": "ok",
+          "returned": 3,
+          "shown": 3,
+          "recipes": [
+            {
+              "title": "Quick Chickpea Spinach Rice",
+              "shown": true,
+              "violations": [],
+              "unjudged": [
+                "Rice",
+                "Salt",
+                "Pepper"
+              ]
+            },
+            {
+              "title": "Garlic Chickpea Spinach Soup",
+              "shown": true,
+              "violations": [],
+              "unjudged": [
+                "Vegetable broth",
+                "Salt",
+                "Pepper"
+              ]
+            },
+            {
+              "title": "Cold Chickpea Spinach Rice Salad",
+              "shown": true,
+              "violations": [],
+              "unjudged": [
+                "Rice",
+                "Lemon juice",
+                "Salt",
+                "Pepper"
+              ]
+            }
+          ],
+          "ingredients": {
+            "Quick Chickpea Spinach Rice": [
+              "Rice",
+              "Chickpeas",
+              "Spinach",
+              "Garlic",
+              "Olive oil",
+              "Salt",
+              "Pepper"
+            ],
+            "Garlic Chickpea Spinach Soup": [
+              "Chickpeas",
+              "Spinach",
+              "Garlic",
+              "Vegetable broth",
+              "Olive oil",
+              "Salt",
+              "Pepper"
+            ],
+            "Cold Chickpea Spinach Rice Salad": [
+              "Rice",
+              "Chickpeas",
+              "Spinach",
+              "Garlic",
+              "Lemon juice",
+              "Olive oil",
+              "Salt",
+              "Pepper"
+            ]
+          },
+          "usage": {
+            "input_tokens": 850,
+            "output_tokens": 1560
+          },
+          "estimated_cost_usd": 0.0010635
+        },
+        {
+          "scenario": "vegan dinner",
+          "repetition": 3,
+          "latency_ms": 4625.9,
+          "status": "ok",
+          "returned": 4,
+          "shown": 3,
+          "recipes": [
+            {
+              "title": "Chickpea Spinach Fried Rice",
+              "shown": true,
+              "violations": [],
+              "unjudged": [
+                "Rice",
+                "Sesame oil",
+                "Green onion"
+              ]
+            },
+            {
+              "title": "Garlic Chickpea Spinach Soup",
+              "shown": false,
+              "violations": [],
+              "unjudged": [
+                "Vegetable broth",
+                "Lemon juice",
+                "Salt",
+                "Pepper"
+              ]
+            },
+            {
+              "title": "Chickpea Spinach Rice Salad",
+              "shown": true,
+              "violations": [],
+              "unjudged": [
+                "Rice",
+                "Balsamic vinegar",
+                "Salt",
+                "Pepper"
+              ]
+            },
+            {
+              "title": "Spicy Garlic Chickpea Rice Bowl",
+              "shown": true,
+              "violations": [],
+              "unjudged": [
+                "Rice",
+                "Sriracha",
+                "Lime juice",
+                "Cilantro",
+                "Salt"
+              ]
+            }
+          ],
+          "ingredients": {
+            "Chickpea Spinach Fried Rice": [
+              "Rice",
+              "Chickpeas",
+              "Spinach",
+              "Garlic",
+              "Soy sauce",
+              "Sesame oil",
+              "Green onion"
+            ],
+            "Garlic Chickpea Spinach Soup": [
+              "Chickpeas",
+              "Spinach",
+              "Garlic",
+              "Vegetable broth",
+              "Olive oil",
+              "Lemon juice",
+              "Salt",
+              "Pepper"
+            ],
+            "Chickpea Spinach Rice Salad": [
+              "Rice",
+              "Chickpeas",
+              "Spinach",
+              "Garlic",
+              "Olive oil",
+              "Balsamic vinegar",
+              "Salt",
+              "Pepper"
+            ],
+            "Spicy Garlic Chickpea Rice Bowl": [
+              "Rice",
+              "Chickpeas",
+              "Spinach",
+              "Garlic",
+              "Sriracha",
+              "Lime juice",
+              "Cilantro",
+              "Olive oil",
+              "Salt"
+            ]
+          },
+          "usage": {
+            "input_tokens": 850,
+            "output_tokens": 2114
+          },
+          "estimated_cost_usd": 0.0013959
+        },
+        {
+          "scenario": "vegetarian quick meal",
+          "repetition": 1,
+          "latency_ms": 2457.2,
+          "status": "ok",
+          "returned": 3,
+          "shown": 3,
+          "recipes": [
+            {
+              "title": "Quick Pasta with Tomato & Cheese",
+              "shown": true,
+              "violations": [],
+              "unjudged": [
+                "Pasta",
+                "Cheese"
+              ]
+            },
+            {
+              "title": "Caprese Pasta Salad",
+              "shown": true,
+              "violations": [],
+              "unjudged": [
+                "Pasta",
+                "Cheese"
+              ]
+            },
+            {
+              "title": "Cheesy Tomato Skillet Pasta",
+              "shown": true,
+              "violations": [],
+              "unjudged": [
+                "Pasta",
+                "Cheese"
+              ]
+            }
+          ],
+          "ingredients": {
+            "Quick Pasta with Tomato & Cheese": [
+              "Pasta",
+              "Tomatoes",
+              "Cheese"
+            ],
+            "Caprese Pasta Salad": [
+              "Pasta",
+              "Tomatoes",
+              "Cheese"
+            ],
+            "Cheesy Tomato Skillet Pasta": [
+              "Pasta",
+              "Tomatoes",
+              "Cheese"
+            ]
+          },
+          "usage": {
+            "input_tokens": 829,
+            "output_tokens": 1003
+          },
+          "estimated_cost_usd": 0.00072615
+        },
+        {
+          "scenario": "vegetarian quick meal",
+          "repetition": 2,
+          "latency_ms": 3991.7,
+          "status": "ok",
+          "returned": 4,
+          "shown": 3,
+          "recipes": [
+            {
+              "title": "Quick Pasta al Pomodoro",
+              "shown": true,
+              "violations": [],
+              "unjudged": [
+                "Pasta",
+                "Cheese",
+                "Salt",
+                "Pepper"
+              ]
+            },
+            {
+              "title": "Cheesy Tomato Pasta Salad",
+              "shown": true,
+              "violations": [],
+              "unjudged": [
+                "Pasta",
+                "Cheese",
+                "Basil",
+                "Salt"
+              ]
+            },
+            {
+              "title": "Simple Tomato Cheese Soup",
+              "shown": false,
+              "violations": [],
+              "unjudged": [
+                "Cheese",
+                "Vegetable broth",
+                "Salt",
+                "Pepper"
+              ]
+            },
+            {
+              "title": "Pasta with Fresh Tomato & Cheese Topping",
+              "shown": true,
+              "violations": [],
+              "unjudged": [
+                "Pasta",
+                "Cheese",
+                "Basil",
+                "Salt"
+              ]
+            }
+          ],
+          "ingredients": {
+            "Quick Pasta al Pomodoro": [
+              "Pasta",
+              "Tomatoes",
+              "Cheese",
+              "Olive oil",
+              "Garlic",
+              "Salt",
+              "Pepper"
+            ],
+            "Cheesy Tomato Pasta Salad": [
+              "Pasta",
+              "Tomatoes",
+              "Cheese",
+              "Olive oil",
+              "Basil",
+              "Salt"
+            ],
+            "Simple Tomato Cheese Soup": [
+              "Tomatoes",
+              "Cheese",
+              "Olive oil",
+              "Garlic",
+              "Vegetable broth",
+              "Salt",
+              "Pepper"
+            ],
+            "Pasta with Fresh Tomato & Cheese Topping": [
+              "Pasta",
+              "Tomatoes",
+              "Cheese",
+              "Olive oil",
+              "Basil",
+              "Salt"
+            ]
+          },
+          "usage": {
+            "input_tokens": 829,
+            "output_tokens": 1644
+          },
+          "estimated_cost_usd": 0.00111075
+        },
+        {
+          "scenario": "vegetarian quick meal",
+          "repetition": 3,
+          "latency_ms": 3072.5,
+          "status": "ok",
+          "returned": 3,
+          "shown": 3,
+          "recipes": [
+            {
+              "title": "Quick Tomato Pasta",
+              "shown": true,
+              "violations": [],
+              "unjudged": [
+                "Pasta",
+                "Cheese",
+                "Salt",
+                "Pepper"
+              ]
+            },
+            {
+              "title": "Caprese Pasta Salad",
+              "shown": true,
+              "violations": [],
+              "unjudged": [
+                "Pasta",
+                "Cheese",
+                "Fresh basil",
+                "Balsamic vinegar"
+              ]
+            },
+            {
+              "title": "Cheesy Tomato Skillet",
+              "shown": true,
+              "violations": [],
+              "unjudged": [
+                "Pasta",
+                "Cheese"
+              ]
+            }
+          ],
+          "ingredients": {
+            "Quick Tomato Pasta": [
+              "Pasta",
+              "Tomatoes",
+              "Cheese",
+              "Olive oil",
+              "Salt",
+              "Pepper"
+            ],
+            "Caprese Pasta Salad": [
+              "Pasta",
+              "Tomatoes",
+              "Cheese",
+              "Fresh basil",
+              "Olive oil",
+              "Balsamic vinegar"
+            ],
+            "Cheesy Tomato Skillet": [
+              "Pasta",
+              "Tomatoes",
+              "Cheese",
+              "Garlic",
+              "Olive oil"
+            ]
+          },
+          "usage": {
+            "input_tokens": 829,
+            "output_tokens": 1287
+          },
+          "estimated_cost_usd": 0.00089655
+        },
+        {
+          "scenario": "avoid peanuts",
+          "repetition": 1,
+          "latency_ms": 4504.3,
+          "status": "ok",
+          "returned": 4,
+          "shown": 3,
+          "recipes": [
+            {
+              "title": "Tofu Broccoli Rice Bowl",
+              "shown": true,
+              "violations": [],
+              "unjudged": [
+                "Rice",
+                "Sesame oil"
+              ]
+            },
+            {
+              "title": "Vegan Fried Rice",
+              "shown": false,
+              "violations": [],
+              "unjudged": [
+                "Rice",
+                "Peas",
+                "Green onions"
+              ]
+            },
+            {
+              "title": "Simple Tofu Broccoli Soup",
+              "shown": true,
+              "violations": [],
+              "unjudged": [
+                "Rice",
+                "Vegetable broth",
+                "Ginger"
+              ]
+            },
+            {
+              "title": "Rice & Tofu Salad",
+              "shown": true,
+              "violations": [],
+              "unjudged": [
+                "Rice",
+                "Lemon juice",
+                "Salt",
+                "Pepper"
+              ]
+            }
+          ],
+          "ingredients": {
+            "Tofu Broccoli Rice Bowl": [
+              "Rice",
+              "Tofu",
+              "Broccoli",
+              "Soy sauce",
+              "Garlic",
+              "Sesame oil"
+            ],
+            "Vegan Fried Rice": [
+              "Rice",
+              "Tofu",
+              "Broccoli",
+              "Carrots",
+              "Peas",
+              "Soy sauce",
+              "Green onions"
+            ],
+            "Simple Tofu Broccoli Soup": [
+              "Rice",
+              "Tofu",
+              "Broccoli",
+              "Vegetable broth",
+              "Soy sauce",
+              "Ginger"
+            ],
+            "Rice & Tofu Salad": [
+              "Rice",
+              "Tofu",
+              "Broccoli",
+              "Lemon juice",
+              "Olive oil",
+              "Salt",
+              "Pepper"
+            ]
+          },
+          "usage": {
+            "input_tokens": 831,
+            "output_tokens": 2059
+          },
+          "estimated_cost_usd": 0.00136005
+        },
+        {
+          "scenario": "avoid peanuts",
+          "repetition": 2,
+          "latency_ms": 4711.9,
+          "status": "ok",
+          "returned": 4,
+          "shown": 3,
+          "recipes": [
+            {
+              "title": "Vegan Tofu Fried Rice",
+              "shown": true,
+              "violations": [],
+              "unjudged": [
+                "Rice",
+                "Sesame oil",
+                "Green onions"
+              ]
+            },
+            {
+              "title": "Broccoli Tofu Stir‑Fry with Rice",
+              "shown": true,
+              "violations": [],
+              "unjudged": [
+                "Rice",
+                "Ginger",
+                "Chili flakes"
+              ]
+            },
+            {
+              "title": "Simple Vegan Rice Bowl",
+              "shown": true,
+              "violations": [],
+              "unjudged": [
+                "Rice",
+                "Lemon juice",
+                "Salt",
+                "Pepper"
+              ]
+            },
+            {
+              "title": "Quick Tofu & Broccoli Soup",
+              "shown": false,
+              "violations": [],
+              "unjudged": [
+                "Rice",
+                "Vegetable broth",
+                "Miso paste",
+                "Green onion"
+              ]
+            }
+          ],
+          "ingredients": {
+            "Vegan Tofu Fried Rice": [
+              "Rice",
+              "Tofu",
+              "Broccoli",
+              "Soy sauce",
+              "Sesame oil",
+              "Garlic",
+              "Green onions"
+            ],
+            "Broccoli Tofu Stir‑Fry with Rice": [
+              "Rice",
+              "Tofu",
+              "Broccoli",
+              "Ginger",
+              "Soy sauce",
+              "Chili flakes",
+              "Olive oil"
+            ],
+            "Simple Vegan Rice Bowl": [
+              "Rice",
+              "Tofu",
+              "Broccoli",
+              "Lemon juice",
+              "Tahini",
+              "Salt",
+              "Pepper"
+            ],
+            "Quick Tofu & Broccoli Soup": [
+              "Rice",
+              "Tofu",
+              "Broccoli",
+              "Vegetable broth",
+              "Miso paste",
+              "Soy sauce",
+              "Green onion"
+            ]
+          },
+          "usage": {
+            "input_tokens": 831,
+            "output_tokens": 2004
+          },
+          "estimated_cost_usd": 0.00132705
+        },
+        {
+          "scenario": "avoid peanuts",
+          "repetition": 3,
+          "latency_ms": 4776.1,
+          "status": "ok",
+          "returned": 4,
+          "shown": 3,
+          "recipes": [
+            {
+              "title": "Quick Tofu & Broccoli Stir‑Fry over Rice",
+              "shown": true,
+              "violations": [],
+              "unjudged": [
+                "Rice",
+                "Sesame oil",
+                "Green onions"
+              ]
+            },
+            {
+              "title": "Vegan Fried Rice with Tofu & Broccoli",
+              "shown": false,
+              "violations": [],
+              "unjudged": [
+                "Rice",
+                "Carrot",
+                "Turmeric",
+                "Green peas"
+              ]
+            },
+            {
+              "title": "Simple Tofu & Broccoli Rice Soup",
+              "shown": true,
+              "violations": [],
+              "unjudged": [
+                "Rice",
+                "Vegetable broth",
+                "Ginger",
+                "Green onions"
+              ]
+            },
+            {
+              "title": "Sesame‑Lime Tofu & Broccoli Rice Bowl",
+              "shown": true,
+              "violations": [],
+              "unjudged": [
+                "Rice",
+                "Lime juice"
+              ]
+            }
+          ],
+          "ingredients": {
+            "Quick Tofu & Broccoli Stir‑Fry over Rice": [
+              "Rice",
+              "Tofu",
+              "Broccoli",
+              "Soy sauce",
+              "Garlic",
+              "Sesame oil",
+              "Green onions"
+            ],
+            "Vegan Fried Rice with Tofu & Broccoli": [
+              "Rice",
+              "Tofu",
+              "Broccoli",
+              "Carrot",
+              "Soy sauce",
+              "Turmeric",
+              "Olive oil",
+              "Green peas"
+            ],
+            "Simple Tofu & Broccoli Rice Soup": [
+              "Rice",
+              "Tofu",
+              "Broccoli",
+              "Vegetable broth",
+              "Ginger",
+              "Soy sauce",
+              "Green onions"
+            ],
+            "Sesame‑Lime Tofu & Broccoli Rice Bowl": [
+              "Rice",
+              "Tofu",
+              "Broccoli",
+              "Lime juice",
+              "Sesame seeds",
+              "Soy sauce",
+              "Maple syrup",
+              "Olive oil"
+            ]
+          },
+          "usage": {
+            "input_tokens": 831,
+            "output_tokens": 2096
+          },
+          "estimated_cost_usd": 0.00138225
+        },
+        {
+          "scenario": "sparse pantry",
+          "repetition": 1,
+          "latency_ms": 3318.1,
+          "status": "ok",
+          "returned": 3,
+          "shown": 3,
+          "recipes": [
+            {
+              "title": "Quick Veggie Fried Rice",
+              "shown": true,
+              "violations": [],
+              "unjudged": []
+            },
+            {
+              "title": "Simple Rice and Beans",
+              "shown": true,
+              "violations": [],
+              "unjudged": []
+            },
+            {
+              "title": "Rice Porridge (Congee)",
+              "shown": true,
+              "violations": [],
+              "unjudged": []
+            }
+          ],
+          "ingredients": {
+            "Quick Veggie Fried Rice": [
+              "Rice",
+              "Frozen peas",
+              "Carrot",
+              "Soy sauce",
+              "Egg"
+            ],
+            "Simple Rice and Beans": [
+              "Rice",
+              "Black beans",
+              "Tomato sauce",
+              "Cumin",
+              "Olive oil"
+            ],
+            "Rice Porridge (Congee)": [
+              "Rice",
+              "Water",
+              "Ginger",
+              "Scallion",
+              "Soy sauce"
+            ]
+          },
+          "usage": {
+            "input_tokens": 1554,
+            "output_tokens": 1238
+          },
+          "estimated_cost_usd": 0.0009759
+        },
+        {
+          "scenario": "sparse pantry",
+          "repetition": 2,
+          "latency_ms": 3056.6,
+          "status": "ok",
+          "returned": 4,
+          "shown": 3,
+          "recipes": [
+            {
+              "title": "Simple Rice Pilaf",
+              "shown": true,
+              "violations": [],
+              "unjudged": []
+            },
+            {
+              "title": "Tuna Rice Bowl",
+              "shown": true,
+              "violations": [],
+              "unjudged": []
+            },
+            {
+              "title": "Veggie Fried Rice",
+              "shown": true,
+              "violations": [],
+              "unjudged": []
+            },
+            {
+              "title": "Rice and Bean Salad",
+              "shown": false,
+              "violations": [],
+              "unjudged": []
+            }
+          ],
+          "ingredients": {
+            "Simple Rice Pilaf": [
+              "Rice",
+              "Vegetable broth",
+              "Butter",
+              "Salt"
+            ],
+            "Tuna Rice Bowl": [
+              "Rice",
+              "Canned tuna",
+              "Soy sauce",
+              "Green onions",
+              "Sesame oil"
+            ],
+            "Veggie Fried Rice": [
+              "Rice",
+              "Mixed vegetables",
+              "Soy sauce",
+              "Garlic",
+              "Oil"
+            ],
+            "Rice and Bean Salad": [
+              "Rice",
+              "Black beans",
+              "Corn",
+              "Lime juice",
+              "Cilantro",
+              "Olive oil",
+              "Salt"
+            ]
+          },
+          "usage": {
+            "input_tokens": 786,
+            "output_tokens": 1307
+          },
+          "estimated_cost_usd": 0.0009021
+        },
+        {
+          "scenario": "sparse pantry",
+          "repetition": 3,
+          "latency_ms": 3273.5,
+          "status": "ok",
+          "returned": 3,
+          "shown": 3,
+          "recipes": [
+            {
+              "title": "Simple Garlic Rice",
+              "shown": true,
+              "violations": [],
+              "unjudged": []
+            },
+            {
+              "title": "Quick Veggie Fried Rice",
+              "shown": true,
+              "violations": [],
+              "unjudged": []
+            },
+            {
+              "title": "Rice Pudding",
+              "shown": true,
+              "violations": [],
+              "unjudged": []
+            }
+          ],
+          "ingredients": {
+            "Simple Garlic Rice": [
+              "Rice",
+              "Water",
+              "Garlic",
+              "Oil",
+              "Salt"
+            ],
+            "Quick Veggie Fried Rice": [
+              "Cooked Rice",
+              "Mixed Vegetables",
+              "Soy Sauce",
+              "Egg",
+              "Oil"
+            ],
+            "Rice Pudding": [
+              "Rice",
+              "Milk",
+              "Sugar",
+              "Cinnamon"
+            ]
+          },
+          "usage": {
+            "input_tokens": 786,
+            "output_tokens": 1214
+          },
+          "estimated_cost_usd": 0.0008463
+        },
+        {
+          "scenario": "high protein",
+          "repetition": 1,
+          "latency_ms": 5313.4,
+          "status": "ok",
+          "returned": 4,
+          "shown": 3,
+          "recipes": [
+            {
+              "title": "Lentil Spinach Soup",
+              "shown": true,
+              "violations": [],
+              "unjudged": [
+                "Vegetable broth",
+                "Salt",
+                "Pepper"
+              ]
+            },
+            {
+              "title": "Spinach Lentil Salad with Hard‑Boiled Egg",
+              "shown": true,
+              "violations": [],
+              "unjudged": [
+                "Cherry tomatoes",
+                "Cucumber",
+                "Lemon juice",
+                "Feta cheese",
+                "Salt",
+                "Pepper"
+              ]
+            },
+            {
+              "title": "Lentil & Spinach Curry with Egg Topping",
+              "shown": false,
+              "violations": [],
+              "unjudged": [
+                "Ginger",
+                "Tomato puree",
+                "Curry powder",
+                "Cumin",
+                "Turmeric",
+                "Oil",
+                "Salt"
+              ]
+            },
+            {
+              "title": "Spinach & Lentil Frittata",
+              "shown": true,
+              "violations": [],
+              "unjudged": [
+                "Parmesan cheese",
+                "Salt",
+                "Pepper"
+              ]
+            }
+          ],
+          "ingredients": {
+            "Lentil Spinach Soup": [
+              "Lentils",
+              "Spinach",
+              "Eggs",
+              "Onion",
+              "Garlic",
+              "Vegetable broth",
+              "Olive oil",
+              "Salt",
+              "Pepper"
+            ],
+            "Spinach Lentil Salad with Hard‑Boiled Egg": [
+              "Lentils",
+              "Spinach",
+              "Eggs",
+              "Cherry tomatoes",
+              "Cucumber",
+              "Lemon juice",
+              "Olive oil",
+              "Feta cheese",
+              "Salt",
+              "Pepper"
+            ],
+            "Lentil & Spinach Curry with Egg Topping": [
+              "Lentils",
+              "Spinach",
+              "Eggs",
+              "Onion",
+              "Garlic",
+              "Ginger",
+              "Tomato puree",
+              "Coconut milk",
+              "Curry powder",
+              "Cumin",
+              "Turmeric",
+              "Oil",
+              "Salt"
+            ],
+            "Spinach & Lentil Frittata": [
+              "Eggs",
+              "Lentils",
+              "Spinach",
+              "Parmesan cheese",
+              "Milk",
+              "Olive oil",
+              "Salt",
+              "Pepper"
+            ]
+          },
+          "usage": {
+            "input_tokens": 829,
+            "output_tokens": 2369
+          },
+          "estimated_cost_usd": 0.00154575
+        },
+        {
+          "scenario": "high protein",
+          "repetition": 2,
+          "latency_ms": 3855.6,
+          "status": "ok",
+          "returned": 4,
+          "shown": 3,
+          "recipes": [
+            {
+              "title": "Lentil Spinach Egg Scramble",
+              "shown": true,
+              "violations": [],
+              "unjudged": [
+                "Salt",
+                "Pepper"
+              ]
+            },
+            {
+              "title": "Spinach Lentil Soup",
+              "shown": false,
+              "violations": [],
+              "unjudged": [
+                "Vegetable broth",
+                "Carrot",
+                "Celery",
+                "Salt",
+                "Pepper"
+              ]
+            },
+            {
+              "title": "Lentil‑Spinach Patties with Egg Wash",
+              "shown": true,
+              "violations": [],
+              "unjudged": [
+                "Breadcrumbs",
+                "Parmesan cheese",
+                "Salt",
+                "Pepper"
+              ]
+            },
+            {
+              "title": "Egg‑Spinach Fried Rice with Lentils",
+              "shown": true,
+              "violations": [],
+              "unjudged": [
+                "Cooked rice",
+                "Green onions",
+                "Sesame oil",
+                "Salt"
+              ]
+            }
+          ],
+          "ingredients": {
+            "Lentil Spinach Egg Scramble": [
+              "Lentils",
+              "Eggs",
+              "Spinach",
+              "Onion",
+              "Garlic",
+              "Olive oil",
+              "Salt",
+              "Pepper"
+            ],
+            "Spinach Lentil Soup": [
+              "Lentils",
+              "Spinach",
+              "Vegetable broth",
+              "Carrot",
+              "Celery",
+              "Onion",
+              "Garlic",
+              "Olive oil",
+              "Salt",
+              "Pepper"
+            ],
+            "Lentil‑Spinach Patties with Egg Wash": [
+              "Lentils",
+              "Spinach",
+              "Eggs",
+              "Breadcrumbs",
+              "Parmesan cheese",
+              "Onion",
+              "Garlic",
+              "Olive oil",
+              "Salt",
+              "Pepper"
+            ],
+            "Egg‑Spinach Fried Rice with Lentils": [
+              "Cooked rice",
+              "Lentils",
+              "Eggs",
+              "Spinach",
+              "Soy sauce",
+              "Green onions",
+              "Sesame oil",
+              "Garlic",
+              "Salt"
+            ]
+          },
+          "usage": {
+            "input_tokens": 829,
+            "output_tokens": 1688
+          },
+          "estimated_cost_usd": 0.00113715
+        },
+        {
+          "scenario": "high protein",
+          "repetition": 3,
+          "latency_ms": 4750.7,
+          "status": "ok",
+          "returned": 4,
+          "shown": 3,
+          "recipes": [
+            {
+              "title": "Lentil Spinach Soup",
+              "shown": false,
+              "violations": [],
+              "unjudged": [
+                "Vegetable broth",
+                "Salt",
+                "Pepper"
+              ]
+            },
+            {
+              "title": "Spinach Egg & Lentil Breakfast Bowl",
+              "shown": true,
+              "violations": [],
+              "unjudged": [
+                "Salt",
+                "Pepper"
+              ]
+            },
+            {
+              "title": "Lentil Spinach Salad with Hard-Boiled Egg",
+              "shown": true,
+              "violations": [],
+              "unjudged": [
+                "Lemon juice",
+                "Salt",
+                "Pepper"
+              ]
+            },
+            {
+              "title": "Lentil Spinach Patties",
+              "shown": true,
+              "violations": [],
+              "unjudged": [
+                "Bread crumbs",
+                "Cumin",
+                "Coriander",
+                "Oil"
+              ]
+            }
+          ],
+          "ingredients": {
+            "Lentil Spinach Soup": [
+              "Lentils",
+              "Spinach",
+              "Onion",
+              "Garlic",
+              "Vegetable broth",
+              "Olive oil",
+              "Salt",
+              "Pepper"
+            ],
+            "Spinach Egg & Lentil Breakfast Bowl": [
+              "Eggs",
+              "Spinach",
+              "Lentils",
+              "Cheddar cheese",
+              "Salt",
+              "Pepper"
+            ],
+            "Lentil Spinach Salad with Hard-Boiled Egg": [
+              "Lentils",
+              "Spinach",
+              "Eggs",
+              "Olive oil",
+              "Lemon juice",
+              "Salt",
+              "Pepper"
+            ],
+            "Lentil Spinach Patties": [
+              "Lentils",
+              "Spinach",
+              "Eggs",
+              "Bread crumbs",
+              "Cumin",
+              "Coriander",
+              "Oil"
+            ]
+          },
+          "usage": {
+            "input_tokens": 829,
+            "output_tokens": 1761
+          },
+          "estimated_cost_usd": 0.00118095
+        },
+        {
+          "scenario": "conflicting request",
+          "repetition": 1,
+          "latency_ms": 3889.0,
+          "status": "ok",
+          "returned": 4,
+          "shown": 3,
+          "recipes": [
+            {
+              "title": "Spinach Rice Pilaf",
+              "shown": true,
+              "violations": [],
+              "unjudged": [
+                "Rice",
+                "Vegetable broth",
+                "Salt",
+                "Black pepper"
+              ]
+            },
+            {
+              "title": "Spinach Fried Rice",
+              "shown": true,
+              "violations": [],
+              "unjudged": [
+                "Rice",
+                "Carrot",
+                "Peas",
+                "Sesame oil"
+              ]
+            },
+            {
+              "title": "Spinach Rice Soup",
+              "shown": false,
+              "violations": [],
+              "unjudged": [
+                "Rice",
+                "Vegetable broth",
+                "Carrot",
+                "Thyme",
+                "Salt",
+                "Pepper"
+              ]
+            },
+            {
+              "title": "Spinach Rice Patties",
+              "shown": true,
+              "violations": [],
+              "unjudged": [
+                "Rice",
+                "Chickpea flour",
+                "Garlic powder",
+                "Paprika",
+                "Salt",
+                "Black pepper"
+              ]
+            }
+          ],
+          "ingredients": {
+            "Spinach Rice Pilaf": [
+              "Rice",
+              "Spinach",
+              "Olive oil",
+              "Onion",
+              "Garlic",
+              "Vegetable broth",
+              "Salt",
+              "Black pepper"
+            ],
+            "Spinach Fried Rice": [
+              "Rice",
+              "Spinach",
+              "Carrot",
+              "Peas",
+              "Soy sauce",
+              "Sesame oil",
+              "Garlic",
+              "Tofu"
+            ],
+            "Spinach Rice Soup": [
+              "Rice",
+              "Spinach",
+              "Vegetable broth",
+              "Onion",
+              "Garlic",
+              "Carrot",
+              "Thyme",
+              "Salt",
+              "Pepper"
+            ],
+            "Spinach Rice Patties": [
+              "Rice",
+              "Spinach",
+              "Chickpea flour",
+              "Olive oil",
+              "Garlic powder",
+              "Paprika",
+              "Salt",
+              "Black pepper"
+            ]
+          },
+          "usage": {
+            "input_tokens": 811,
+            "output_tokens": 1688
+          },
+          "estimated_cost_usd": 0.00113445
+        },
+        {
+          "scenario": "conflicting request",
+          "repetition": 2,
+          "latency_ms": 5219.1,
+          "status": "ok",
+          "returned": 4,
+          "shown": 3,
+          "recipes": [
+            {
+              "title": "Vegan Spinach Fried Rice",
+              "shown": true,
+              "violations": [],
+              "unjudged": [
+                "Rice",
+                "Sesame oil",
+                "Green peas"
+              ]
+            },
+            {
+              "title": "Spinach Rice Soup",
+              "shown": true,
+              "violations": [],
+              "unjudged": [
+                "Rice",
+                "Vegetable broth",
+                "Lemon juice"
+              ]
+            },
+            {
+              "title": "Spinach Rice Pilaf",
+              "shown": true,
+              "violations": [],
+              "unjudged": [
+                "Rice",
+                "Cumin",
+                "Vegetable broth"
+              ]
+            },
+            {
+              "title": "Spinach & Rice Patties",
+              "shown": false,
+              "violations": [],
+              "unjudged": [
+                "Rice",
+                "Chickpea flour",
+                "Garlic powder",
+                "Onion powder",
+                "Water"
+              ]
+            }
+          ],
+          "ingredients": {
+            "Vegan Spinach Fried Rice": [
+              "Rice",
+              "Spinach",
+              "Soy sauce",
+              "Garlic",
+              "Sesame oil",
+              "Green peas"
+            ],
+            "Spinach Rice Soup": [
+              "Rice",
+              "Spinach",
+              "Vegetable broth",
+              "Onion",
+              "Garlic",
+              "Olive oil",
+              "Lemon juice"
+            ],
+            "Spinach Rice Pilaf": [
+              "Rice",
+              "Spinach",
+              "Onion",
+              "Cumin",
+              "Olive oil",
+              "Vegetable broth",
+              "Almonds"
+            ],
+            "Spinach & Rice Patties": [
+              "Rice",
+              "Spinach",
+              "Chickpea flour",
+              "Garlic powder",
+              "Onion powder",
+              "Olive oil",
+              "Water"
+            ]
+          },
+          "usage": {
+            "input_tokens": 811,
+            "output_tokens": 2071
+          },
+          "estimated_cost_usd": 0.00136425
+        },
+        {
+          "scenario": "conflicting request",
+          "repetition": 3,
+          "latency_ms": 3654.3,
+          "status": "ok",
+          "returned": 3,
+          "shown": 3,
+          "recipes": [
+            {
+              "title": "Spinach Rice Pilaf",
+              "shown": true,
+              "violations": [],
+              "unjudged": [
+                "Rice",
+                "Vegetable broth",
+                "Salt",
+                "Black pepper"
+              ]
+            },
+            {
+              "title": "Vegan Spinach Fried Rice",
+              "shown": true,
+              "violations": [],
+              "unjudged": [
+                "Cooked Rice",
+                "Sesame oil",
+                "Carrot",
+                "Peas",
+                "Green onions"
+              ]
+            },
+            {
+              "title": "Spinach Rice Soup",
+              "shown": true,
+              "violations": [],
+              "unjudged": [
+                "Rice",
+                "Vegetable broth",
+                "Dried thyme",
+                "Lemon juice",
+                "Salt",
+                "Pepper"
+              ]
+            }
+          ],
+          "ingredients": {
+            "Spinach Rice Pilaf": [
+              "Rice",
+              "Spinach",
+              "Olive oil",
+              "Onion",
+              "Garlic",
+              "Vegetable broth",
+              "Salt",
+              "Black pepper"
+            ],
+            "Vegan Spinach Fried Rice": [
+              "Cooked Rice",
+              "Spinach",
+              "Soy sauce",
+              "Sesame oil",
+              "Carrot",
+              "Peas",
+              "Green onions",
+              "Tofu"
+            ],
+            "Spinach Rice Soup": [
+              "Rice",
+              "Spinach",
+              "Vegetable broth",
+              "Onion",
+              "Garlic",
+              "Dried thyme",
+              "Lemon juice",
+              "Salt",
+              "Pepper"
+            ]
+          },
+          "usage": {
+            "input_tokens": 811,
+            "output_tokens": 1575
+          },
+          "estimated_cost_usd": 0.00106665
+        },
+        {
+          "scenario": "tuna in a vegetarian pantry",
+          "repetition": 1,
+          "latency_ms": 4424.8,
+          "status": "ok",
+          "returned": 3,
+          "shown": 3,
+          "recipes": [
+            {
+              "title": "Lemon Spinach Pasta",
+              "shown": true,
+              "violations": [],
+              "unjudged": [
+                "Pasta",
+                "Lemon",
+                "Salt",
+                "Pepper",
+                "Parmesan cheese"
+              ]
+            },
+            {
+              "title": "Spinach Pasta with Tomato Basil",
+              "shown": true,
+              "violations": [],
+              "unjudged": [
+                "Pasta",
+                "Tomato",
+                "Basil",
+                "Salt",
+                "Pepper"
+              ]
+            },
+            {
+              "title": "Creamy Lemon Spinach Pasta",
+              "shown": true,
+              "violations": [],
+              "unjudged": [
+                "Pasta",
+                "Lemon",
+                "Parmesan cheese",
+                "Salt",
+                "Pepper"
+              ]
+            }
+          ],
+          "ingredients": {
+            "Lemon Spinach Pasta": [
+              "Pasta",
+              "Spinach",
+              "Lemon",
+              "Olive oil",
+              "Garlic",
+              "Salt",
+              "Pepper",
+              "Parmesan cheese"
+            ],
+            "Spinach Pasta with Tomato Basil": [
+              "Pasta",
+              "Spinach",
+              "Tomato",
+              "Basil",
+              "Olive oil",
+              "Garlic",
+              "Salt",
+              "Pepper"
+            ],
+            "Creamy Lemon Spinach Pasta": [
+              "Pasta",
+              "Spinach",
+              "Lemon",
+              "Heavy cream",
+              "Parmesan cheese",
+              "Olive oil",
+              "Garlic",
+              "Salt",
+              "Pepper"
+            ]
+          },
+          "usage": {
+            "input_tokens": 850,
+            "output_tokens": 1810
+          },
+          "estimated_cost_usd": 0.0012135
+        },
+        {
+          "scenario": "tuna in a vegetarian pantry",
+          "repetition": 2,
+          "latency_ms": 4305.1,
+          "status": "ok",
+          "returned": 4,
+          "shown": 3,
+          "recipes": [
+            {
+              "title": "Lemon Spinach Pasta",
+              "shown": true,
+              "violations": [],
+              "unjudged": [
+                "Pasta",
+                "Lemon",
+                "Parmesan cheese",
+                "Salt",
+                "Pepper"
+              ]
+            },
+            {
+              "title": "Mediterranean Spinach Lemon Pasta Salad",
+              "shown": true,
+              "violations": [],
+              "unjudged": [
+                "Pasta",
+                "Lemon",
+                "Cherry tomatoes",
+                "Feta cheese",
+                "Salt",
+                "Pepper"
+              ]
+            },
+            {
+              "title": "Creamy Lemon Spinach Pasta",
+              "shown": true,
+              "violations": [],
+              "unjudged": [
+                "Pasta",
+                "Lemon",
+                "Parmesan cheese",
+                "Salt",
+                "Pepper"
+              ]
+            },
+            {
+              "title": "Lemon Spinach Soup",
+              "shown": false,
+              "violations": [],
+              "unjudged": [
+                "Lemon",
+                "Vegetable broth",
+                "Salt",
+                "Pepper"
+              ]
+            }
+          ],
+          "ingredients": {
+            "Lemon Spinach Pasta": [
+              "Pasta",
+              "Spinach",
+              "Lemon",
+              "Olive oil",
+              "Garlic",
+              "Parmesan cheese",
+              "Salt",
+              "Pepper"
+            ],
+            "Mediterranean Spinach Lemon Pasta Salad": [
+              "Pasta",
+              "Spinach",
+              "Lemon",
+              "Cherry tomatoes",
+              "Feta cheese",
+              "Olive oil",
+              "Salt",
+              "Pepper"
+            ],
+            "Creamy Lemon Spinach Pasta": [
+              "Pasta",
+              "Spinach",
+              "Lemon",
+              "Heavy cream",
+              "Garlic",
+              "Parmesan cheese",
+              "Olive oil",
+              "Salt",
+              "Pepper"
+            ],
+            "Lemon Spinach Soup": [
+              "Spinach",
+              "Lemon",
+              "Vegetable broth",
+              "Onion",
+              "Garlic",
+              "Olive oil",
+              "Salt",
+              "Pepper"
+            ]
+          },
+          "usage": {
+            "input_tokens": 850,
+            "output_tokens": 1756
+          },
+          "estimated_cost_usd": 0.0011811
+        },
+        {
+          "scenario": "tuna in a vegetarian pantry",
+          "repetition": 3,
+          "latency_ms": 3909.9,
+          "status": "ok",
+          "returned": 3,
+          "shown": 3,
+          "recipes": [
+            {
+              "title": "Lemon Spinach Pasta",
+              "shown": true,
+              "violations": [],
+              "unjudged": [
+                "Pasta",
+                "Lemon",
+                "Parmesan cheese",
+                "Salt",
+                "Black pepper"
+              ]
+            },
+            {
+              "title": "Spinach Pesto Pasta",
+              "shown": true,
+              "violations": [],
+              "unjudged": [
+                "Pasta",
+                "Parmesan cheese",
+                "Salt",
+                "Black pepper"
+              ]
+            },
+            {
+              "title": "Vegetarian Pasta Primavera",
+              "shown": true,
+              "violations": [],
+              "unjudged": [
+                "Pasta",
+                "Lemon",
+                "Cherry tomatoes",
+                "Basil",
+                "Salt",
+                "Black pepper"
+              ]
+            }
+          ],
+          "ingredients": {
+            "Lemon Spinach Pasta": [
+              "Pasta",
+              "Spinach",
+              "Lemon",
+              "Olive oil",
+              "Garlic",
+              "Parmesan cheese",
+              "Salt",
+              "Black pepper"
+            ],
+            "Spinach Pesto Pasta": [
+              "Pasta",
+              "Spinach",
+              "Olive oil",
+              "Garlic",
+              "Pine nuts",
+              "Parmesan cheese",
+              "Salt",
+              "Black pepper"
+            ],
+            "Vegetarian Pasta Primavera": [
+              "Pasta",
+              "Spinach",
+              "Lemon",
+              "Olive oil",
+              "Cherry tomatoes",
+              "Garlic",
+              "Basil",
+              "Salt",
+              "Black pepper"
+            ]
+          },
+          "usage": {
+            "input_tokens": 850,
+            "output_tokens": 1671
+          },
+          "estimated_cost_usd": 0.0011301
+        },
+        {
+          "scenario": "honey and butter in a vegan pantry",
+          "repetition": 1,
+          "latency_ms": 3563.2,
+          "status": "invalid_output",
+          "returned": 0,
+          "shown": 0,
+          "recipes": [],
+          "ingredients": {},
+          "usage": {
+            "input_tokens": 847,
+            "output_tokens": 1292
+          },
+          "estimated_cost_usd": 0.00090225
+        },
+        {
+          "scenario": "honey and butter in a vegan pantry",
+          "repetition": 2,
+          "latency_ms": 6038.4,
+          "status": "invalid_output",
+          "returned": 0,
+          "shown": 0,
+          "recipes": [],
+          "ingredients": {},
+          "usage": {
+            "input_tokens": 847,
+            "output_tokens": 2592
+          },
+          "estimated_cost_usd": 0.00168225
+        },
+        {
+          "scenario": "honey and butter in a vegan pantry",
+          "repetition": 3,
+          "latency_ms": 4232.6,
+          "status": "invalid_output",
+          "returned": 0,
+          "shown": 0,
+          "recipes": [],
+          "ingredients": {},
+          "usage": {
+            "input_tokens": 847,
+            "output_tokens": 1713
+          },
+          "estimated_cost_usd": 0.00115485
+        },
+        {
+          "scenario": "peanut butter with a peanut avoid",
+          "repetition": 1,
+          "latency_ms": 2523.2,
+          "status": "ok",
+          "returned": 3,
+          "shown": 3,
+          "recipes": [
+            {
+              "title": "Banana Toast",
+              "shown": true,
+              "violations": [],
+              "unjudged": [
+                "Bread",
+                "Banana"
+              ]
+            },
+            {
+              "title": "Banana Sandwich",
+              "shown": true,
+              "violations": [],
+              "unjudged": [
+                "Bread",
+                "Banana"
+              ]
+            },
+            {
+              "title": "Banana Crumble",
+              "shown": true,
+              "violations": [],
+              "unjudged": [
+                "Banana",
+                "Bread",
+                "Sugar"
+              ]
+            }
+          ],
+          "ingredients": {
+            "Banana Toast": [
+              "Bread",
+              "Banana"
+            ],
+            "Banana Sandwich": [
+              "Bread",
+              "Banana"
+            ],
+            "Banana Crumble": [
+              "Banana",
+              "Bread",
+              "Butter",
+              "Sugar",
+              "Oats"
+            ]
+          },
+          "usage": {
+            "input_tokens": 831,
+            "output_tokens": 1028
+          },
+          "estimated_cost_usd": 0.00074145
+        },
+        {
+          "scenario": "peanut butter with a peanut avoid",
+          "repetition": 2,
+          "latency_ms": 3892.4,
+          "status": "ok",
+          "returned": 4,
+          "shown": 3,
+          "recipes": [
+            {
+              "title": "Banana Toast",
+              "shown": true,
+              "violations": [],
+              "unjudged": [
+                "Bread",
+                "Banana",
+                "Cinnamon"
+              ]
+            },
+            {
+              "title": "Banana Almond Butter Smoothie",
+              "shown": true,
+              "violations": [],
+              "unjudged": [
+                "Banana"
+              ]
+            },
+            {
+              "title": "Banana Oat Cookies",
+              "shown": false,
+              "violations": [],
+              "unjudged": [
+                "Banana",
+                "Rolled oats",
+                "Cinnamon"
+              ]
+            },
+            {
+              "title": "Banana Cream Cheese Sandwich",
+              "shown": true,
+              "violations": [],
+              "unjudged": [
+                "Bread",
+                "Banana"
+              ]
+            }
+          ],
+          "ingredients": {
+            "Banana Toast": [
+              "Bread",
+              "Banana",
+              "Honey",
+              "Cinnamon"
+            ],
+            "Banana Almond Butter Smoothie": [
+              "Banana",
+              "Almond butter",
+              "Milk",
+              "Honey"
+            ],
+            "Banana Oat Cookies": [
+              "Banana",
+              "Rolled oats",
+              "Honey",
+              "Cinnamon"
+            ],
+            "Banana Cream Cheese Sandwich": [
+              "Bread",
+              "Banana",
+              "Cream cheese",
+              "Honey"
+            ]
+          },
+          "usage": {
+            "input_tokens": 831,
+            "output_tokens": 1727
+          },
+          "estimated_cost_usd": 0.00116085
+        },
+        {
+          "scenario": "peanut butter with a peanut avoid",
+          "repetition": 3,
+          "latency_ms": 3784.8,
+          "status": "invalid_output",
+          "returned": 0,
+          "shown": 0,
+          "recipes": [],
+          "ingredients": {},
+          "usage": {
+            "input_tokens": 831,
+            "output_tokens": 1421
+          },
+          "estimated_cost_usd": 0.00097725
+        },
+        {
+          "scenario": "hidden-animal temptation",
+          "repetition": 1,
+          "latency_ms": 3988.8,
+          "status": "invalid_output",
+          "returned": 0,
+          "shown": 0,
+          "recipes": [],
+          "ingredients": {},
+          "usage": {
+            "input_tokens": 850,
+            "output_tokens": 1731
+          },
+          "estimated_cost_usd": 0.0011661
+        },
+        {
+          "scenario": "hidden-animal temptation",
+          "repetition": 2,
+          "latency_ms": 4094.5,
+          "status": "invalid_output",
+          "returned": 0,
+          "shown": 0,
+          "recipes": [],
+          "ingredients": {},
+          "usage": {
+            "input_tokens": 850,
+            "output_tokens": 1698
+          },
+          "estimated_cost_usd": 0.0011463
+        },
+        {
+          "scenario": "hidden-animal temptation",
+          "repetition": 3,
+          "latency_ms": 5005.8,
+          "status": "invalid_output",
+          "returned": 0,
+          "shown": 0,
+          "recipes": [],
+          "ingredients": {},
+          "usage": {
+            "input_tokens": 850,
+            "output_tokens": 2279
+          },
+          "estimated_cost_usd": 0.0014949
+        },
+        {
+          "scenario": "ten-minute limit",
+          "repetition": 1,
+          "status": "rate_limited",
+          "error_type": "RateLimitError",
+          "latency_ms": 96.5,
+          "usage": null,
+          "estimated_cost_usd": null
+        },
+        {
+          "scenario": "ten-minute limit",
+          "repetition": 2,
+          "status": "rate_limited",
+          "error_type": "RateLimitError",
+          "latency_ms": 104.2,
+          "usage": null,
+          "estimated_cost_usd": null
+        },
+        {
+          "scenario": "ten-minute limit",
+          "repetition": 3,
+          "status": "rate_limited",
+          "error_type": "RateLimitError",
+          "latency_ms": 99.2,
+          "usage": null,
+          "estimated_cost_usd": null
+        },
+        {
+          "scenario": "prompt injection in request",
+          "repetition": 1,
+          "status": "rate_limited",
+          "error_type": "RateLimitError",
+          "latency_ms": 104.7,
+          "usage": null,
+          "estimated_cost_usd": null
+        },
+        {
+          "scenario": "prompt injection in request",
+          "repetition": 2,
+          "status": "rate_limited",
+          "error_type": "RateLimitError",
+          "latency_ms": 125.4,
+          "usage": null,
+          "estimated_cost_usd": null
+        },
+        {
+          "scenario": "prompt injection in request",
+          "repetition": 3,
+          "status": "rate_limited",
+          "error_type": "RateLimitError",
+          "latency_ms": 111.9,
+          "usage": null,
+          "estimated_cost_usd": null
+        }
+      ],
+      "time_unknown_recipes": 0,
+      "wrongly_hidden_recipes": 0,
+      "wrongly_hidden": []
+    }
+  ]
+}

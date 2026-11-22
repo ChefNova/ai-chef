@@ -91,7 +91,7 @@ Proposed Roadmap:
 
 Upload receipt → Review extracted groceries → Save quantities → Request a recipe → Confirm/edit inventory → Recommend recipes.
 
-The prototype accepts PNG/JPG receipt images and stores reviewed groceries in a local SQLite database, so the pantry and preferences are still there in the next session. Receipts are not deduplicated, so scanning one twice adds its quantities twice. Matching names and units are added together; different units remain separate. Receipt images are sent to Gemini and are not persisted locally. User names identify local profiles, but are not authentication. Automatic consumption tracking is outside the initial scope.
+The prototype accepts PNG/JPG receipt images and stores reviewed groceries in a local SQLite database, so the pantry and preferences are still there in the next session. Receipts are not deduplicated, so scanning one twice adds its quantities twice. Matching names and units are added together; different units remain separate. Receipt images are sent to Gemini and are not persisted locally. Users sign in with a username and password or with Google; each account gets its own saved pantry. Automatic consumption tracking is outside the initial scope.
 
 ## Saved pantry and storage API
 

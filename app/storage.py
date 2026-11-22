@@ -7,7 +7,11 @@ Every operation opens its own short-lived connection, so a store can be shared
 between threads, and between the UI and API processes.
 """
 
+import hashlib
+import hmac
 import os
+import re
+import secrets
 import sqlite3
 from collections.abc import Iterable, Iterator
 from contextlib import contextmanager
@@ -52,6 +56,10 @@ class UserNotFoundError(StorageError):
 
 
 class ItemNotFoundError(StorageError):
+    pass
+
+
+class AccountExistsError(StorageError):
     pass
 
 
@@ -107,7 +115,53 @@ MIGRATIONS: tuple[tuple[str, ...], ...] = (
         ) STRICT
         """,
     ),
+    # Email/password accounts. NULL means the profile has no password (Google or older profiles).
+    (
+        "ALTER TABLE users ADD COLUMN password_hash TEXT",
+        "ALTER TABLE users ADD COLUMN email TEXT",
+        # SQLite cannot add a UNIQUE column, so the index enforces it. NULLs (Google accounts) may repeat.
+        "CREATE UNIQUE INDEX users_email ON users (email)",
+    ),
 )
+
+# Profiles made by Google sign-in. A password account may not take a name in this space.
+GOOGLE_PREFIX = "google-"
+MIN_PASSWORD_LENGTH = 8
+MAX_PASSWORD_LENGTH = 128
+# scrypt cost settings (OWASP minimum: N=2^17, r=8, p=1). Stored with each hash so they can be raised later.
+_SCRYPT_N, _SCRYPT_R, _SCRYPT_P = 2**17, 8, 1
+
+
+def hash_password(password: str) -> str:
+    salt = secrets.token_bytes(16)
+    digest = hashlib.scrypt(
+        password.encode(), salt=salt, n=_SCRYPT_N, r=_SCRYPT_R, p=_SCRYPT_P, maxmem=256 * 1024 * 1024
+    )
+    return f"scrypt${_SCRYPT_N}${_SCRYPT_R}${_SCRYPT_P}${salt.hex()}${digest.hex()}"
+
+
+def password_matches(password: str, stored: str) -> bool:
+    _, n, r, p, salt, expected = stored.split("$")
+    digest = hashlib.scrypt(
+        password.encode(), salt=bytes.fromhex(salt), n=int(n), r=int(r), p=int(p), maxmem=256 * 1024 * 1024
+    )
+    return hmac.compare_digest(digest.hex(), expected)
+
+
+# shortcut: shape check only, no confirmation email; add a verification link if email is used for resets.
+_EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
+
+
+def normalize_email(value: str) -> str:
+    cleaned = str(value).strip().lower()
+    if len(cleaned) > 254 or not _EMAIL_RE.fullmatch(cleaned):
+        raise ValueError("Enter a valid email address, like name@example.com.")
+    return cleaned
+
+
+def check_new_password(password: str) -> None:
+    if not MIN_PASSWORD_LENGTH <= len(password) <= MAX_PASSWORD_LENGTH:
+        raise ValueError(f"Passwords must be {MIN_PASSWORD_LENGTH}-{MAX_PASSWORD_LENGTH} characters.")
 
 
 def resolve_db_path() -> Path:
@@ -198,18 +252,38 @@ class PantryStore:
             row = conn.execute("SELECT * FROM users WHERE username = ?", (name,)).fetchone()
             if row is not None:
                 return User.model_validate(dict(row)), False
-            user_id = conn.execute("INSERT INTO users (username) VALUES (?)", (name,)).lastrowid
-            conn.execute(
-                """
-                INSERT INTO user_preferences (user_id, diet, cuisine, max_minutes, priority, high_protein)
-                VALUES (:user_id, :diet, :cuisine, :max_minutes, :priority, :high_protein)
-                """,
-                {"user_id": user_id, **DEFAULT_PREFERENCES},
-            )
-            for item in seed_items:
-                self._add_or_merge(conn, user_id, item)
-            row = conn.execute("SELECT * FROM users WHERE id = ?", (user_id,)).fetchone()
-            return User.model_validate(dict(row)), True
+            return self._create_profile(conn, name, seed_items), True
+
+    def create_account(
+        self, username: str, email: str, password: str, seed_items: Iterable[PantryItemCreate] = ()
+    ) -> User:
+        """Make a username/password account with the same starting pantry and preferences as any new profile."""
+        name = normalize_username(username)
+        if name.startswith(GOOGLE_PREFIX):
+            raise ValueError(f"Usernames may not start with '{GOOGLE_PREFIX}'.")
+        email = normalize_email(email)
+        check_new_password(password)
+        password_hash = hash_password(password)  # Slow on purpose, so done before taking the write lock.
+        with self._transaction(write=True) as conn:
+            if conn.execute("SELECT 1 FROM users WHERE username = ?", (name,)).fetchone():
+                raise AccountExistsError(f"The username '{name}' is taken.")
+            if conn.execute("SELECT 1 FROM users WHERE email = ?", (email,)).fetchone():
+                raise AccountExistsError("An account with that email already exists.")
+            return self._create_profile(conn, name, seed_items, password_hash, email)
+
+    def check_password(self, username: str, password: str) -> User | None:
+        """The account if the password is right. None for a wrong password, unknown name, or Google profile."""
+        try:
+            name = normalize_username(username)
+        except ValueError:
+            return None
+        with self._transaction() as conn:
+            row = conn.execute("SELECT * FROM users WHERE username = ?", (name,)).fetchone()
+        if row is None or row["password_hash"] is None:
+            return None
+        if not password_matches(password[:MAX_PASSWORD_LENGTH], row["password_hash"]):
+            return None
+        return User.model_validate(dict(row))
 
     def get_user(self, username: str) -> User:
         with self._transaction() as conn:
@@ -346,6 +420,29 @@ class PantryStore:
             return self._read_preferences(conn, user_id)
 
     # ---------- Helpers that run inside an open transaction ----------
+    def _create_profile(
+        self,
+        conn: sqlite3.Connection,
+        name: str,
+        seed_items: Iterable[PantryItemCreate],
+        password_hash: str | None = None,
+        email: str | None = None,
+    ) -> User:
+        user_id = conn.execute(
+            "INSERT INTO users (username, password_hash, email) VALUES (?, ?, ?)", (name, password_hash, email)
+        ).lastrowid
+        conn.execute(
+            """
+            INSERT INTO user_preferences (user_id, diet, cuisine, max_minutes, priority, high_protein)
+            VALUES (:user_id, :diet, :cuisine, :max_minutes, :priority, :high_protein)
+            """,
+            {"user_id": user_id, **DEFAULT_PREFERENCES},
+        )
+        for item in seed_items:
+            self._add_or_merge(conn, user_id, item)
+        row = conn.execute("SELECT * FROM users WHERE id = ?", (user_id,)).fetchone()
+        return User.model_validate(dict(row))
+
     @staticmethod
     def _user_id(conn: sqlite3.Connection, username: str) -> int:
         name = normalize_username(username)

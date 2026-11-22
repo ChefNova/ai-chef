@@ -7,6 +7,8 @@ AppTest cannot type into st.data_editor, so edits to the pantry table are simula
 by replacing what the editor returns. Everything after that point is the real save path.
 """
 
+import json
+import sqlite3
 from pathlib import Path
 
 import pandas as pd
@@ -30,10 +32,19 @@ def no_ambient_keys(monkeypatch):
     monkeypatch.delenv("GROQ_API_KEY", raising=False)
 
 
-def new_session(profile=None):
+# A signed-in Google account is stored under "google-<sub>".
+ME = "google-test-user"
+
+
+def signed_in(google_sub="test-user"):
+    """An app session for a user Google has already signed in."""
     session = AppTest.from_file(APP_FILE, default_timeout=30)
-    if profile:
-        session.query_params["profile"] = profile
+    session.user = {"is_logged_in": True, "sub": google_sub, "email": f"{google_sub}@example.com"}
+    return session
+
+
+def new_session(google_sub="test-user"):
+    session = signed_in(google_sub)
     session.run()
     assert not session.exception, session.exception
     return session
@@ -159,7 +170,7 @@ def test_invalid_row_shows_an_error_and_saves_nothing():
 def test_clear_pantry_persists_and_only_clears_current_profile():
     session = new_session()
     other = PantryStore()
-    other.ensure_user("other", seed_items=[PantryItemCreate(name="Tofu", quantity=1, unit="block")])
+    other.ensure_user("google-other", seed_items=[PantryItemCreate(name="Tofu", quantity=1, unit="block")])
     click(session, "My Inventory")
     click(session, "Confirm Inventory")
     session.session_state["recommendation_candidates"] = [{"title": "Old recipe"}]
@@ -175,7 +186,7 @@ def test_clear_pantry_persists_and_only_clears_current_profile():
     assert session.session_state["diet_pref"] == "Vegetarian"
     assert next(button for button in session.button if button.label == "Clear pantry").disabled
     assert new_session().session_state["inventory"] == []
-    assert pantry_names(new_session(profile="other")) == {"Tofu"}
+    assert pantry_names(new_session("other")) == {"Tofu"}
 
 
 # ---------- Confirmation ----------
@@ -210,7 +221,7 @@ def test_change_from_another_tab_clears_the_confirmation_and_shows_up():
     click(session, "My Inventory")
     click(session, "Confirm Inventory")
 
-    PantryStore().add_item("default", PantryItemCreate(name="Tofu", quantity=1, unit="block"))
+    PantryStore().add_item(ME, PantryItemCreate(name="Tofu", quantity=1, unit="block"))
     click(session, "Home")
 
     assert "Tofu" in pantry_names(session)
@@ -249,12 +260,12 @@ def test_preferences_are_there_in_the_next_session():
 
 
 def test_clearing_the_avoid_list_is_saved():
-    PantryStore().ensure_user("default")
-    PantryStore().update_preferences("default", PreferencesUpdate(dietary_restrictions=["peanuts"]))
+    PantryStore().ensure_user(ME)
+    PantryStore().update_preferences(ME, PreferencesUpdate(dietary_restrictions=["peanuts"]))
     session = new_session()
     open_get_recipe(session)
     session.text_input(key="avoid_pref").set_value("").run()
-    assert PantryStore().get_preferences("default").dietary_restrictions == []
+    assert PantryStore().get_preferences(ME).dietary_restrictions == []
 
 
 def test_hard_filters_survive_leaving_the_page():
@@ -296,7 +307,7 @@ def test_chat_refinements_stay_temporary():
     session = new_session()
     session.session_state["priority_pref"] = "Fastest"
     session.run()
-    assert PantryStore().get_preferences("default").priority == "Best pantry match"
+    assert PantryStore().get_preferences(ME).priority == "Best pantry match"
     assert new_session().session_state["priority_pref"] == "Best pantry match"
 
 
@@ -305,7 +316,7 @@ def test_changing_one_preference_does_not_save_a_refined_one():
     open_get_recipe(session)
     session.session_state["priority_pref"] = "Fastest"
     session.selectbox(key="diet_pref").set_value("Vegan").run()
-    saved = PantryStore().get_preferences("default")
+    saved = PantryStore().get_preferences(ME)
     assert saved.diet == "Vegan"
     assert saved.priority == "Best pantry match"
 
@@ -316,53 +327,114 @@ def test_profiles_keep_separate_pantries_and_preferences():
     open_get_recipe(first)
     first.selectbox(key="diet_pref").set_value("Vegan").run()
 
-    PantryStore().ensure_user("bob", seed_items=[PantryItemCreate(name="Steak", quantity=1, unit="count")])
+    PantryStore().ensure_user("google-bob", seed_items=[PantryItemCreate(name="Steak", quantity=1, unit="count")])
 
-    bob = new_session(profile="bob")
+    bob = new_session("bob")
     assert pantry_names(bob) == {"Steak"}
     assert bob.session_state["diet_pref"] == "Vegetarian"
     assert new_session().session_state["diet_pref"] == "Vegan"
 
 
-def test_url_keeps_a_refresh_on_the_same_profile():
-    PantryStore().ensure_user("aditya", seed_items=[PantryItemCreate(name="Tofu", quantity=1, unit="block")])
-    session = new_session(profile="Aditya")
-    assert session.session_state["profile"] == "aditya"
+def test_signed_out_visitor_sees_only_sign_in_and_nothing_is_saved(isolated_database):
+    session = AppTest.from_file(APP_FILE, default_timeout=30).run()
+    assert not session.exception
+    assert "inventory" not in session.session_state
+    assert not isolated_database.exists()
+    # No secrets file in tests: Google is not offered, and no setup note is shown to visitors.
+    assert not any(button.label == "Sign in with Google" for button in session.button)
+    assert not any("secrets.toml" in element.value for element in [*session.caption, *session.error])
+
+
+def test_first_sign_in_creates_the_account_with_the_starter_pantry():
+    session = new_session("new-person")
+    assert session.session_state["profile"] == "google-new-person"
+    assert pantry_names(session) == STARTER_NAMES
+    assert PantryStore().get_user("google-new-person").username == "google-new-person"
+
+
+def test_url_cannot_open_another_accounts_pantry():
+    PantryStore().ensure_user("victim", seed_items=[PantryItemCreate(name="Tofu", quantity=1, unit="block")])
+    session = signed_in()
+    session.query_params["profile"] = "victim"
+    session.run()
+    assert session.session_state["profile"] == ME
+    assert pantry_names(session) == STARTER_NAMES
+
+
+def test_sidebar_shows_the_signed_in_email_and_a_log_out_button():
+    session = new_session()
+    assert any("test-user@example.com" in caption.value for caption in session.caption)
+    assert any(button.label == "Log out" for button in session.button)
+
+
+def signed_out():
+    session = AppTest.from_file(APP_FILE, default_timeout=30).run()
+    assert not session.exception, session.exception
+    return session
+
+
+def submit(session, form_values, button):
+    for key, value in form_values.items():
+        session.text_input(key=key).set_value(value)
+    next(b for b in session.button if b.label == button).click().run()
+    assert not session.exception, session.exception
+    return session
+
+
+def test_create_account_form_makes_an_account_and_signs_in():
+    session = submit(
+        signed_out(),
+        {"signup_username": "Priya", "signup_email": "Priya@Example.com", "signup_password": "correct horse", "signup_confirm": "correct horse"},
+        "Create account",
+    )
+    assert session.session_state["profile"] == "priya"
+    assert pantry_names(session) == STARTER_NAMES
+    with sqlite3.connect(PantryStore().path) as conn:
+        assert conn.execute("SELECT email FROM users WHERE username = 'priya'").fetchone() == ("priya@example.com",)
+    assert any("priya" in caption.value for caption in session.caption)
+
+
+def test_create_account_refuses_a_bad_email_and_stays_on_the_form():
+    session = submit(
+        signed_out(),
+        {"signup_username": "priya", "signup_email": "not-an-email", "signup_password": "correct horse", "signup_confirm": "correct horse"},
+        "Create account",
+    )
+    assert "profile" not in session.session_state
+    assert any("valid email" in error.value for error in session.error)
+
+
+def test_create_account_refuses_mismatched_passwords():
+    session = submit(
+        signed_out(),
+        {"signup_username": "priya", "signup_email": "priya@example.com", "signup_password": "correct horse", "signup_confirm": "different"},
+        "Create account",
+    )
+    assert "profile" not in session.session_state
+    assert any("do not match" in error.value for error in session.error)
+
+
+def test_sign_in_form_opens_the_saved_pantry():
+    PantryStore().create_account("priya", "priya@example.com", "correct horse", seed_items=[PantryItemCreate(name="Tofu", quantity=1, unit="block")])
+    session = submit(signed_out(), {"signin_username": "priya", "signin_password": "correct horse"}, "Sign in")
     assert pantry_names(session) == {"Tofu"}
 
 
-def test_bad_profile_in_the_url_falls_back_to_the_default():
-    assert new_session(profile="../../etc").session_state["profile"] == "default"
+def test_wrong_password_shows_one_message_and_stays_signed_out():
+    PantryStore().create_account("priya", "priya@example.com", "correct horse")
+    for username in ("priya", "nobody"):
+        session = submit(signed_out(), {"signin_username": username, "signin_password": "nope nope"}, "Sign in")
+        assert "profile" not in session.session_state
+        assert [error.value for error in session.error] == ["Wrong username or password."]
 
 
-def test_switching_profile_leaves_nothing_from_the_old_one():
-    session = new_session()
-    click(session, "My Inventory")
-    click(session, "Confirm Inventory")
-    session.session_state["review_items"] = [{"Ingredient": "Secret", "Quantity": 1, "Unit": "cup"}]
-    session.text_input(key="gemini_api_key_input").set_value(SESSION_ONLY_KEY).run()
-
-    session.text_input(key="profile_input").set_value("Second Person").run()
-    assert not session.exception
-
-    assert session.session_state["profile"] == "second person"
-    assert session.query_params["profile"] == "second person"
-    assert session.session_state["page"] == "Home"
-    assert session.session_state["confirmed"] is False
-    assert session.session_state["review_items"] == []
-    # A new profile starts from the same documented state as a first visit.
-    assert pantry_names(session) == STARTER_NAMES
-    # The key belongs to this browser session, not to the profile.
-    assert session.session_state["gemini_api_key"] == SESSION_ONLY_KEY
-
-
-def test_invalid_profile_name_is_refused_and_keeps_the_current_one():
-    session = new_session()
-    session.text_input(key="profile_input").set_value("bad/name").run()
-    assert not session.exception
-    assert session.session_state["profile"] == "default"
-    assert session.text_input(key="profile_input").value == "default"
-    assert any("Profile names" in error.value for error in session.error)
+def test_log_out_clears_the_password_session():
+    PantryStore().create_account("priya", "priya@example.com", "correct horse")
+    session = submit(signed_out(), {"signin_username": "priya", "signin_password": "correct horse"}, "Sign in")
+    click(session, "Log out")
+    assert "password_user" not in session.session_state
+    assert "profile" not in session.session_state
+    assert any(button.label == "Sign in" for button in session.button)
 
 
 # ---------- UI and API share one database ----------
@@ -370,15 +442,15 @@ def test_ui_and_api_see_each_others_writes():
     session = new_session()
     api = TestClient(api_app)
 
-    names = {item["name"] for item in api.get("/api/v1/users/default/pantry").json()}
+    names = {item["name"] for item in api.get(f"/api/v1/users/{ME}/pantry").json()}
     assert names == STARTER_NAMES
 
     open_get_recipe(session)
     session.selectbox(key="cuisine_pref").set_value("Asian").run()
-    assert api.get("/api/v1/users/default/preferences").json()["cuisine"] == "Asian"
+    assert api.get(f"/api/v1/users/{ME}/preferences").json()["cuisine"] == "Asian"
 
-    api.post("/api/v1/users/default/pantry", json={"name": "Tofu", "quantity": 1, "unit": "block"})
-    api.patch("/api/v1/users/default/preferences", json={"diet": "Vegan", "max_minutes": None})
+    api.post(f"/api/v1/users/{ME}/pantry", json={"name": "Tofu", "quantity": 1, "unit": "block"})
+    api.patch(f"/api/v1/users/{ME}/preferences", json={"diet": "Vegan", "max_minutes": None})
     returning = new_session()
     assert "Tofu" in pantry_names(returning)
     assert returning.session_state["diet_pref"] == "Vegan"
@@ -388,7 +460,7 @@ def test_ui_and_api_see_each_others_writes():
 def test_every_preference_the_api_accepts_can_be_shown_by_the_ui():
     """A value missing from a select box would crash the Get Recipe page."""
     api = TestClient(api_app)
-    api.put("/api/v1/users/default")
+    api.put(f"/api/v1/users/{ME}")
     for field, choices in {
         "diet": ["No preference", "Vegetarian", "Vegan"],
         "cuisine": ["Any", "Indian", "Mediterranean", "Asian"],
@@ -396,7 +468,7 @@ def test_every_preference_the_api_accepts_can_be_shown_by_the_ui():
         "max_minutes": [15, 20, 30, 45, None],
     }.items():
         for choice in choices:
-            assert api.patch("/api/v1/users/default/preferences", json={field: choice}).status_code == 200
+            assert api.patch(f"/api/v1/users/{ME}/preferences", json={field: choice}).status_code == 200
             session = new_session()
             open_get_recipe(session)
             assert not session.exception
@@ -424,7 +496,7 @@ def test_unusable_database_shows_an_error_instead_of_crashing(tmp_path, monkeypa
     blocker = tmp_path / "not-a-folder"
     blocker.write_text("")
     monkeypatch.setenv("CHEFNOVA_DB_PATH", str(blocker / "chefnova.db"))
-    session = AppTest.from_file(APP_FILE, default_timeout=30).run()
+    session = signed_in().run()
     assert not session.exception
     assert any("could not open its saved pantry" in error.value for error in session.error)
 
@@ -444,3 +516,17 @@ def test_recipe_details_show_verified_amounts_and_unknown_quantities():
     session.run()
     assert not session.exception
     assert any("Check amounts: Rice" in item.value for item in session.warning)
+
+
+def test_recipe_results_carry_the_not_an_allergy_check_notice():
+    from app.recipe_recommendations import parse_model_output
+
+    session = new_session()
+    session.session_state["page"] = "Recommendations"
+    parsed = parse_model_output(json.dumps({"recipes": [{
+        "title": "Rice bowl", "ingredients": ["Rice"], "diet": "Vegan", "minutes": 10, "protein_g": 5,
+        "instructions": ["Cook."]}]}))
+    session.session_state["recommendation_candidates"] = parsed.candidates
+    session.run()
+    assert not session.exception
+    assert any("not allergy checks" in caption.value for caption in session.caption)
